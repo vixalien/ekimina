@@ -37,11 +37,11 @@ export const exitScreen: ScreenFn = () => ({
 
 // ── 1. Make Contribution ───────────────────────────────────────────────────
 
-const paymentResultScreen: ScreenFn = (ctx) => {
+const paymentResultScreen: ScreenFn = (ctx, key) => {
   const member = getMember(ctx);
   return {
     response:
-      ctx.params.confirmed === "1"
+      key === "1"
         ? end(
             `Payment Successful!
 0.01 USDm contributed
@@ -54,7 +54,7 @@ SMS confirmation sent.`,
   };
 };
 
-const confirmPaymentScreen: ScreenFn = (ctx, key) => ({
+const confirmPaymentScreen: ScreenFn = (ctx) => ({
   response: con(
     `Confirm Payment
 0.01 USDm via ${providers[ctx.params.provider ?? ""]}
@@ -64,7 +64,6 @@ Round 4
 1. Confirm
 0. Cancel`,
   ),
-  params: { confirmed: key ?? "" },
   next: new Map([
     ["1", paymentResultScreen],
     ["0", paymentResultScreen],
@@ -221,9 +220,9 @@ const memberListScreen: ScreenFn = () => {
 
 // 6.4 Record default
 
-const recordDefaultResultScreen: ScreenFn = (ctx) => ({
+const recordDefaultResultScreen: ScreenFn = (ctx, key) => ({
   response:
-    ctx.params.confirmed === "1"
+    key === "1"
       ? end(
           `Default Recorded.
 ${ctx.params.defaultMember} - reputation -20.
@@ -232,8 +231,7 @@ Member notified via SMS.`,
       : end("Cancelled."),
 });
 
-const recordDefaultConfirmScreen: ScreenFn = (_ctx, key) => ({
-  params: { confirmed: key ?? "" },
+const recordDefaultConfirmScreen: ScreenFn = (_ctx) => ({
   response: con(
     `Record Default
 Member: ${_ctx.params.defaultMember}
@@ -269,9 +267,9 @@ Round 4 - Pending members:
 
 // 6.3 Release payout
 
-const releasePayoutResultScreen: ScreenFn = (ctx) => ({
+const releasePayoutResultScreen: ScreenFn = (_ctx, key) => ({
   response:
-    ctx.params.confirmed === "1"
+    key === "1"
       ? end(
           `Payout Released!
 0.06 USDm sent to
@@ -282,8 +280,7 @@ Round 5 now active.`,
       : end("Cancelled."),
 });
 
-const releasePayoutMenu: ScreenFn = (_ctx, key) => ({
-  params: { confirmed: key ?? "" },
+const releasePayoutMenu: ScreenFn = (_ctx) => ({
   response: con(
     `Release Payout
 Round ${dummyGroup.currentRound}
@@ -302,9 +299,9 @@ Paid: ${dummyGroup.paidCount}/${dummyGroup.totalMembers}
 
 // 6.2 Set recipient
 
-const setRecipientResultScreen: ScreenFn = (ctx) => ({
+const setRecipientResultScreen: ScreenFn = (ctx, key) => ({
   response:
-    ctx.params.confirmed === "1"
+    key === "1"
       ? end(
           `Recipient set!
 ${ctx.params.recipient} confirmed
@@ -313,8 +310,7 @@ for Round 4.`,
       : end("Cancelled."),
 });
 
-const setRecipientConfirmScreen: ScreenFn = (ctx, key) => ({
-  params: { confirmed: key ?? "" },
+const setRecipientConfirmScreen: ScreenFn = (ctx) => ({
   response: con(
     `Confirm Recipient
 Round 4 recipient:
@@ -354,9 +350,9 @@ ${lines}
 
 // 6.1 Add member
 
-const addMemberResultScreen: ScreenFn = (ctx) => ({
+const addMemberResultScreen: ScreenFn = (ctx, key) => ({
   response:
-    ctx.params.confirmed === "1"
+    key === "1"
       ? end(
           `Member Added!
 ${ctx.params.newPhone} registered
@@ -368,7 +364,7 @@ SMS sent to member.`,
 });
 
 const addMemberConfirmScreen: ScreenFn = (_ctx, key) => ({
-  params: { newPhone: key ?? "", confirmed: "" },
+  params: { newPhone: key ?? "" },
   response: con(
     `Add Member
 Phone: ${key}
