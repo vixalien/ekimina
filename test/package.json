@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "live-server --no-browser --verbose src"
+    "start": "live-server --no-browser --verbose src",
+    "dev": "pnpm run start"
   },
   "keywords": [],
   "author": "",

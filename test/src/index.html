@@ -8,6 +8,8 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
     />
+    <script type="module" src="script.js"></script>
+
     <title>USSD Test</title>
   </head>
   <body>
@@ -18,18 +20,20 @@
           <label>
             Phone Number
             <input
-              name="phone_number"
+              name="phone"
               placeholder="Phone Number"
               autocomplete="tel"
+              value="+250788666655"
             />
           </label>
           <label>
             Callback URL
             <input
               type="url"
-              name="callback_url"
+              name="url"
               placeholder="Callback URL"
               autocomplete="url"
+              value="http://localhost:3000/ussd"
             />
           </label>
 
@@ -37,15 +41,32 @@
             Service Code
             <input
               type="text"
-              name="service_code"
+              name="code"
               placeholder="Service Code"
               autocomplete="text"
+              value="49035"
             />
           </label>
         </fieldset>
 
-        <input type="submit" value="Subscribe" />
+        <input type="button" value="Dial" onclick="sendRequest()" />
       </form>
     </main>
+
+    <dialog id="dialog">
+      <article>
+        <p id="dialogText" style="white-space: pre"></p>
+        <footer>
+          <input
+            type="text"
+            id="dialogInput"
+            autocomplete="off"
+            data-bwignore
+          />
+          <button id="cancelButton">Cancel</button>
+          <button id="dialogButton" onclick="proceed()">OK</button>
+        </footer>
+      </article>
+    </dialog>
   </body>
 </html>
