@@ -3,6 +3,7 @@
 A decentralized rotating savings platform for Rwanda, built on the Celo blockchain and accessible via USSD. Members contribute monthly using any feature phone (no internet required), funds are held on-chain, and the pool rotates to one member per round - digitalizing the traditional *ikimina* savings group.
 
 **GitHub:** https://github.com/vixalien/ekimina
+**Demo Video:** https://drive.google.com/file/d/1XSszz41XGPqmFxvwDwswy4_iboQAO3xM/view?usp=sharing
 
 ---
 
