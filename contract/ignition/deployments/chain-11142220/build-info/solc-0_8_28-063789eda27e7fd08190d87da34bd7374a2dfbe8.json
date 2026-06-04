@@ -1,0 +1,49 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_28-063789eda27e7fd08190d87da34bd7374a2dfbe8",
+  "solcVersion": "0.8.28",
+  "solcLongVersion": "0.8.28+commit.7893614a",
+  "compilerType": "solc",
+  "toolVersions": {
+    "hardhat": "3.7.0"
+  },
+  "userSourceNameMap": {
+    "contracts/Ikimina.sol": "project/contracts/Ikimina.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "cancun",
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode.linkReferences",
+            "evm.bytecode.object",
+            "evm.bytecode.opcodes",
+            "evm.bytecode.sourceMap",
+            "evm.deployedBytecode.immutableReferences",
+            "evm.deployedBytecode.linkReferences",
+            "evm.deployedBytecode.object",
+            "evm.deployedBytecode.opcodes",
+            "evm.deployedBytecode.sourceMap",
+            "evm.methodIdentifiers"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/Ikimina.sol": {
+        "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.28;\n\ninterface IERC20 {\n    function transferFrom(\n        address from,\n        address to,\n        uint256 amount\n    ) external returns (bool);\n\n    function transfer(address to, uint256 amount) external returns (bool);\n\n    function balanceOf(address account) external view returns (uint256);\n}\n\ncontract Ikimina {\n    // ── State ──────────────────────────────────────────────────────────\n    address public admin;\n    IERC20 public cUSD;\n\n    uint256 public contributionAmount;\n    uint256 public roundDuration;\n    uint256 public currentRound;\n    uint256 public roundStartTime;\n\n    address[] public members;\n    mapping(address => bool) public isMember;\n    mapping(address => uint256) public reputationScore;\n    mapping(uint256 => address) public roundRecipient;\n    mapping(uint256 => mapping(address => bool)) public hasPaid;\n\n    // ── Events ─────────────────────────────────────────────────────────\n    event MemberRegistered(address indexed member);\n    event ContributionMade(\n        address indexed member,\n        uint256 round,\n        uint256 amount\n    );\n    event PayoutReleased(\n        address indexed recipient,\n        uint256 round,\n        uint256 amount\n    );\n    event DefaultRecorded(address indexed member, uint256 round);\n\n    // ── Constructor ────────────────────────────────────────────────────\n    constructor(\n        address _cUSD,\n        uint256 _contributionAmount,\n        uint256 _roundDurationDays\n    ) {\n        admin = msg.sender;\n        cUSD = IERC20(_cUSD);\n        contributionAmount = _contributionAmount;\n        roundDuration = _roundDurationDays * 1 days;\n        currentRound = 1;\n        roundStartTime = block.timestamp;\n    }\n\n    // ── Admin: register a member ───────────────────────────────────────\n    function registerMember(address _member) external onlyAdmin {\n        require(!isMember[_member], \"Already registered\");\n        isMember[_member] = true;\n        members.push(_member);\n        reputationScore[_member] = 50;\n        emit MemberRegistered(_member);\n    }\n\n    // ── Admin: set who receives the payout for a given round ───────────\n    function setRoundRecipient(\n        uint256 round,\n        address recipient\n    ) external onlyAdmin {\n        require(isMember[recipient], \"Recipient must be a member\");\n        roundRecipient[round] = recipient;\n    }\n\n    // ── Member: contribute USDm for the current round ──────────────────\n    function contribute() external onlyMember {\n        require(\n            !hasPaid[currentRound][msg.sender],\n            \"Already contributed this round\"\n        );\n        require(\n            cUSD.transferFrom(msg.sender, address(this), contributionAmount),\n            \"Transfer failed - check allowance\"\n        );\n        hasPaid[currentRound][msg.sender] = true;\n        reputationScore[msg.sender] = _clamp(\n            reputationScore[msg.sender] + 5,\n            0,\n            100\n        );\n        emit ContributionMade(msg.sender, currentRound, contributionAmount);\n    }\n\n    // ── Admin: release payout to the round recipient ───────────────────\n    function releasePayout() external onlyAdmin {\n        require(\n            block.timestamp >= roundStartTime + roundDuration,\n            \"Round not over yet\"\n        );\n        address recipient = roundRecipient[currentRound];\n        require(recipient != address(0), \"No recipient set for this round\");\n\n        uint256 pool = _countContributions() * contributionAmount;\n        require(pool > 0, \"Nothing to pay out\");\n        require(cUSD.transfer(recipient, pool), \"Payout transfer failed\");\n\n        emit PayoutReleased(recipient, currentRound, pool);\n        currentRound++;\n        roundStartTime = block.timestamp;\n    }\n\n    // ── Admin: record a default against a member ───────────────────────\n    function recordDefault(address _member) external onlyAdmin {\n        require(isMember[_member], \"Not a member\");\n        require(!hasPaid[currentRound][_member], \"Member already paid\");\n        reputationScore[_member] = reputationScore[_member] > 20\n            ? reputationScore[_member] - 20\n            : 0;\n        emit DefaultRecorded(_member, currentRound);\n    }\n\n    // ── View helpers ───────────────────────────────────────────────────\n    function getMemberCount() external view returns (uint256) {\n        return members.length;\n    }\n\n    function getBalance() external view returns (uint256) {\n        return cUSD.balanceOf(address(this));\n    }\n\n    // ── Internal helpers ───────────────────────────────────────────────\n    function _countContributions() internal view returns (uint256 count) {\n        for (uint256 i = 0; i < members.length; i++) {\n            if (hasPaid[currentRound][members[i]]) count++;\n        }\n    }\n\n    function _clamp(\n        uint256 val,\n        uint256 min,\n        uint256 max\n    ) internal pure returns (uint256) {\n        if (val < min) return min;\n        if (val > max) return max;\n        return val;\n    }\n\n    modifier onlyAdmin() {\n        require(msg.sender == admin, \"Not admin\");\n        _;\n    }\n\n    modifier onlyMember() {\n        require(isMember[msg.sender], \"Not a member\");\n        _;\n    }\n}\n"
+      }
+    }
+  }
+}
