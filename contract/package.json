@@ -6,7 +6,8 @@
   "scripts": {
     "test": "hardhat test",
     "hardhat": "hardhat",
-    "deploy": "pnpm hardhat ignition deploy ignition/modules/Ikimina.ts --network celoSepolia"
+    "deploy": "pnpm hardhat ignition deploy ignition/modules/Ikimina.ts --network celoSepolia",
+    "read-state": "pnpm hardhat run scripts/read-state.ts --network celoSepolia"
   },
   "keywords": [],
   "author": "",
