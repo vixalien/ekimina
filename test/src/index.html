@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+    />
+    <title>USSD Test</title>
+  </head>
+  <body>
+    <main class="container">
+      <h1>USSD Test</h1>
+      <form>
+        <fieldset>
+          <label>
+            Phone Number
+            <input
+              name="phone_number"
+              placeholder="Phone Number"
+              autocomplete="tel"
+            />
+          </label>
+          <label>
+            Callback URL
+            <input
+              type="url"
+              name="callback_url"
+              placeholder="Callback URL"
+              autocomplete="url"
+            />
+          </label>
+
+          <label>
+            Service Code
+            <input
+              type="text"
+              name="service_code"
+              placeholder="Service Code"
+              autocomplete="text"
+            />
+          </label>
+        </fieldset>
+
+        <input type="submit" value="Subscribe" />
+      </form>
+    </main>
+  </body>
+</html>
