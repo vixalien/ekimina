@@ -41,6 +41,7 @@ contract Ikimina {
         uint256 round,
         uint256 amount
     );
+    // Rename to PenaltyRecorded
     event DefaultRecorded(address indexed member, uint256 round);
 
     // ── Constructor ────────────────────────────────────────────────────
