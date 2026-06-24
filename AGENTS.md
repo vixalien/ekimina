@@ -183,6 +183,10 @@ Primary buttons have backgrounds by default. No extra `bg-` class needed.
 - `variant="ghost"` -- transparent, for inline actions
 - `variant="danger-soft"` -- soft destructive actions
 
+### Prefer className over StyleSheet
+
+Use Tailwind/Uniwind classes for styling. Only use `StyleSheet.create` for things that can't be expressed in className (animations, absolute positioning with dynamic values, platform-specific styles).
+
 ### Less is more
 
 - Don't add unnecessary className props
