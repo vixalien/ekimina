@@ -1,6 +1,8 @@
 allowBuilds:
   esbuild: true
+  unrs-resolver: false
 packages:
   - contract
   - test
   - backend
+  - app
