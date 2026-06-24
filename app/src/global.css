@@ -4,4 +4,5 @@
 @import "heroui-native/styles";
 @import "heroui-native/styles/vibrant";
 
-@source '../node_modules/heroui-native/lib';
+/* pnpm hoists heroui-native to the root node_modules, so we need ../../ to resolve */
+@source '../../node_modules/heroui-native/lib';
