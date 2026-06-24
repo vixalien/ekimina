@@ -54,92 +54,101 @@ export default function PhoneScreen(): JSX.Element {
   }
 
   return (
-    <ScreenContainer className="justify-center px-6 gap-8">
-      <View className="items-center gap-3">
-        <AppText className="text-3xl font-semibold text-foreground">
-          e-Kimina
-        </AppText>
-        <AppText className="text-base text-center text-muted">
-          Cooperative savings, made transparent
-        </AppText>
+    <ScreenContainer>
+      <View className="flex-1 px-6 gap-8">
+        {/* Header at top */}
+        <View className="gap-3">
+          <AppText className="text-3xl font-semibold text-foreground">
+            e-Kimina
+          </AppText>
+          <AppText className="text-base text-muted">
+            Cooperative savings, made transparent
+          </AppText>
+        </View>
+
+        {/* Spacer pushes bottom content down */}
+        <View className="flex-1" />
+
+        {/* Inputs + button at bottom for reachability */}
+        <View className="gap-4">
+          <TextField isRequired>
+            <Label>Phone number</Label>
+            <InputGroup>
+              <InputGroup.Prefix className="flex-row">
+                <Select
+                  presentation="bottom-sheet"
+                  value={countryCode}
+                  onValueChange={(value) => {
+                    const found = COUNTRY_CODES.find(
+                      (c) => c.value === value?.value,
+                    );
+                    if (found) setCountryCode(found);
+                  }}
+                >
+                  <Select.Trigger
+                    variant="unstyled"
+                    className="flex-row items-center gap-1"
+                  >
+                    <AppText className="text-base">{countryCode.flag}</AppText>
+                    <AppText className="text-sm font-medium text-foreground">
+                      {countryCode.code}
+                    </AppText>
+                  </Select.Trigger>
+                  <Select.Portal>
+                    <Select.Overlay />
+                    <Select.Content presentation="bottom-sheet">
+                      <Select.ListLabel>Select country</Select.ListLabel>
+                      {COUNTRY_CODES.map((option, index) => (
+                        <React.Fragment key={option.value}>
+                          <Select.Item value={option.value} label={option.label}>
+                            <AppText className="text-xl">{option.flag}</AppText>
+                            <AppText className="text-sm text-muted w-10">
+                              {option.code}
+                            </AppText>
+                            <AppText className="flex-1 text-base text-foreground">
+                              {option.label}
+                            </AppText>
+                            <Select.ItemIndicator />
+                          </Select.Item>
+                          {index < COUNTRY_CODES.length - 1 && <Separator />}
+                        </React.Fragment>
+                      ))}
+                    </Select.Content>
+                  </Select.Portal>
+                </Select>
+                <Separator orientation="vertical" className="h-5" />
+              </InputGroup.Prefix>
+              <InputGroup.Input
+                value={phone}
+                onChangeText={setPhone}
+                placeholder="7XX XXX XXX"
+                keyboardType="phone-pad"
+                maxLength={11}
+              />
+            </InputGroup>
+            <Description>
+              We&apos;ll send you a verification code via SMS
+            </Description>
+          </TextField>
+
+          <Button
+            variant="primary"
+            isDisabled={!isValid || isLoading}
+            onPress={handleContinue}
+          >
+            <Button.Label>
+              {isLoading ? "Sending..." : "Continue"}
+            </Button.Label>
+            {!isLoading && (
+              <StyledIonicons
+                name="arrow-forward"
+                size={18}
+                className="text-accent-foreground"
+              />
+            )}
+          </Button>
+        </View>
       </View>
-
-      <TextField isRequired>
-        <Label>Phone number</Label>
-        <InputGroup>
-          <InputGroup.Prefix className="flex-row">
-            <Select
-              presentation="bottom-sheet"
-              value={countryCode}
-              onValueChange={(value) => {
-                const found = COUNTRY_CODES.find(
-                  (c) => c.value === value?.value,
-                );
-                if (found) setCountryCode(found);
-              }}
-            >
-              <Select.Trigger
-                variant="unstyled"
-                className="flex-row items-center gap-1"
-              >
-                <AppText className="text-base">{countryCode.flag}</AppText>
-                <AppText className="text-sm font-medium text-foreground">
-                  {countryCode.code}
-                </AppText>
-              </Select.Trigger>
-              <Select.Portal>
-                <Select.Overlay />
-                <Select.Content presentation="bottom-sheet">
-                  <Select.ListLabel>Select country</Select.ListLabel>
-                  {COUNTRY_CODES.map((option, index) => (
-                    <React.Fragment key={option.value}>
-                      <Select.Item value={option.value} label={option.label}>
-                        <AppText className="text-xl">{option.flag}</AppText>
-                        <AppText className="text-sm text-muted w-10">
-                          {option.code}
-                        </AppText>
-                        <AppText className="flex-1 text-base text-foreground">
-                          {option.label}
-                        </AppText>
-                        <Select.ItemIndicator />
-                      </Select.Item>
-                      {index < COUNTRY_CODES.length - 1 && <Separator />}
-                    </React.Fragment>
-                  ))}
-                </Select.Content>
-              </Select.Portal>
-            </Select>
-            <Separator orientation="vertical" className="h-5" />
-          </InputGroup.Prefix>
-          <InputGroup.Input
-            value={phone}
-            onChangeText={setPhone}
-            placeholder="7XX XXX XXX"
-            keyboardType="phone-pad"
-            maxLength={11}
-          />
-        </InputGroup>
-        <Description>
-          We&apos;ll send you a verification code via SMS
-        </Description>
-      </TextField>
-
-      <Button
-        variant="primary"
-        isDisabled={!isValid || isLoading}
-        onPress={handleContinue}
-      >
-        <Button.Label>
-          {isLoading ? "Sending..." : "Continue"}
-        </Button.Label>
-        {!isLoading && (
-          <StyledIonicons
-            name="arrow-forward"
-            size={18}
-            className="text-accent-foreground"
-          />
-        )}
-      </Button>
     </ScreenContainer>
   );
 }

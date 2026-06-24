@@ -40,40 +40,47 @@ function OptionRow({ icon, title, subtitle, onPress }: OptionRowProps) {
 
 export default function JoinOrCreateScreen(): JSX.Element {
   return (
-    <ScreenContainer className="justify-center px-6 gap-8">
-      <View className="items-center gap-2">
-        <View className="size-16 rounded-full bg-accent/10 items-center justify-center mb-2">
-          <StyledIonicons name="people" size={32} className="text-muted" />
+    <ScreenContainer>
+      <View className="flex-1 px-6 gap-8">
+        {/* Header at top */}
+        <View className="items-center gap-2 mt-4">
+          <View className="size-16 rounded-full bg-accent/10 items-center justify-center mb-2">
+            <StyledIonicons name="people" size={32} className="text-muted" />
+          </View>
+          <AppText className="text-2xl font-semibold text-foreground text-center">
+            You&apos;re not in a group yet
+          </AppText>
+          <AppText className="text-sm text-muted text-center">
+            Join an existing ikimina or start your own
+          </AppText>
         </View>
-        <AppText className="text-2xl font-semibold text-foreground text-center">
-          You&apos;re not in a group yet
-        </AppText>
-        <AppText className="text-sm text-muted text-center">
-          Join an existing ikimina or start your own
-        </AppText>
-      </View>
 
-      <View className="gap-3">
-        <OptionRow
-          icon="key-outline"
-          title="Enter an invite code"
-          subtitle="Someone gave you a code or a link"
-          onPress={() => nav.push("/(onboarding)/invite-code")}
-        />
-        <OptionRow
-          icon="search-outline"
-          title="Search public groups"
-          subtitle="Browse groups open to anyone"
-          onPress={() => nav.push("/(onboarding)/search-groups")}
-        />
-        <OptionRow
-          icon="add-circle-outline"
-          title="Create a new group"
-          subtitle="Set it up and invite your members"
-          onPress={() => {
-            // TODO: navigate to group creation wizard
-          }}
-        />
+        {/* Spacer */}
+        <View className="flex-1" />
+
+        {/* Options at bottom */}
+        <View className="gap-3">
+          <OptionRow
+            icon="key-outline"
+            title="Enter an invite code"
+            subtitle="Someone gave you a code or a link"
+            onPress={() => nav.push("/(onboarding)/invite-code")}
+          />
+          <OptionRow
+            icon="search-outline"
+            title="Search public groups"
+            subtitle="Browse groups open to anyone"
+            onPress={() => nav.push("/(onboarding)/search-groups")}
+          />
+          <OptionRow
+            icon="add-circle-outline"
+            title="Create a new group"
+            subtitle="Set it up and invite your members"
+            onPress={() => {
+              // TODO: navigate to group creation wizard
+            }}
+          />
+        </View>
       </View>
     </ScreenContainer>
   );
