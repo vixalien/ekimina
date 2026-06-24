@@ -1,10 +1,14 @@
 import type { JSX } from "react";
 import { useState } from "react";
-import { View, Pressable, ImageBackground } from "react-native";
+import { View, ImageBackground } from "react-native";
 import { Button, BottomSheet } from "heroui-native";
+import { Ionicons } from "@expo/vector-icons";
+import { withUniwind } from "uniwind";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { AppText } from "../components/ui/app-text";
+
+const StyledIonicons = withUniwind(Ionicons);
 
 const splashImg = require("../../assets/splash.jpg");
 
@@ -28,11 +32,14 @@ export default function WelcomeScreen(): JSX.Element {
             Cooperative savings, made transparent
           </AppText>
 
-          <Pressable onPress={() => setIsDisclaimerOpen(true)}>
-            <AppText className="text-xs text-white/60 underline">
-              This is a beta app, not a real financial institution
-            </AppText>
-          </Pressable>
+          <Button
+            size="sm"
+            variant="ghost"
+            onPress={() => setIsDisclaimerOpen(true)}
+          >
+            <StyledIonicons name="information-circle-outline" size={16} className="text-white/80" />
+            <Button.Label className="text-white/80">Disclaimer</Button.Label>
+          </Button>
 
           <Button
             variant="primary"
@@ -63,6 +70,9 @@ export default function WelcomeScreen(): JSX.Element {
                 Any cryptocurrency interactions shown are simulated for
                 demonstration purposes only. Do not send real funds.
               </AppText>
+              <Button variant="tertiary" onPress={() => setIsDisclaimerOpen(false)}>
+                <Button.Label>Got it</Button.Label>
+              </Button>
             </View>
           </BottomSheet.Content>
         </BottomSheet.Portal>

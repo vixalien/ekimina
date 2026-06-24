@@ -1,5 +1,7 @@
 # e-Kimina Capstone Project
 
+**Skill:** `heroui-native` skill (fetch component docs before implementing)
+
 ## Project layout
 
 ```
@@ -108,7 +110,7 @@ const StyledIonicons = withUniwind(Ionicons);
 Wrap every screen in `ScreenContainer` for safe area handling:
 
 ```tsx
-import { ScreenContainer } from "../../components/ui";
+import { ScreenContainer } from "../../components/ui/screen-container";
 
 // Basic centered screen
 <ScreenContainer className="justify-center px-6 gap-8">
@@ -187,12 +189,43 @@ Primary buttons have backgrounds by default. No extra `bg-` class needed.
 
 Use Tailwind/Uniwind classes for styling. Only use `StyleSheet.create` for things that can't be expressed in className (animations, absolute positioning with dynamic values, platform-specific styles).
 
+### Local images: use require()
+
+```tsx
+const splashImg = require("../../assets/splash.jpg");
+```
+
+React Native's Metro bundler uses `require()` for local images. ESM imports won't work.
+
+### Routing: root Stack needs all screens
+
+When the root layout uses `<Stack.Screen>` explicitly, every screen must be listed:
+
+```tsx
+<Stack>
+  <Stack.Screen name="index" />
+  <Stack.Screen name="welcome" />
+  <Stack.Screen name="(onboarding)" />
+  <Stack.Screen name="(tabs)" />
+</Stack>
+```
+
+Without this, `Redirect` or `router.replace` to those routes will silently fail.
+
 ### Less is more
 
 - Don't add unnecessary className props
 - Don't wrap things in extra Views unless needed
 - Use `gap-*` for spacing between siblings, not `mt-*`/`mb-*` on every child
 - Trust component defaults (Button is full-width by default, etc.)
+- Use built-in subcomponents instead of custom ones (e.g. `BottomSheet.Close` instead of a custom `Pressable` with an X icon)
+
+### Always check the reference project & docs
+
+Before implementing any HeroUI Native component, check:
+1. The reference example at `/home/alien/sites/alu/heroui-native-example/`
+2. Component docs via `node scripts/get_component_docs.mjs <Component>` in the skill directory
+3. Use the patterns you find — don't guess APIs
 
 ---
 
