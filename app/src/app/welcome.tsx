@@ -37,8 +37,8 @@ export default function WelcomeScreen(): JSX.Element {
             variant="tertiary"
             onPress={() => setIsDisclaimerOpen(true)}
           >
-            <StyledIonicons name="information-circle-outline" size={16} className="text-white/80" />
-            <Button.Label className="text-white/80">Disclaimer</Button.Label>
+            <StyledIonicons name="information-circle-outline" size={16} />
+            <Button.Label>Disclaimer</Button.Label>
           </Button>
 
           <Button
