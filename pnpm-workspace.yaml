@@ -6,3 +6,4 @@ packages:
   - test
   - backend
   - app
+nodeLinker: hoisted
