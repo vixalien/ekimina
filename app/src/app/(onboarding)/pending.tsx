@@ -59,46 +59,39 @@ export default function PendingScreen(): JSX.Element {
   }
 
   return (
-    <ScreenContainer>
-      <View className="flex-1 px-6 gap-8">
-        {/* Content at top */}
-        <View className="items-center gap-4 mt-4">
-          <View className="size-20 rounded-full bg-accent/10 items-center justify-center">
-            <StyledIonicons
-              name="time-outline"
-              size={40}
-              className="text-accent-foreground"
-            />
-          </View>
-          <AppText className="text-2xl font-semibold text-foreground text-center">
-            Request sent
-          </AppText>
-          <AppText className="text-sm text-muted text-center leading-6">
-            Your request to join{" "}
-            <AppText className="text-sm font-semibold text-foreground">
-              {groupName ?? "the group"}
-            </AppText>{" "}
-            is waiting on committee approval
-          </AppText>
-          {elapsed ? (
-            <AppText className="text-xs text-muted">Sent {elapsed}</AppText>
-          ) : null}
+    <ScreenContainer className="justify-center px-6 gap-8">
+      <View className="items-center gap-4">
+        <View className="size-20 rounded-full bg-accent/10 items-center justify-center">
+          <StyledIonicons
+            name="time-outline"
+            size={40}
+            className="text-accent-foreground"
+          />
         </View>
-
-        {/* Spacer */}
-        <View className="flex-1" />
-
-        {/* Cancel button at bottom */}
-        <Button
-          variant="danger-soft"
-          isDisabled={isCancelling}
-          onPress={handleCancel}
-        >
-          <Button.Label>
-            {isCancelling ? "Cancelling..." : "Cancel request"}
-          </Button.Label>
-        </Button>
+        <AppText className="text-2xl font-semibold text-foreground text-center">
+          Request sent
+        </AppText>
+        <AppText className="text-sm text-muted text-center leading-6">
+          Your request to join{" "}
+          <AppText className="text-sm font-semibold text-foreground">
+            {groupName ?? "the group"}
+          </AppText>{" "}
+          is waiting on committee approval
+        </AppText>
+        {elapsed ? (
+          <AppText className="text-xs text-muted">Sent {elapsed}</AppText>
+        ) : null}
       </View>
+
+      <Button
+        variant="danger-soft"
+        isDisabled={isCancelling}
+        onPress={handleCancel}
+      >
+        <Button.Label>
+          {isCancelling ? "Cancelling..." : "Cancel request"}
+        </Button.Label>
+      </Button>
     </ScreenContainer>
   );
 }

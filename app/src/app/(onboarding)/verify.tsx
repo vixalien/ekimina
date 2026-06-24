@@ -79,8 +79,8 @@ export default function VerifyScreen(): JSX.Element {
 
   return (
     <ScreenContainer extraTop={12}>
-      <View className="flex-1 px-6 gap-8">
-        {/* Back button */}
+      <View className="flex-1 px-6 gap-8 justify-center">
+        {/* Back button - absolute positioned */}
         <Pressable
           onPress={() => nav.replace("/(onboarding)/phone")}
           className="absolute top-0 left-0 p-2"
@@ -92,8 +92,7 @@ export default function VerifyScreen(): JSX.Element {
           />
         </Pressable>
 
-        {/* Header at top */}
-        <View className="gap-2 mt-4">
+        <View className="items-center gap-2">
           <AppText className="text-2xl font-semibold text-foreground">
             Enter the code
           </AppText>
@@ -102,11 +101,7 @@ export default function VerifyScreen(): JSX.Element {
           </AppText>
         </View>
 
-        {/* Spacer */}
-        <View className="flex-1" />
-
-        {/* OTP + button at bottom */}
-        <View className="gap-6 items-center">
+        <View className="items-center gap-3">
           <InputOTP
             maxLength={6}
             value={otp}
@@ -131,19 +126,18 @@ export default function VerifyScreen(): JSX.Element {
           {error && (
             <AppText className="text-xs text-danger">{error}</AppText>
           )}
-
-          <Button
-            variant="primary"
-            isDisabled={otp.length < 6 || isVerifying}
-            onPress={() => handleVerify(otp)}
-          >
-            <Button.Label>
-              {isVerifying ? "Verifying..." : "Verify"}
-            </Button.Label>
-          </Button>
         </View>
 
-        {/* Resend code */}
+        <Button
+          variant="primary"
+          isDisabled={otp.length < 6 || isVerifying}
+          onPress={() => handleVerify(otp)}
+        >
+          <Button.Label>
+            {isVerifying ? "Verifying..." : "Verify"}
+          </Button.Label>
+        </Button>
+
         <View className="items-center">
           {canResend ? (
             <Button variant="ghost" onPress={handleResend}>

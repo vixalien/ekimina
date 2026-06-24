@@ -111,8 +111,7 @@ export default function SearchGroupsScreen(): JSX.Element {
   if (selectedGroup) {
     return (
       <ScreenContainer extraTop={12}>
-        <View className="flex-1 px-6 gap-8">
-          {/* Back button */}
+        <View className="flex-1 px-6 gap-8 justify-center">
           <Pressable
             onPress={() => setSelectedGroup(null)}
             className="absolute top-0 left-0 p-2"
@@ -124,37 +123,34 @@ export default function SearchGroupsScreen(): JSX.Element {
             />
           </Pressable>
 
-          {/* Group info at top */}
-          <View className="items-center gap-4 mt-4">
-            <View className="size-20 rounded-full bg-accent/10 items-center justify-center">
-              <AppText className="text-2xl font-bold text-accent">
-                {selectedGroup.avatarInitials}
-              </AppText>
-            </View>
-            <View className="items-center gap-1">
-              <AppText className="text-xl font-semibold text-foreground">
-                {selectedGroup.name}
-              </AppText>
-              <AppText className="text-sm text-muted text-center">
-                {selectedGroup.description}
-              </AppText>
-              <View className="flex-row items-center gap-1 mt-1">
-                <StyledIonicons
-                  name="people-outline"
-                  size={14}
-                  className="text-foreground"
-                />
-                <AppText className="text-sm text-foreground">
-                  {selectedGroup.memberCount} members
+          <Card>
+            <View className="items-center gap-4 p-2">
+              <View className="size-20 rounded-full bg-accent/10 items-center justify-center">
+                <AppText className="text-2xl font-bold text-accent">
+                  {selectedGroup.avatarInitials}
                 </AppText>
               </View>
+              <View className="items-center gap-1">
+                <AppText className="text-xl font-semibold text-foreground">
+                  {selectedGroup.name}
+                </AppText>
+                <AppText className="text-sm text-muted text-center">
+                  {selectedGroup.description}
+                </AppText>
+                <View className="flex-row items-center gap-1 mt-1">
+                  <StyledIonicons
+                    name="people-outline"
+                    size={14}
+                    className="text-foreground"
+                  />
+                  <AppText className="text-sm text-foreground">
+                    {selectedGroup.memberCount} members
+                  </AppText>
+                </View>
+              </View>
             </View>
-          </View>
+          </Card>
 
-          {/* Spacer */}
-          <View className="flex-1" />
-
-          {/* Button at bottom */}
           <Button
             variant="primary"
             isDisabled={isJoining}
@@ -172,8 +168,7 @@ export default function SearchGroupsScreen(): JSX.Element {
   // Search view
   return (
     <ScreenContainer extraTop={12}>
-      <View className="flex-1 px-6 gap-4">
-        {/* Back button */}
+      <View className="flex-1 px-6 pt-4 gap-4">
         <Pressable
           onPress={() => nav.replace("/(onboarding)/join-or-create")}
           className="absolute top-0 left-0 p-2"
@@ -185,7 +180,6 @@ export default function SearchGroupsScreen(): JSX.Element {
           />
         </Pressable>
 
-        {/* Header at top */}
         <View className="gap-2 mt-8">
           <AppText className="text-2xl font-semibold text-foreground">
             Search public groups
@@ -195,7 +189,6 @@ export default function SearchGroupsScreen(): JSX.Element {
           </AppText>
         </View>
 
-        {/* Search input */}
         <TextField>
           <Label>Search</Label>
           <InputGroup>
@@ -221,7 +214,6 @@ export default function SearchGroupsScreen(): JSX.Element {
           </AppText>
         )}
 
-        {/* Results list */}
         <FlatList
           data={results}
           keyExtractor={(item) => item.id}

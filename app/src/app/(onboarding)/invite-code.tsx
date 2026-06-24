@@ -45,7 +45,7 @@ export default function InviteCodeScreen(): JSX.Element {
 
   return (
     <ScreenContainer extraTop={12}>
-      <View className="flex-1 px-6 gap-8">
+      <View className="flex-1 px-6 gap-8 justify-center">
         {/* Back button */}
         <Pressable
           onPress={() => nav.replace("/(onboarding)/join-or-create")}
@@ -58,8 +58,7 @@ export default function InviteCodeScreen(): JSX.Element {
           />
         </Pressable>
 
-        {/* Header at top */}
-        <View className="gap-2 mt-4">
+        <View className="gap-2">
           <AppText className="text-2xl font-semibold text-foreground">
             Enter invite code
           </AppText>
@@ -68,45 +67,39 @@ export default function InviteCodeScreen(): JSX.Element {
           </AppText>
         </View>
 
-        {/* Spacer */}
-        <View className="flex-1" />
-
-        {/* Input + button at bottom */}
-        <View className="gap-4">
-          <TextField isInvalid={!!error}>
-            <Label>Invite code</Label>
-            <InputGroup>
-              <InputGroup.Prefix isDecorative>
-                <StyledIonicons
-                  name="key-outline"
-                  size={16}
-                  className="text-muted"
-                />
-              </InputGroup.Prefix>
-              <InputGroup.Input
-                placeholder="e.g. KICUKIRO2025"
-                value={code}
-                onChangeText={(t) => {
-                  setCode(t);
-                  setError(null);
-                }}
-                autoCapitalize="characters"
-                autoCorrect={false}
+        <TextField isInvalid={!!error}>
+          <Label>Invite code</Label>
+          <InputGroup>
+            <InputGroup.Prefix isDecorative>
+              <StyledIonicons
+                name="key-outline"
+                size={16}
+                className="text-muted"
               />
-            </InputGroup>
-            {error && <FieldError>{error}</FieldError>}
-          </TextField>
+            </InputGroup.Prefix>
+            <InputGroup.Input
+              placeholder="e.g. KICUKIRO2025"
+              value={code}
+              onChangeText={(t) => {
+                setCode(t);
+                setError(null);
+              }}
+              autoCapitalize="characters"
+              autoCorrect={false}
+            />
+          </InputGroup>
+          {error && <FieldError>{error}</FieldError>}
+        </TextField>
 
-          <Button
-            variant="primary"
-            isDisabled={!code.trim() || isLoading}
-            onPress={handleSubmit}
-          >
-            <Button.Label>
-              {isLoading ? "Checking..." : "Join group"}
-            </Button.Label>
-          </Button>
-        </View>
+        <Button
+          variant="primary"
+          isDisabled={!code.trim() || isLoading}
+          onPress={handleSubmit}
+        >
+          <Button.Label>
+            {isLoading ? "Checking..." : "Join group"}
+          </Button.Label>
+        </Button>
       </View>
     </ScreenContainer>
   );
