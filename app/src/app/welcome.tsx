@@ -34,7 +34,7 @@ export default function WelcomeScreen(): JSX.Element {
 
           <Button
             size="sm"
-            variant="ghost"
+            variant="tertiary"
             onPress={() => setIsDisclaimerOpen(true)}
           >
             <StyledIonicons name="information-circle-outline" size={16} className="text-white/80" />
