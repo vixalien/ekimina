@@ -270,6 +270,8 @@ Before implementing any HeroUI Native component, check:
 2. Component docs via `node scripts/get_component_docs.mjs <Component>` in the skill directory
 3. Use the patterns you find — don't guess APIs
 
+**Default to reference patterns.** Copy the structure, imports, and prop patterns from the reference project. Don't reinvent the wheel — if the reference uses `RadioGroup` + `Surface` + `Separator` for a list, use the same. If it uses `ScrollShadow` + `ScrollView` for scrollable content, use the same. Only deviate when there's a clear reason.
+
 ---
 
 ## API Client Structure
