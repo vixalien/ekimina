@@ -29,7 +29,7 @@ const OPTIONS = [
     icon: "add-circle-outline" as const,
     title: "Create a new group",
     subtitle: "Set it up and invite your members",
-    route: null, // TODO: navigate to group creation wizard
+    route: "/(onboarding)/create-group/step-1" as const,
   },
 ];
 
@@ -60,11 +60,7 @@ export default function JoinOrCreateScreen(): JSX.Element {
               <RadioGroup.Item value={option.value}>
                 <View className="flex-row items-center gap-3 flex-1">
                   <View className="size-10 rounded-full bg-accent/10 items-center justify-center">
-                    <StyledIonicons
-                      name={option.icon}
-                      size={20}
-                      className="text-foreground"
-                    />
+                    <StyledIonicons name={option.icon} size={20} className="text-foreground" />
                   </View>
                   <View className="flex-1">
                     <Label>{option.title}</Label>

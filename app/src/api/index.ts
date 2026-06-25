@@ -15,4 +15,7 @@ export type {
   PublicGroup,
   JoinRequest,
   OtpVerificationResult,
+  GroupSettings,
+  CreateGroupPayload,
+  CreateGroupResult,
 } from "./types";

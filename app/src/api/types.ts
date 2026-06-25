@@ -8,7 +8,6 @@ export interface User {
 export interface Group {
   id: string;
   name: string;
-  description: string;
   memberCount: number;
   isPublic: boolean;
   inviteCode: string | null;
@@ -25,7 +24,6 @@ export interface GroupMembership {
 export interface PublicGroup {
   id: string;
   name: string;
-  description: string;
   memberCount: number;
   avatarInitials: string;
 }
@@ -57,6 +55,32 @@ export interface GroupsApi {
   requestToJoinGroup(userId: string, groupId: string): Promise<JoinRequest>;
   getJoinRequestStatus(requestId: string): Promise<JoinRequest>;
   cancelJoinRequest(requestId: string): Promise<{ success: boolean }>;
+  createGroup(payload: CreateGroupPayload): Promise<CreateGroupResult>;
+}
+
+export interface GroupSettings {
+  name: string;
+  isPublic: boolean;
+  contributionAmount: number;
+  cycleLength: number;
+  payoutAmount: number;
+  penaltyRate: number;
+  approvalThreshold: number;
+  allMembersAreCommittee: boolean;
+  committeeSize: number;
+  loansEnabled: boolean;
+  loanInterestRate: number;
+  discretionaryFundEnabled: boolean;
+}
+
+export interface CreateGroupPayload {
+  settings: GroupSettings;
+  founderId: string;
+}
+
+export interface CreateGroupResult {
+  group: Group;
+  inviteCode: string;
 }
 
 export interface ApiClient {

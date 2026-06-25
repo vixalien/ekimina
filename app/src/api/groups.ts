@@ -1,10 +1,5 @@
-import type { GroupsApi, JoinRequest } from "./types";
-import {
-  ALL_GROUPS,
-  INVITE_CODE_MAP,
-  MOCK_MEMBERSHIPS,
-  toPublicGroup,
-} from "./mock/groups";
+import type { CreateGroupPayload, CreateGroupResult, Group, GroupsApi, JoinRequest } from "./types";
+import { ALL_GROUPS, INVITE_CODE_MAP, MOCK_MEMBERSHIPS, toPublicGroup } from "./mock/groups";
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -17,9 +12,7 @@ export function createMockGroups(): GroupsApi {
     async myGroups(userId) {
       await delay(500);
       const phone = Object.keys(MOCK_MEMBERSHIPS).find((k) =>
-        MOCK_MEMBERSHIPS[k].some(
-          (m) => m.group.id === userId || k === userId,
-        ),
+        MOCK_MEMBERSHIPS[k].some((m) => m.group.id === userId || k === userId)
       );
       return phone ? MOCK_MEMBERSHIPS[phone] : [];
     },
@@ -52,20 +45,14 @@ export function createMockGroups(): GroupsApi {
     async searchPublicGroups(query) {
       await delay(700);
 
-      const publicGroups = ALL_GROUPS.filter((g) => g.isPublic).map(
-        toPublicGroup,
-      );
+      const publicGroups = ALL_GROUPS.filter((g) => g.isPublic).map(toPublicGroup);
 
       if (!query.trim()) {
         return publicGroups;
       }
 
       const lower = query.toLowerCase();
-      return publicGroups.filter(
-        (g) =>
-          g.name.toLowerCase().includes(lower) ||
-          g.description.toLowerCase().includes(lower),
-      );
+      return publicGroups.filter((g) => g.name.toLowerCase().includes(lower));
     },
 
     async getGroupDetails(groupId) {
@@ -120,6 +107,40 @@ export function createMockGroups(): GroupsApi {
 
       request.status = "cancelled";
       return { success: true };
+    },
+
+    async createGroup(payload: CreateGroupPayload): Promise<CreateGroupResult> {
+      await delay(800);
+
+      const id = `group-${Date.now()}`;
+      const initials = payload.settings.name
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((w) => w[0]?.toUpperCase() ?? "")
+        .join("");
+
+      const inviteCode = Array.from(
+        { length: 8 },
+        () => "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"[Math.floor(Math.random() * 36)]
+      ).join("");
+
+      const group: Group = {
+        id,
+        name: payload.settings.name,
+        memberCount: 1,
+        isPublic: payload.settings.isPublic,
+        inviteCode,
+        avatarInitials: initials || "G",
+        createdAt: new Date().toISOString(),
+      };
+
+      ALL_GROUPS.push(group);
+      MOCK_MEMBERSHIPS[payload.founderId] = [
+        ...(MOCK_MEMBERSHIPS[payload.founderId] ?? []),
+        { group, role: "admin", joinedAt: group.createdAt },
+      ];
+
+      return { group, inviteCode };
     },
   };
 }

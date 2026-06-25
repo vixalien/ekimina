@@ -57,9 +57,7 @@ export function GroupSwitcher({
                       <AppText className="text-base font-semibold text-foreground">
                         {m.group.name}
                       </AppText>
-                      <AppText className="text-xs text-muted capitalize">
-                        {m.role}
-                      </AppText>
+                      <AppText className="text-xs text-muted capitalize">{m.role}</AppText>
                     </View>
                     {isActive && (
                       <StyledIonicons
@@ -78,15 +76,9 @@ export function GroupSwitcher({
             <Pressable onPress={onJoinOrCreate}>
               <View className="flex-row items-center gap-3 p-3">
                 <View className="size-10 rounded-full bg-surface-secondary items-center justify-center">
-                  <StyledIonicons
-                    name="add"
-                    size={20}
-                    className="text-muted"
-                  />
+                  <StyledIonicons name="add" size={20} className="text-muted" />
                 </View>
-                <AppText className="text-base text-muted">
-                  Join or create another group
-                </AppText>
+                <AppText className="text-base text-muted">Join or create another group</AppText>
               </View>
             </Pressable>
           </View>
