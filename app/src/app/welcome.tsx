@@ -20,7 +20,7 @@ export default function WelcomeScreen(): JSX.Element {
     <ImageBackground source={splashImg} className="flex-1" resizeMode="cover">
       <View className="flex-1 bg-black/40">
         <View className="px-6" style={{ paddingTop: insets.top + 24 }}>
-          <AppText className="text-2xl font-bold text-accent">
+          <AppText className="text-2xl font-bold text-white">
             e-Kimina
           </AppText>
         </View>
@@ -28,7 +28,7 @@ export default function WelcomeScreen(): JSX.Element {
         <View className="flex-1" />
 
         <View className="px-6 gap-4" style={{ paddingBottom: insets.bottom + 24 }}>
-          <AppText className="text-3xl font-semibold text-white leading-tight">
+          <AppText className="text-3xl font-hero text-white leading-tight">
             Cooperative savings, made transparent
           </AppText>
 
