@@ -52,6 +52,48 @@ Always use `pnpm expo install <package>` for native modules (not `npm i`).
 
 The `vibrant` import is required for component variants (primary button backgrounds, etc.) to render correctly.
 
+### Fonts
+
+Three font families, loaded via `@expo-google-fonts/*` + `useFonts` in `_layout.tsx`:
+
+| Role | Font | Weights | Tailwind class |
+|------|------|---------|----------------|
+| All UI text (default) | Inter | 400, 500, 600, 700 | `font-normal` (via AppText) |
+| Hero balance numbers | Space Grotesk | 700 | `font-hero` |
+| Transaction references | JetBrains Mono | 400 | `font-mono` |
+
+Each weight is a separate font family in React Native. The CSS variables in `global.css` map them:
+
+```css
+/* @theme -- font-family variables (override Tailwind's font-weight defaults) */
+--font-normal: "Inter-Regular";
+--font-medium: "Inter-Medium";
+--font-semibold: "Inter-SemiBold";
+--font-bold: "Inter-Bold";
+--font-mono: "JetBrainsMono-Regular";
+--font-hero: "SpaceGrotesk-Bold";
+```
+
+Usage:
+```tsx
+// Default body text (Inter 400)
+<AppText className="text-foreground text-base">Hello</AppText>
+
+// Medium weight (Inter 500)
+<AppText className="text-foreground text-base font-medium">Label</AppText>
+
+// Section header (Inter 600)
+<AppText className="text-foreground font-semibold">Section</AppText>
+
+// Hero number (Space Grotesk 700)
+<AppText className="text-foreground text-4xl font-hero">12,500 RWF</AppText>
+
+// Transaction reference (JetBrains Mono 400)
+<AppText className="text-muted text-xs font-mono">MM240615.0942</AppText>
+```
+
+`font-normal`, `font-medium`, `font-semibold`, `font-bold` are font-family utilities (not font-weight) that map to Inter weight variants via the CSS variables. Do not mix `font-hero` with weight classes -- Space Grotesk is only loaded at 700.
+
 ### Text: use AppText, not Typography
 
 `Typography` is for semantic headings in demos only. For all other text, use `AppText`:
@@ -63,7 +105,7 @@ import { Text as RNText, type TextProps } from "react-native";
 
 export const AppText = React.forwardRef<RNText, TextProps>((props, ref) => {
   const { className, ...rest } = props;
-  return <RNText ref={ref} className={cn("font-normal", className)} {...rest} />;
+  return <RNText ref={ref} className={cn("font-sans font-normal", className)} {...rest} />;
 });
 ```
 

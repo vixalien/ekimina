@@ -6,3 +6,22 @@
 
 /* pnpm hoists heroui-native to the root node_modules, so we need ../../ to resolve */
 @source '../../node_modules/heroui-native/lib';
+
+/*
+ * Font families.
+ *
+ * Each weight is a separate font family in React Native (expo-font).
+ * Inter_400Regular registers as "Inter-Regular", Inter_500Medium as "Inter-Medium", etc.
+ *
+ * HeroUI Native convention: --font-normal, --font-medium, --font-semibold, --font-bold
+ * are font-family variables (not font-weight). This overrides Tailwind's default
+ * font-weight utilities so that font-normal, font-medium etc. set the font family.
+ */
+@theme {
+  --font-normal: "Inter-Regular";
+  --font-medium: "Inter-Medium";
+  --font-semibold: "Inter-SemiBold";
+  --font-bold: "Inter-Bold";
+  --font-mono: "JetBrainsMono-Regular";
+  --font-hero: "SpaceGrotesk-Bold";
+}
