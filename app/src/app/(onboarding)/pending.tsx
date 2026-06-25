@@ -59,39 +59,46 @@ export default function PendingScreen(): JSX.Element {
   }
 
   return (
-    <ScreenContainer className="justify-center px-6 gap-8">
-      <View className="items-center gap-4">
-        <View className="size-20 rounded-full bg-accent/10 items-center justify-center">
-          <StyledIonicons
-            name="time-outline"
-            size={40}
-            className="text-accent-foreground"
-          />
+    <ScreenContainer extraTop={12}>
+      <View className="flex-1 px-6">
+        <View className="gap-2">
+          <AppText className="text-2xl font-bold text-foreground">
+            Request sent
+          </AppText>
+          <AppText className="text-sm text-muted">
+            Your request to join{" "}
+            <AppText className="text-sm font-semibold text-foreground">
+              {groupName ?? "the group"}
+            </AppText>{" "}
+            is waiting on committee approval
+          </AppText>
         </View>
-        <AppText className="text-2xl font-semibold text-foreground text-center">
-          Request sent
-        </AppText>
-        <AppText className="text-sm text-muted text-center leading-6">
-          Your request to join{" "}
-          <AppText className="text-sm font-semibold text-foreground">
-            {groupName ?? "the group"}
-          </AppText>{" "}
-          is waiting on committee approval
-        </AppText>
-        {elapsed ? (
-          <AppText className="text-xs text-muted">Sent {elapsed}</AppText>
-        ) : null}
-      </View>
 
-      <Button
-        variant="danger-soft"
-        isDisabled={isCancelling}
-        onPress={handleCancel}
-      >
-        <Button.Label>
-          {isCancelling ? "Cancelling..." : "Cancel request"}
-        </Button.Label>
-      </Button>
+        <View className="flex-1 pt-6 items-center justify-center gap-4">
+          <View className="size-20 rounded-full bg-accent/10 items-center justify-center">
+            <StyledIonicons
+              name="time-outline"
+              size={40}
+              className="text-accent-foreground"
+            />
+          </View>
+          {elapsed ? (
+            <AppText className="text-xs text-muted">Sent {elapsed}</AppText>
+          ) : null}
+        </View>
+
+        <View className="pb-4">
+          <Button
+            variant="danger-soft"
+            isDisabled={isCancelling}
+            onPress={handleCancel}
+          >
+            <Button.Label>
+              {isCancelling ? "Cancelling..." : "Cancel request"}
+            </Button.Label>
+          </Button>
+        </View>
+      </View>
     </ScreenContainer>
   );
 }
