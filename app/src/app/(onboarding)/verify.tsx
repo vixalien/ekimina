@@ -73,13 +73,12 @@ export default function VerifyScreen(): JSX.Element {
     <OnboardingLayout
       title="Enter the code"
       description={`Sent to ${masked}`}
-      onBack={() => nav.replace("/(onboarding)/phone")}
       buttonLabel="Verify"
       isLoading={isVerifying}
       isDisabled={otp.length < 6}
       onButtonPress={() => handleVerify(otp)}
     >
-      <View className="items-center gap-3">
+      <View className="gap-3 items-center">
         <InputOTP
           maxLength={6}
           value={otp}
@@ -104,19 +103,19 @@ export default function VerifyScreen(): JSX.Element {
         {error && (
           <AppText className="text-xs text-danger">{error}</AppText>
         )}
-      </View>
 
-      {canResend ? (
-        <Button variant="ghost" onPress={handleResend}>
-          <Button.Label className="text-accent">
-            Resend code
-          </Button.Label>
-        </Button>
-      ) : (
-        <AppText className="text-xs text-muted text-center">
-          Resend code in {resendTimer}s
-        </AppText>
-      )}
+        <View className="flex-row items-center mt-2">
+          {canResend ? (
+            <Button size="sm" variant="ghost" onPress={handleResend}>
+              <Button.Label className="text-accent">Resend code</Button.Label>
+            </Button>
+          ) : (
+            <AppText className="text-xs text-muted">
+              Resend code in {resendTimer}s
+            </AppText>
+          )}
+        </View>
+      </View>
     </OnboardingLayout>
   );
 }

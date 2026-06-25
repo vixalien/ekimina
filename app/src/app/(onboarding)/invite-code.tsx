@@ -44,7 +44,6 @@ export default function InviteCodeScreen(): JSX.Element {
     <OnboardingLayout
       title="Enter invite code"
       description="Ask your group admin for the invite code or link"
-      onBack={() => nav.replace("/(onboarding)/join-or-create")}
       buttonLabel="Join group"
       isLoading={isLoading}
       isDisabled={!code.trim()}

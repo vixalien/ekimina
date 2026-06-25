@@ -1,6 +1,7 @@
 import type { JSX, ReactNode } from "react";
 import { View, Pressable } from "react-native";
 import { Button } from "heroui-native";
+import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { withUniwind } from "uniwind";
 import { AppText } from "./app-text";
@@ -11,7 +12,6 @@ const StyledIonicons = withUniwind(Ionicons);
 interface OnboardingLayoutProps {
   title: string;
   description?: string;
-  onBack?: () => void;
   children: ReactNode;
   buttonLabel: string;
   onButtonPress: () => void;
@@ -22,7 +22,6 @@ interface OnboardingLayoutProps {
 export function OnboardingLayout({
   title,
   description,
-  onBack,
   children,
   buttonLabel,
   onButtonPress,
@@ -30,27 +29,22 @@ export function OnboardingLayout({
   isDisabled,
 }: OnboardingLayoutProps): JSX.Element {
   return (
-    <ScreenContainer extraTop={onBack ? 12 : 0}>
+    <ScreenContainer extraTop={12}>
       <View className="flex-1 px-6">
-        {onBack && (
-          <Pressable
-            onPress={onBack}
-            className="absolute top-0 left-0 p-2"
-          >
-            <StyledIonicons
-              name="arrow-back"
-              size={22}
-              className="text-foreground"
-            />
-          </Pressable>
-        )}
+        <Pressable onPress={() => router.back()} className="p-2 -ml-2 self-start mb-4">
+          <StyledIonicons
+            name="chevron-back"
+            size={22}
+            className="text-foreground"
+          />
+        </Pressable>
 
-        <View className={onBack ? "mt-10" : ""}>
+        <View className="gap-2">
           <AppText className="text-2xl font-bold text-foreground">
             {title}
           </AppText>
           {description && (
-            <AppText className="text-sm text-muted mt-1">
+            <AppText className="text-sm text-muted">
               {description}
             </AppText>
           )}

@@ -117,7 +117,7 @@ export default function SearchGroupsScreen(): JSX.Element {
             className="absolute top-0 left-0 p-2"
           >
             <StyledIonicons
-              name="arrow-back"
+              name="chevron-back"
               size={22}
               className="text-foreground"
             />
@@ -174,7 +174,7 @@ export default function SearchGroupsScreen(): JSX.Element {
           className="absolute top-0 left-0 p-2"
         >
           <StyledIonicons
-            name="arrow-back"
+            name="chevron-back"
             size={22}
             className="text-foreground"
           />
