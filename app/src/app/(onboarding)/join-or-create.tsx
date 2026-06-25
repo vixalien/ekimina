@@ -1,80 +1,82 @@
 import type { JSX } from "react";
-import { View, Pressable } from "react-native";
+import React, { useState } from "react";
+import { View } from "react-native";
+import { Description, Label, Radio, RadioGroup, Separator, Surface } from "heroui-native";
 import { Ionicons } from "@expo/vector-icons";
 import { withUniwind } from "uniwind";
 import { nav } from "../../lib/nav";
-import { AppText } from "../../components/ui/app-text";
-import { ScreenContainer } from "../../components/ui/screen-container";
+import { OnboardingLayout } from "../../components/ui/onboarding-layout";
 
 const StyledIonicons = withUniwind(Ionicons);
 
-interface OptionRowProps {
-  icon: keyof typeof Ionicons.glyphMap;
-  title: string;
-  subtitle: string;
-  onPress: () => void;
-}
-
-function OptionRow({ icon, title, subtitle, onPress }: OptionRowProps) {
-  return (
-    <Pressable onPress={onPress}>
-      <View className="flex-row items-center gap-4 bg-surface-secondary rounded-xl p-4">
-        <View className="size-10 rounded-full bg-accent/10 items-center justify-center">
-          <StyledIonicons name={icon} size={20} className="text-foreground" />
-        </View>
-        <View className="flex-1 gap-0.5">
-          <AppText className="text-base font-semibold text-foreground">
-            {title}
-          </AppText>
-          <AppText className="text-xs text-muted">{subtitle}</AppText>
-        </View>
-        <StyledIonicons
-          name="chevron-forward"
-          size={18}
-          className="text-muted"
-        />
-      </View>
-    </Pressable>
-  );
-}
+const OPTIONS = [
+  {
+    value: "invite-code",
+    icon: "key-outline" as const,
+    title: "Enter an invite code",
+    subtitle: "Someone gave you a code or a link",
+    route: "/(onboarding)/invite-code" as const,
+  },
+  {
+    value: "search-groups",
+    icon: "search-outline" as const,
+    title: "Search public groups",
+    subtitle: "Browse groups open to anyone",
+    route: "/(onboarding)/search-groups" as const,
+  },
+  {
+    value: "create-group",
+    icon: "add-circle-outline" as const,
+    title: "Create a new group",
+    subtitle: "Set it up and invite your members",
+    route: null, // TODO: navigate to group creation wizard
+  },
+];
 
 export default function JoinOrCreateScreen(): JSX.Element {
-  return (
-    <ScreenContainer className="justify-center px-6 gap-8">
-      <View className="items-center gap-2">
-        <View className="size-16 rounded-full bg-accent/10 items-center justify-center mb-2">
-          <StyledIonicons name="people" size={32} className="text-muted" />
-        </View>
-        <AppText className="text-2xl font-semibold text-foreground text-center">
-          You&apos;re not in a group yet
-        </AppText>
-        <AppText className="text-sm text-muted text-center">
-          Join an existing ikimina or start your own
-        </AppText>
-      </View>
+  const [selected, setSelected] = useState(OPTIONS[0]!.value);
 
-      <View className="gap-3">
-        <OptionRow
-          icon="key-outline"
-          title="Enter an invite code"
-          subtitle="Someone gave you a code or a link"
-          onPress={() => nav.push("/(onboarding)/invite-code")}
-        />
-        <OptionRow
-          icon="search-outline"
-          title="Search public groups"
-          subtitle="Browse groups open to anyone"
-          onPress={() => nav.push("/(onboarding)/search-groups")}
-        />
-        <OptionRow
-          icon="add-circle-outline"
-          title="Create a new group"
-          subtitle="Set it up and invite your members"
-          onPress={() => {
-            // TODO: navigate to group creation wizard
-          }}
-        />
-      </View>
-    </ScreenContainer>
+  const selectedOption = OPTIONS.find((o) => o.value === selected);
+
+  function handleContinue() {
+    if (selectedOption?.route) {
+      nav.push(selectedOption.route);
+    }
+  }
+
+  return (
+    <OnboardingLayout
+      title="Join or create a group"
+      description="Join an existing ikimina or start your own"
+      buttonLabel="Continue"
+      onButtonPress={handleContinue}
+      isDisabled={!selectedOption?.route}
+    >
+      <Surface>
+        <RadioGroup value={selected} onValueChange={setSelected}>
+          {OPTIONS.map((option, index) => (
+            <React.Fragment key={option.value}>
+              {index > 0 && <Separator className="my-1" />}
+              <RadioGroup.Item value={option.value}>
+                <View className="flex-row items-center gap-3 flex-1">
+                  <View className="size-10 rounded-full bg-accent/10 items-center justify-center">
+                    <StyledIonicons
+                      name={option.icon}
+                      size={20}
+                      className="text-foreground"
+                    />
+                  </View>
+                  <View className="flex-1">
+                    <Label>{option.title}</Label>
+                    <Description>{option.subtitle}</Description>
+                  </View>
+                </View>
+                <Radio />
+              </RadioGroup.Item>
+            </React.Fragment>
+          ))}
+        </RadioGroup>
+      </Surface>
+    </OnboardingLayout>
   );
 }

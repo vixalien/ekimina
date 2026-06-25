@@ -103,6 +103,7 @@ export default function PhoneScreen(): JSX.Element {
             <Separator orientation="vertical" className="h-5" />
           </InputGroup.Prefix>
           <InputGroup.Input
+            autoFocus
             value={phone}
             onChangeText={setPhone}
             placeholder="7XX XXX XXX"

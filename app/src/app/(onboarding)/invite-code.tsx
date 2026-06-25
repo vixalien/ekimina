@@ -60,6 +60,7 @@ export default function InviteCodeScreen(): JSX.Element {
             />
           </InputGroup.Prefix>
           <InputGroup.Input
+            autoFocus
             placeholder="e.g. KICUKIRO2025"
             value={code}
             onChangeText={(t) => {

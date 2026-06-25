@@ -1,8 +1,8 @@
 import type { JSX } from "react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-import { Button, InputOTP, REGEXP_ONLY_DIGITS } from "heroui-native";
+import { Button, InputOTP, REGEXP_ONLY_DIGITS, type InputOTPRef } from "heroui-native";
 import { api } from "../../api";
 import type { OtpVerificationResult } from "../../api";
 import { nav } from "../../lib/nav";
@@ -13,11 +13,17 @@ const RESEND_COOLDOWN = 30;
 
 export default function VerifyScreen(): JSX.Element {
   const { phone } = useLocalSearchParams<{ phone: string }>();
+  const otpRef = useRef<InputOTPRef>(null);
   const [otp, setOtp] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resendTimer, setResendTimer] = useState(RESEND_COOLDOWN);
   const canResend = resendTimer <= 0;
+
+  useEffect(() => {
+    const timer = setTimeout(() => otpRef.current?.focus(), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (resendTimer <= 0) return;
@@ -80,6 +86,7 @@ export default function VerifyScreen(): JSX.Element {
     >
       <View className="gap-3 items-center">
         <InputOTP
+          ref={otpRef}
           maxLength={6}
           value={otp}
           onChange={setOtp}
