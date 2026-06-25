@@ -1,23 +1,16 @@
 import type { JSX } from "react";
 import React, { useState } from "react";
-import { View } from "react-native";
 import {
-  Button,
-  Description,
   InputGroup,
   Label,
   Select,
   Separator,
   TextField,
 } from "heroui-native";
-import { Ionicons } from "@expo/vector-icons";
-import { withUniwind } from "uniwind";
 import { api } from "../../api";
 import { nav } from "../../lib/nav";
 import { AppText } from "../../components/ui/app-text";
-import { ScreenContainer } from "../../components/ui/screen-container";
-
-const StyledIonicons = withUniwind(Ionicons);
+import { OnboardingLayout } from "../../components/ui/onboarding-layout";
 
 const COUNTRY_CODES = [
   { value: "RW", label: "Rwanda", flag: "\u{1F1F7}\u{1F1FC}", code: "+250" },
@@ -54,16 +47,14 @@ export default function PhoneScreen(): JSX.Element {
   }
 
   return (
-    <ScreenContainer className="justify-center px-6 gap-8">
-      <View className="items-center gap-3">
-        <AppText className="text-3xl font-black text-foreground">
-          e-Kimina
-        </AppText>
-        <AppText className="text-base text-center text-muted">
-          Cooperative savings, made transparent
-        </AppText>
-      </View>
-
+    <OnboardingLayout
+      title="Enter your phone"
+      description="We'll send you a verification code via SMS"
+      buttonLabel="Continue"
+      isLoading={isLoading}
+      isDisabled={!isValid}
+      onButtonPress={handleContinue}
+    >
       <TextField isRequired>
         <Label>Phone number</Label>
         <InputGroup>
@@ -119,27 +110,7 @@ export default function PhoneScreen(): JSX.Element {
             maxLength={11}
           />
         </InputGroup>
-        <Description>
-          We&apos;ll send you a verification code via SMS
-        </Description>
       </TextField>
-
-      <Button
-        variant="primary"
-        isDisabled={!isValid || isLoading}
-        onPress={handleContinue}
-      >
-        <Button.Label>
-          {isLoading ? "Sending..." : "Continue"}
-        </Button.Label>
-        {!isLoading && (
-          <StyledIonicons
-            name="arrow-forward"
-            size={18}
-            className="text-accent-foreground"
-          />
-        )}
-      </Button>
-    </ScreenContainer>
+    </OnboardingLayout>
   );
 }

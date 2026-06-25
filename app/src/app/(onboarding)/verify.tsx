@@ -1,21 +1,13 @@
 import type { JSX } from "react";
 import { useCallback, useEffect, useState } from "react";
-import { View, Pressable } from "react-native";
+import { View } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-import {
-  Button,
-  InputOTP,
-  REGEXP_ONLY_DIGITS,
-} from "heroui-native";
-import { Ionicons } from "@expo/vector-icons";
-import { withUniwind } from "uniwind";
+import { Button, InputOTP, REGEXP_ONLY_DIGITS } from "heroui-native";
 import { api } from "../../api";
 import type { OtpVerificationResult } from "../../api";
 import { nav } from "../../lib/nav";
 import { AppText } from "../../components/ui/app-text";
-import { ScreenContainer } from "../../components/ui/screen-container";
-
-const StyledIonicons = withUniwind(Ionicons);
+import { OnboardingLayout } from "../../components/ui/onboarding-layout";
 
 const RESEND_COOLDOWN = 30;
 
@@ -78,80 +70,53 @@ export default function VerifyScreen(): JSX.Element {
     : "";
 
   return (
-    <ScreenContainer extraTop={12}>
-      <View className="flex-1 px-6 gap-8 justify-center">
-        {/* Back button - absolute positioned */}
-        <Pressable
-          onPress={() => nav.replace("/(onboarding)/phone")}
-          className="absolute top-0 left-0 p-2"
+    <OnboardingLayout
+      title="Enter the code"
+      description={`Sent to ${masked}`}
+      onBack={() => nav.replace("/(onboarding)/phone")}
+      buttonLabel="Verify"
+      isLoading={isVerifying}
+      isDisabled={otp.length < 6}
+      onButtonPress={() => handleVerify(otp)}
+    >
+      <View className="items-center gap-3">
+        <InputOTP
+          maxLength={6}
+          value={otp}
+          onChange={setOtp}
+          onComplete={handleVerify}
+          isInvalid={!!error}
+          pattern={REGEXP_ONLY_DIGITS}
         >
-          <StyledIonicons
-            name="arrow-back"
-            size={22}
-            className="text-foreground"
-          />
-        </Pressable>
+          <InputOTP.Group>
+            <InputOTP.Slot index={0} />
+            <InputOTP.Slot index={1} />
+            <InputOTP.Slot index={2} />
+          </InputOTP.Group>
+          <InputOTP.Separator />
+          <InputOTP.Group>
+            <InputOTP.Slot index={3} />
+            <InputOTP.Slot index={4} />
+            <InputOTP.Slot index={5} />
+          </InputOTP.Group>
+        </InputOTP>
 
-        <View className="items-center gap-2">
-          <AppText className="text-2xl font-semibold text-foreground">
-            Enter the code
-          </AppText>
-          <AppText className="text-sm text-muted">
-            Sent to {masked}
-          </AppText>
-        </View>
+        {error && (
+          <AppText className="text-xs text-danger">{error}</AppText>
+        )}
+      </View>
 
-        <View className="items-center gap-3">
-          <InputOTP
-            maxLength={6}
-            value={otp}
-            onChange={setOtp}
-            onComplete={handleVerify}
-            isInvalid={!!error}
-            pattern={REGEXP_ONLY_DIGITS}
-          >
-            <InputOTP.Group>
-              <InputOTP.Slot index={0} />
-              <InputOTP.Slot index={1} />
-              <InputOTP.Slot index={2} />
-            </InputOTP.Group>
-            <InputOTP.Separator />
-            <InputOTP.Group>
-              <InputOTP.Slot index={3} />
-              <InputOTP.Slot index={4} />
-              <InputOTP.Slot index={5} />
-            </InputOTP.Group>
-          </InputOTP>
-
-          {error && (
-            <AppText className="text-xs text-danger">{error}</AppText>
-          )}
-        </View>
-
-        <Button
-          variant="primary"
-          isDisabled={otp.length < 6 || isVerifying}
-          onPress={() => handleVerify(otp)}
-        >
-          <Button.Label>
-            {isVerifying ? "Verifying..." : "Verify"}
+      {canResend ? (
+        <Button variant="ghost" onPress={handleResend}>
+          <Button.Label className="text-accent">
+            Resend code
           </Button.Label>
         </Button>
-
-        <View className="items-center">
-          {canResend ? (
-            <Button variant="ghost" onPress={handleResend}>
-              <Button.Label className="text-accent">
-                Resend code
-              </Button.Label>
-            </Button>
-          ) : (
-            <AppText className="text-xs text-muted">
-              Resend code in {resendTimer}s
-            </AppText>
-          )}
-        </View>
-      </View>
-    </ScreenContainer>
+      ) : (
+        <AppText className="text-xs text-muted text-center">
+          Resend code in {resendTimer}s
+        </AppText>
+      )}
+    </OnboardingLayout>
   );
 }
