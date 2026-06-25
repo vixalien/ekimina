@@ -66,12 +66,13 @@ Each weight is a separate font family in React Native. The CSS variables in `glo
 
 ```css
 /* @theme -- font-family variables (override Tailwind's font-weight defaults) */
---font-normal: "Inter-Regular";
---font-medium: "Inter-Medium";
---font-semibold: "Inter-SemiBold";
---font-bold: "Inter-Bold";
---font-mono: "JetBrainsMono-Regular";
---font-hero: "SpaceGrotesk-Bold";
+--font-normal: "Inter_400Regular";
+--font-medium: "Inter_500Medium";
+--font-semibold: "Inter_600SemiBold";
+--font-bold: "Inter_700Bold";
+--font-black: "Inter_900Black";
+--font-mono: "JetBrainsMono_400Regular";
+--font-hero: "SpaceGrotesk_700Bold";
 ```
 
 Usage:

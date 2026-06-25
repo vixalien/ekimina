@@ -56,7 +56,7 @@ export default function PhoneScreen(): JSX.Element {
   return (
     <ScreenContainer className="justify-center px-6 gap-8">
       <View className="items-center gap-3">
-        <AppText className="text-3xl font-bold text-foreground">
+        <AppText className="text-3xl font-black text-foreground">
           e-Kimina
         </AppText>
         <AppText className="text-base text-center text-muted">

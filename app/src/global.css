@@ -11,17 +11,18 @@
  * Font families.
  *
  * Each weight is a separate font family in React Native (expo-font).
- * Inter_400Regular registers as "Inter-Regular", Inter_500Medium as "Inter-Medium", etc.
+ * The names must match exactly what useFonts registers (the export names from @expo-google-fonts).
  *
  * HeroUI Native convention: --font-normal, --font-medium, --font-semibold, --font-bold
  * are font-family variables (not font-weight). This overrides Tailwind's default
  * font-weight utilities so that font-normal, font-medium etc. set the font family.
  */
 @theme {
-  --font-normal: "Inter-Regular";
-  --font-medium: "Inter-Medium";
-  --font-semibold: "Inter-SemiBold";
-  --font-bold: "Inter-Bold";
-  --font-mono: "JetBrainsMono-Regular";
-  --font-hero: "SpaceGrotesk-Bold";
+  --font-normal: "Inter_400Regular";
+  --font-medium: "Inter_500Medium";
+  --font-semibold: "Inter_600SemiBold";
+  --font-bold: "Inter_700Bold";
+  --font-black: "Inter_900Black";
+  --font-mono: "JetBrainsMono_400Regular";
+  --font-hero: "SpaceGrotesk_700Bold";
 }

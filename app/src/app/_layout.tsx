@@ -4,6 +4,7 @@ import {
   Inter_500Medium,
   Inter_600SemiBold,
   Inter_700Bold,
+  Inter_900Black,
   useFonts,
 } from "@expo-google-fonts/inter";
 import { JetBrainsMono_400Regular } from "@expo-google-fonts/jetbrains-mono";
@@ -25,6 +26,7 @@ export default function RootLayout(): JSX.Element | null {
     Inter_500Medium,
     Inter_600SemiBold,
     Inter_700Bold,
+    Inter_900Black,
     SpaceGrotesk_700Bold,
     JetBrainsMono_400Regular,
   });
