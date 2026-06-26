@@ -1,4 +1,4 @@
-import type { Group, GroupMembership, PublicGroup } from "../types";
+import type { Group, GroupMembership, PublicGroup, JoinRequest } from "../types";
 
 const GROUP_1: Group = {
   id: "group-1",
@@ -73,3 +73,13 @@ export function toPublicGroup(group: Group): PublicGroup {
     avatarInitials: group.avatarInitials,
   };
 }
+
+export const MOCK_PENDING_REQUESTS: Record<string, JoinRequest> = {
+  "+250788777666": {
+    id: "req-1",
+    groupId: "group-1",
+    groupName: "Umugongo W'Abaturage",
+    status: "pending",
+    requestedAt: "2026-06-25T09:00:00Z",
+  },
+};

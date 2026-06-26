@@ -1,15 +1,10 @@
 import type { JSX } from "react";
 import { useState } from "react";
-import {
-  FieldError,
-  InputGroup,
-  Label,
-  TextField,
-} from "heroui-native";
+import { FieldError, InputGroup, Label, TextField, useToast } from "heroui-native";
 import { Ionicons } from "@expo/vector-icons";
 import { withUniwind } from "uniwind";
 import { api } from "../../api";
-import { nav } from "../../lib/nav";
+import { nav } from "../../lib/routes";
 import { OnboardingLayout } from "../../components/ui/onboarding-layout";
 
 const StyledIonicons = withUniwind(Ionicons);
@@ -18,23 +13,27 @@ export default function InviteCodeScreen(): JSX.Element {
   const [code, setCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   async function handleSubmit() {
     if (!code.trim()) return;
     setIsLoading(true);
     setError(null);
     try {
-      const request = await api.groups.joinByInviteCode(
-        "user-new",
-        code.trim(),
-      );
-      nav.replace("/(onboarding)/pending", {
+      const request = await api.groups.joinByInviteCode("user-new", code.trim());
+      nav.onboarding.toPending({
         requestId: request.id,
         groupName: request.groupName,
         requestedAt: request.requestedAt,
       });
-    } catch {
+    } catch (error) {
+      console.error(error);
       setError("Invalid invite code. Check with your group admin.");
+      toast.show({
+        variant: "danger",
+        label: "Could not join group",
+        description: "Invalid invite code. Check with your group admin.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -53,11 +52,7 @@ export default function InviteCodeScreen(): JSX.Element {
         <Label>Invite code</Label>
         <InputGroup>
           <InputGroup.Prefix isDecorative>
-            <StyledIonicons
-              name="key-outline"
-              size={16}
-              className="text-muted"
-            />
+            <StyledIonicons name="key-outline" size={16} className="text-muted" />
           </InputGroup.Prefix>
           <InputGroup.Input
             autoFocus

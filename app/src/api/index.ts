@@ -15,6 +15,7 @@ export type {
   PublicGroup,
   JoinRequest,
   OtpVerificationResult,
+  StatusResult,
   GroupSettings,
   CreateGroupPayload,
   CreateGroupResult,

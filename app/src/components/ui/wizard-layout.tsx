@@ -1,5 +1,4 @@
 import type { JSX, ReactNode } from "react";
-import { StepProgress } from "./step-progress";
 import { OnboardingLayout } from "./onboarding-layout";
 
 interface WizardLayoutProps {
@@ -29,6 +28,8 @@ export function WizardLayout({
 }: WizardLayoutProps): JSX.Element {
   return (
     <OnboardingLayout
+      step={step}
+      totalSteps={totalSteps}
       title={title}
       description={description}
       buttonLabel={buttonLabel}
@@ -37,7 +38,6 @@ export function WizardLayout({
       isDisabled={isDisabled}
       showBack={showBack}
     >
-      <StepProgress totalSteps={totalSteps} currentStep={step} />
       {children}
     </OnboardingLayout>
   );

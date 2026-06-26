@@ -37,14 +37,24 @@ export interface JoinRequest {
 }
 
 export type OtpVerificationResult =
-  | { status: "no_groups"; user: User }
-  | { status: "one_group"; user: User; membership: GroupMembership }
-  | { status: "multiple_groups"; user: User; memberships: GroupMembership[] };
+  | { status: "new_user"; user: User; token: string }
+  | { status: "no_groups"; user: User; token: string }
+  | { status: "one_group"; user: User; token: string; membership: GroupMembership }
+  | { status: "multiple_groups"; user: User; token: string; memberships: GroupMembership[] }
+  | { status: "invitation_pending"; user: User; token: string; request: JoinRequest };
+
+export interface StatusResult {
+  user: User;
+  groupStatus: "one_group" | "multiple_groups" | "no_groups" | "invitation_pending";
+  pendingRequest?: { requestId: string; groupName: string; requestedAt: string };
+}
 
 export interface AuthApi {
   sendOtp(phone: string): Promise<{ success: boolean }>;
   resendOtp(phone: string): Promise<{ success: boolean }>;
   verifyOtp(phone: string, code: string): Promise<OtpVerificationResult>;
+  getStatus(token: string): Promise<StatusResult>;
+  updateProfile(token: string, name: string): Promise<User>;
 }
 
 export interface GroupsApi {

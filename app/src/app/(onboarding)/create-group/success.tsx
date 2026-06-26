@@ -6,7 +6,7 @@ import { withUniwind } from "uniwind";
 import { useStore } from "@nanostores/react";
 import * as Clipboard from "expo-clipboard";
 
-import { nav } from "@/lib/nav";
+import { nav } from "@/lib/routes";
 import { AppText } from "@/components/ui/app-text";
 import { OnboardingLayout } from "@/components/ui/onboarding-layout";
 import { $createdGroup, resetWizard } from "@/stores/create-group";
@@ -39,7 +39,7 @@ export default function CreateGroupSuccess(): JSX.Element {
   function handleGoToGroup() {
     resetWizard();
     resetGroup();
-    nav.replace("/(tabs)");
+    nav.toTabs();
   }
 
   return (

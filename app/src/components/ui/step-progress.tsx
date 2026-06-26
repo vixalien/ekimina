@@ -8,7 +8,7 @@ interface StepProgressProps {
 
 export function StepProgress({ totalSteps, currentStep }: StepProgressProps): JSX.Element {
   return (
-    <View className="flex-row items-center justify-center gap-2 mb-6">
+    <View className="flex-row items-center justify-center gap-2">
       {Array.from({ length: totalSteps }, (_, i) => {
         const step = i + 1;
         const isActive = step <= currentStep;

@@ -2,10 +2,12 @@ import type { JSX } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-import { Button, InputOTP, REGEXP_ONLY_DIGITS, type InputOTPRef } from "heroui-native";
+import { Button, InputOTP, REGEXP_ONLY_DIGITS, type InputOTPRef, useToast } from "heroui-native";
 import { api } from "../../api";
 import type { OtpVerificationResult } from "../../api";
-import { nav } from "../../lib/nav";
+import { nav } from "../../lib/routes";
+import { setAuth } from "../../stores/auth";
+import { saveAuth } from "../../lib/auth-storage";
 import { AppText } from "../../components/ui/app-text";
 import { OnboardingLayout } from "../../components/ui/onboarding-layout";
 
@@ -19,6 +21,7 @@ export default function VerifyScreen(): JSX.Element {
   const [error, setError] = useState<string | null>(null);
   const [resendTimer, setResendTimer] = useState(RESEND_COOLDOWN);
   const canResend = resendTimer <= 0;
+  const { toast } = useToast();
 
   useEffect(() => {
     const timer = setTimeout(() => otpRef.current?.focus(), 100);
@@ -31,17 +34,34 @@ export default function VerifyScreen(): JSX.Element {
     return () => clearTimeout(t);
   }, [resendTimer]);
 
-  const handleResult = useCallback((result: OtpVerificationResult) => {
+  const handleResult = useCallback(async (result: OtpVerificationResult) => {
+    const authUser = {
+      phone: result.user.phone,
+      token: result.token,
+      accountType: result.status === "new_user" ? ("new" as const) : ("existing" as const),
+      name: result.user.name,
+      userId: result.user.id,
+    };
+    setAuth(authUser);
+    await saveAuth(authUser);
+
     switch (result.status) {
+      case "new_user":
+        nav.onboarding.signup.toName();
+        break;
       case "no_groups":
-        nav.replace("/(onboarding)/join-or-create");
+        nav.onboarding.toJoinOrCreate();
         break;
       case "one_group":
-        nav.replace("/(tabs)");
-        break;
       case "multiple_groups":
-        // TODO: show group switcher sheet, then navigate to (tabs)
-        nav.replace("/(tabs)");
+        nav.toTabs();
+        break;
+      case "invitation_pending":
+        nav.onboarding.toPending({
+          requestId: result.request.id,
+          groupName: result.request.groupName,
+          requestedAt: result.request.requestedAt,
+        });
         break;
     }
   }, []);
@@ -52,10 +72,16 @@ export default function VerifyScreen(): JSX.Element {
     setError(null);
     try {
       const result = await api.auth.verifyOtp(phone, code);
-      handleResult(result);
-    } catch {
+      await handleResult(result);
+    } catch (error) {
+      console.error(error);
       setError("Invalid code. Please try again.");
       setOtp("");
+      toast.show({
+        variant: "danger",
+        label: "Verification failed",
+        description: "The code you entered is incorrect. Please try again.",
+      });
     } finally {
       setIsVerifying(false);
     }
@@ -66,14 +92,17 @@ export default function VerifyScreen(): JSX.Element {
     setResendTimer(RESEND_COOLDOWN);
     try {
       await api.auth.resendOtp(phone);
-    } catch {
-      // silent
+    } catch (error) {
+      console.error(error);
+      toast.show({
+        variant: "danger",
+        label: "Could not resend code",
+        description: "Something went wrong. Please try again.",
+      });
     }
   }
 
-  const masked = phone
-    ? phone.replace(/(\+\d{3})(\d{3})(\d{3})(\d{3})/, "$1 $2 $3 $4")
-    : "";
+  const masked = phone ? phone.replace(/(\+\d{3})(\d{3})(\d{3})(\d{3})/, "$1 $2 $3 $4") : "";
 
   return (
     <OnboardingLayout
@@ -83,6 +112,8 @@ export default function VerifyScreen(): JSX.Element {
       isLoading={isVerifying}
       isDisabled={otp.length < 6}
       onButtonPress={() => handleVerify(otp)}
+      step={2}
+      totalSteps={2}
     >
       <View className="gap-3 items-center">
         <InputOTP
@@ -107,9 +138,7 @@ export default function VerifyScreen(): JSX.Element {
           </InputOTP.Group>
         </InputOTP>
 
-        {error && (
-          <AppText className="text-xs text-danger">{error}</AppText>
-        )}
+        {error && <AppText className="text-xs text-danger">{error}</AppText>}
 
         <View className="flex-row items-center mt-2">
           {canResend ? (
@@ -117,9 +146,7 @@ export default function VerifyScreen(): JSX.Element {
               <Button.Label className="text-accent">Resend code</Button.Label>
             </Button>
           ) : (
-            <AppText className="text-xs text-muted">
-              Resend code in {resendTimer}s
-            </AppText>
+            <AppText className="text-xs text-muted">Resend code in {resendTimer}s</AppText>
           )}
         </View>
       </View>

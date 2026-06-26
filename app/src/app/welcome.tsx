@@ -5,7 +5,7 @@ import { Button, BottomSheet } from "heroui-native";
 import { Ionicons } from "@expo/vector-icons";
 import { withUniwind } from "uniwind";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { router } from "expo-router";
+import { nav } from "../lib/routes";
 import { AppText } from "../components/ui/app-text";
 
 const StyledIonicons = withUniwind(Ionicons);
@@ -20,9 +20,7 @@ export default function WelcomeScreen(): JSX.Element {
     <ImageBackground source={splashImg} className="flex-1" resizeMode="cover">
       <View className="flex-1 bg-black/40">
         <View className="px-6" style={{ paddingTop: insets.top + 24 }}>
-          <AppText className="text-2xl font-bold text-white">
-            e-Kimina
-          </AppText>
+          <AppText className="text-2xl font-bold text-white">e-Kimina</AppText>
         </View>
 
         <View className="flex-1" />
@@ -32,19 +30,12 @@ export default function WelcomeScreen(): JSX.Element {
             Cooperative savings, made transparent
           </AppText>
 
-          <Button
-            size="sm"
-            variant="tertiary"
-            onPress={() => setIsDisclaimerOpen(true)}
-          >
+          <Button size="sm" variant="tertiary" onPress={() => setIsDisclaimerOpen(true)}>
             <StyledIonicons name="information-circle-outline" size={16} />
             <Button.Label>Disclaimer</Button.Label>
           </Button>
 
-          <Button
-            variant="primary"
-            onPress={() => router.push("/(onboarding)/phone" as any)}
-          >
+          <Button variant="primary" onPress={() => nav.onboarding.toPhone()}>
             <Button.Label>Continue</Button.Label>
           </Button>
         </View>
@@ -57,18 +48,17 @@ export default function WelcomeScreen(): JSX.Element {
             <BottomSheet.Title>Disclaimer</BottomSheet.Title>
             <View className="gap-4 mt-2">
               <AppText className="text-sm text-muted leading-5">
-                e-Kimina is a prototype built for educational purposes as part
-                of a university capstone project. It is not a real bank or
-                financial institution.
+                e-Kimina is a prototype built for educational purposes as part of a university
+                capstone project. It is not a real bank or financial institution.
               </AppText>
               <AppText className="text-sm text-muted leading-5">
-                This app explores the concept of cooperative savings groups
-                (ikimina) using blockchain technology. No real money is
-                collected, stored, or managed through this application.
+                This app explores the concept of cooperative savings groups (ikimina) using
+                blockchain technology. No real money is collected, stored, or managed through this
+                application.
               </AppText>
               <AppText className="text-sm text-muted leading-5">
-                Any cryptocurrency interactions shown are simulated for
-                demonstration purposes only. Do not send real funds.
+                Any cryptocurrency interactions shown are simulated for demonstration purposes only.
+                Do not send real funds.
               </AppText>
               <Button variant="tertiary" onPress={() => setIsDisclaimerOpen(false)}>
                 <Button.Label>Got it</Button.Label>

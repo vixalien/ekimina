@@ -8,6 +8,7 @@ import { withUniwind } from "uniwind";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { AppText } from "./app-text";
 import { ScreenContainer } from "./screen-container";
+import { StepProgress } from "./step-progress";
 
 const StyledIonicons = withUniwind(Ionicons);
 
@@ -20,6 +21,8 @@ interface OnboardingLayoutProps {
   isLoading?: boolean;
   isDisabled?: boolean;
   showBack?: boolean;
+  step?: number;
+  totalSteps?: number;
 }
 
 export function OnboardingLayout({
@@ -31,19 +34,37 @@ export function OnboardingLayout({
   isLoading,
   isDisabled,
   showBack = true,
+  step,
+  totalSteps,
 }: OnboardingLayoutProps): JSX.Element {
+  const hasHeader = showBack || step !== undefined;
+
   return (
-    <ScreenContainer extraTop={showBack ? 12 : 0}>
+    <ScreenContainer extraTop={hasHeader ? 12 : 0}>
       <KeyboardAvoidingView
         behavior="padding"
-        keyboardVerticalOffset={showBack ? 12 : 0}
+        keyboardVerticalOffset={hasHeader ? 12 : 0}
         className="flex-1"
       >
         <View className="flex-1 px-6">
-          {showBack && (
-            <Pressable onPress={() => router.back()} className="p-2 -ml-2 self-start mb-4">
-              <StyledIonicons name="chevron-back" size={22} className="text-foreground" />
-            </Pressable>
+          {hasHeader && (
+            <View className="flex-row items-center mb-4">
+              {showBack ? (
+                <Pressable onPress={() => router.back()} className="p-2 -ml-2">
+                  <StyledIonicons name="chevron-back" size={22} className="text-foreground" />
+                </Pressable>
+              ) : (
+                <View className="w-[38px]" />
+              )}
+
+              {step !== undefined && totalSteps !== undefined && (
+                <View className="flex-1 items-center">
+                  <StepProgress currentStep={step} totalSteps={totalSteps} />
+                </View>
+              )}
+
+              {showBack && step !== undefined && <View className="w-[38px]" />}
+            </View>
           )}
 
           <View className="gap-2">

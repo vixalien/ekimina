@@ -21,4 +21,17 @@ export const MOCK_USERS: Record<string, User> = {
     name: null,
     createdAt: "2025-06-01T09:00:00Z",
   },
+  "+250788777666": {
+    id: "user-4",
+    phone: "+250788777666",
+    name: "Alice Uwase",
+    createdAt: "2025-05-01T09:00:00Z",
+  },
+};
+
+export const MOCK_TOKENS: Record<string, string> = {
+  "mock-token-user-1": "+250788123456",
+  "mock-token-user-2": "+250788654321",
+  "mock-token-user-3": "+250788999888",
+  "mock-token-user-4": "+250788777666",
 };

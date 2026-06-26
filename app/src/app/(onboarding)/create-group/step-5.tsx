@@ -1,6 +1,6 @@
 import type { JSX } from "react";
 import { useStore } from "@nanostores/react";
-import { nav } from "@/lib/nav";
+import { nav } from "@/lib/routes";
 import { WizardLayout } from "@/components/ui/wizard-layout";
 import { LoansSettings } from "@/components/group-settings/loans";
 import { $group, updateSettings } from "@/stores/group";
@@ -16,7 +16,7 @@ export default function CreateGroupStep5(): JSX.Element {
 
   function handleNext() {
     setStep(6);
-    nav.push("/(onboarding)/create-group/step-6");
+    nav.onboarding.createGroup.toStep(6);
   }
 
   return (

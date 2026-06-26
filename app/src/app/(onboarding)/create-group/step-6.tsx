@@ -3,7 +3,7 @@ import { useCallback, useMemo, useState } from "react";
 import { View } from "react-native";
 import { BottomSheet, Button } from "heroui-native";
 import { useStore } from "@nanostores/react";
-import { nav } from "@/lib/nav";
+import { nav } from "@/lib/routes";
 import { api } from "@/api";
 import type { GroupSettings } from "@/api/types";
 import { AppText } from "@/components/ui/app-text";
@@ -83,7 +83,7 @@ export default function CreateGroupStep6(): JSX.Element {
         name: result.group.name,
         inviteCode: result.inviteCode,
       });
-      nav.replace("/(onboarding)/create-group/success");
+      nav.onboarding.createGroup.toSuccess();
     } catch (e) {
       $submitError.set(e instanceof Error ? e.message : "Failed to create group");
     } finally {

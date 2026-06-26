@@ -1,14 +1,8 @@
 import type { JSX } from "react";
 import React, { useState } from "react";
-import {
-  InputGroup,
-  Label,
-  Select,
-  Separator,
-  TextField,
-} from "heroui-native";
+import { InputGroup, Label, Select, Separator, TextField, useToast } from "heroui-native";
 import { api } from "../../api";
-import { nav } from "../../lib/nav";
+import { nav } from "../../lib/routes";
 import { AppText } from "../../components/ui/app-text";
 import { OnboardingLayout } from "../../components/ui/onboarding-layout";
 
@@ -25,10 +19,9 @@ type CountryCode = (typeof COUNTRY_CODES)[number];
 
 export default function PhoneScreen(): JSX.Element {
   const [phone, setPhone] = useState("");
-  const [countryCode, setCountryCode] = useState<CountryCode>(
-    COUNTRY_CODES[0]!,
-  );
+  const [countryCode, setCountryCode] = useState<CountryCode>(COUNTRY_CODES[0]!);
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   const isValid = phone.replace(/\s/g, "").length >= 9;
 
@@ -38,9 +31,13 @@ export default function PhoneScreen(): JSX.Element {
     try {
       const fullPhone = `${countryCode.code}${phone.replace(/\s/g, "")}`;
       await api.auth.sendOtp(fullPhone);
-      nav.push("/(onboarding)/verify", { phone: fullPhone });
-    } catch {
-      // error handling
+      nav.onboarding.toVerify(fullPhone);
+    } catch (error) {
+      toast.show({
+        variant: "danger",
+        label: "Could not send you a verification code",
+        description: String(error) || "An unexpected error happened",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -54,6 +51,8 @@ export default function PhoneScreen(): JSX.Element {
       isLoading={isLoading}
       isDisabled={!isValid}
       onButtonPress={handleContinue}
+      step={1}
+      totalSteps={2}
     >
       <TextField isRequired>
         <Label>Phone number</Label>
@@ -63,16 +62,11 @@ export default function PhoneScreen(): JSX.Element {
               presentation="bottom-sheet"
               value={countryCode}
               onValueChange={(value) => {
-                const found = COUNTRY_CODES.find(
-                  (c) => c.value === value?.value,
-                );
+                const found = COUNTRY_CODES.find((c) => c.value === value?.value);
                 if (found) setCountryCode(found);
               }}
             >
-              <Select.Trigger
-                variant="unstyled"
-                className="flex-row items-center gap-1"
-              >
+              <Select.Trigger variant="unstyled" className="flex-row items-center gap-1">
                 <AppText className="text-base">{countryCode.flag}</AppText>
                 <AppText className="text-sm font-medium text-foreground">
                   {countryCode.code}
@@ -86,9 +80,7 @@ export default function PhoneScreen(): JSX.Element {
                     <React.Fragment key={option.value}>
                       <Select.Item value={option.value} label={option.label}>
                         <AppText className="text-xl">{option.flag}</AppText>
-                        <AppText className="text-sm text-muted w-10">
-                          {option.code}
-                        </AppText>
+                        <AppText className="text-sm text-muted w-10">{option.code}</AppText>
                         <AppText className="flex-1 text-base text-foreground">
                           {option.label}
                         </AppText>

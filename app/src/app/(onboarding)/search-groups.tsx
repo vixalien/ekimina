@@ -10,12 +10,13 @@ import {
   Separator,
   Surface,
   TextField,
+  useToast,
 } from "heroui-native";
 import { Ionicons } from "@expo/vector-icons";
 import { withUniwind } from "uniwind";
 import { api } from "../../api";
 import type { PublicGroup } from "../../api";
-import { nav } from "../../lib/nav";
+import { nav } from "../../lib/routes";
 import { AppText } from "../../components/ui/app-text";
 import { OnboardingLayout } from "../../components/ui/onboarding-layout";
 
@@ -27,14 +28,21 @@ export default function SearchGroupsScreen(): JSX.Element {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isJoining, setIsJoining] = useState(false);
+  const { toast } = useToast();
 
   const search = useCallback(async (text: string) => {
     setIsLoading(true);
     try {
       const results = await api.groups.searchPublicGroups(text);
       setGroups(results);
-    } catch {
+    } catch (error) {
+      console.error(error);
       setGroups([]);
+      toast.show({
+        variant: "danger",
+        label: "Search failed",
+        description: "Could not load groups. Please try again.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -64,13 +72,18 @@ export default function SearchGroupsScreen(): JSX.Element {
     setIsJoining(true);
     try {
       const request = await api.groups.requestToJoinGroup("user-new", selectedId);
-      nav.replace("/(onboarding)/pending", {
+      nav.onboarding.toPending({
         requestId: request.id,
         groupName: request.groupName,
         requestedAt: request.requestedAt,
       });
-    } catch {
-      // error handling
+    } catch (error) {
+      console.error(error);
+      toast.show({
+        variant: "danger",
+        label: "Could not send request",
+        description: "Something went wrong. Please try again.",
+      });
     } finally {
       setIsJoining(false);
     }

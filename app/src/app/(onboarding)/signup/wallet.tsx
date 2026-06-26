@@ -4,59 +4,59 @@ import { View } from "react-native";
 import { Description, Label, Radio, RadioGroup, Separator, Surface } from "heroui-native";
 import { Ionicons } from "@expo/vector-icons";
 import { withUniwind } from "uniwind";
-import { nav } from "../../lib/routes";
-import { OnboardingLayout } from "../../components/ui/onboarding-layout";
+import { nav } from "../../../lib/routes";
+import { OnboardingLayout } from "../../../components/ui/onboarding-layout";
 
 const StyledIonicons = withUniwind(Ionicons);
 
-const OPTIONS = [
+const WALLET_OPTIONS = [
   {
-    value: "invite-code",
-    icon: "key-outline" as const,
-    title: "Enter an invite code",
-    subtitle: "Someone gave you a code or a link",
+    value: "metamask",
+    icon: "wallet-outline" as const,
+    title: "MetaMask",
+    subtitle: "Connect your MetaMask wallet",
   },
   {
-    value: "search-groups",
-    icon: "search-outline" as const,
-    title: "Search public groups",
-    subtitle: "Browse groups open to anyone",
+    value: "walletconnect",
+    icon: "qr-code-outline" as const,
+    title: "WalletConnect",
+    subtitle: "Scan a QR code to connect",
   },
   {
-    value: "create-group",
-    icon: "add-circle-outline" as const,
-    title: "Create a new group",
-    subtitle: "Set it up and invite your members",
+    value: "mobile-money",
+    icon: "phone-portrait-outline" as const,
+    title: "Link Mobile Money",
+    subtitle: "Connect via MTN or Airtel Money",
   },
-];
+] as const;
 
-export default function JoinOrCreateScreen(): JSX.Element {
-  const [selected, setSelected] = useState(OPTIONS[0]!.value);
+export default function SignupWalletScreen(): JSX.Element {
+  const [selected, setSelected] = useState<string>(WALLET_OPTIONS[0].value);
+  const [isLoading, setIsLoading] = useState(false);
 
-  function handleContinue() {
-    switch (selected) {
-      case "invite-code":
-        nav.onboarding.toInviteCode();
-        break;
-      case "search-groups":
-        nav.onboarding.toSearchGroups();
-        break;
-      case "create-group":
-        nav.onboarding.createGroup.toStep(1);
-        break;
+  async function handleConnect() {
+    setIsLoading(true);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // mock
+      nav.onboarding.toJoinOrCreate();
+    } finally {
+      setIsLoading(false);
     }
   }
 
   return (
     <OnboardingLayout
-      title="Join or create a group"
-      description="Join an existing ikimina or start your own"
-      buttonLabel="Continue"
-      onButtonPress={handleContinue}
+      title="Connect your wallet"
+      description="Choose how you'd like to connect"
+      buttonLabel="Connect"
+      isLoading={isLoading}
+      onButtonPress={handleConnect}
+      step={2}
+      totalSteps={2}
     >
       <Surface>
         <RadioGroup value={selected} onValueChange={setSelected}>
-          {OPTIONS.map((option, index) => (
+          {WALLET_OPTIONS.map((option, index) => (
             <React.Fragment key={option.value}>
               {index > 0 && <Separator className="my-1" />}
               <RadioGroup.Item value={option.value}>

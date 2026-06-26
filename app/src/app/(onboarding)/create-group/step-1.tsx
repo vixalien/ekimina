@@ -1,7 +1,7 @@
 import type { JSX } from "react";
 import { useState } from "react";
 import { useStore } from "@nanostores/react";
-import { nav } from "@/lib/nav";
+import { nav } from "@/lib/routes";
 import { WizardLayout } from "@/components/ui/wizard-layout";
 import { TemplateSelector } from "@/components/group-settings/template";
 import { $group, applyTemplate } from "@/stores/group";
@@ -16,7 +16,7 @@ export default function CreateGroupStep1(): JSX.Element {
     if (!selected) return;
     applyTemplate(selected);
     setStep(2);
-    nav.push("/(onboarding)/create-group/step-2");
+    nav.onboarding.createGroup.toStep(2);
   }
 
   return (
