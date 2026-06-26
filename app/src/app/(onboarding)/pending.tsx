@@ -7,6 +7,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { withUniwind } from "uniwind";
 import { api } from "../../api";
 import { nav } from "../../lib/routes";
+import { clearAuth } from "../../stores/auth";
+import { clearAuthStorage } from "../../lib/auth-storage";
 import { AppText } from "../../components/ui/app-text";
 import { ScreenContainer } from "../../components/ui/screen-container";
 
@@ -60,6 +62,12 @@ export default function PendingScreen(): JSX.Element {
     }
   }
 
+  async function handleLogout() {
+    clearAuth();
+    await clearAuthStorage();
+    nav.toWelcome();
+  }
+
   return (
     <ScreenContainer extraTop={12}>
       <View className="flex-1 px-6">
@@ -81,9 +89,12 @@ export default function PendingScreen(): JSX.Element {
           {elapsed ? <AppText className="text-xs text-muted">Sent {elapsed}</AppText> : null}
         </View>
 
-        <View className="pb-4">
+        <View className="pb-4 gap-2">
           <Button variant="danger-soft" isDisabled={isCancelling} onPress={handleCancel}>
             <Button.Label>{isCancelling ? "Cancelling..." : "Cancel request"}</Button.Label>
+          </Button>
+          <Button variant="ghost" onPress={handleLogout}>
+            <Button.Label className="text-muted">Log out</Button.Label>
           </Button>
         </View>
       </View>
