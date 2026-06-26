@@ -255,6 +255,26 @@ When the root layout uses `<Stack.Screen>` explicitly, every screen must be list
 
 Without this, `Redirect` or `router.replace` to those routes will silently fail.
 
+### HeroUI Native Component Patterns
+
+**Reference repo:** `/home/alien/sites/alu/heroui-native-example/`
+**Docs:** `node scripts/get_component_docs.mjs <Component>` in the skill directory
+
+Always check the reference project & docs before implementing ANY HeroUI component. Do not guess APIs or invent patterns.
+
+| Component | When to use | Notes |
+|---|---|---|
+| `Surface` | Grouped content containers, stat cards, list rows | `variant="secondary"` for card bg |
+| `Card` | Tappable card surfaces | Wrap in `PressableFeedback`, never `onPress` directly |
+| `Avatar` | User/group avatars with initials | Border rings need wrapping `View` |
+| `BottomSheet` | Modal sheets from bottom | Uses `Portal`/`Overlay`/`Content` pattern |
+| `RadioGroup` | List selection (group switcher, filters) | Use custom `Radio.Indicator` for icons |
+| `Button` | All action buttons | Compound with `Button.Label`, never raw `Pressable` |
+| `PressableFeedback` | Custom pressable surfaces (cards, rows) | Adds scale/highlight animation |
+| `Chip` | Labels, badges, status pills | `size="sm"` for compact |
+| `Separator` | Visual dividers | `orientation="vertical"` for inline |
+| `AppText` | All UI text | Not `Typography` (demos only) |
+
 ### Less is more
 
 - Don't add unnecessary className props

@@ -19,4 +19,6 @@ export type {
   GroupSettings,
   CreateGroupPayload,
   CreateGroupResult,
+  GroupDashboardData,
+  MemberStanding,
 } from "./types";

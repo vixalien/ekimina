@@ -66,6 +66,31 @@ export interface GroupsApi {
   getJoinRequestStatus(requestId: string): Promise<JoinRequest>;
   cancelJoinRequest(requestId: string): Promise<{ success: boolean }>;
   createGroup(payload: CreateGroupPayload): Promise<CreateGroupResult>;
+  getGroupDashboard(groupId: string): Promise<GroupDashboardData>;
+}
+
+export interface MemberStanding {
+  userId: string;
+  initials: string;
+  name: string;
+  status: "paid" | "pending_late" | "missed_penalised" | "no_status";
+}
+
+export interface GroupDashboardData {
+  currentCycle: number;
+  totalCycles: number;
+  paidCount: number;
+  totalMemberCount: number;
+  reserveBalance: number;
+  reserveHistory: number[];
+  contributionAmount: number;
+  payoutAmount: number;
+  nextPayoutRecipient: {
+    name: string;
+    initials: string;
+  };
+  daysUntilPayout: number;
+  members: MemberStanding[];
 }
 
 export interface GroupSettings {

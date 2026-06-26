@@ -1,5 +1,5 @@
 import type { CreateGroupPayload, CreateGroupResult, Group, GroupsApi, JoinRequest } from "./types";
-import { ALL_GROUPS, INVITE_CODE_MAP, MOCK_MEMBERSHIPS, toPublicGroup } from "./mock/groups";
+import { ALL_GROUPS, INVITE_CODE_MAP, MOCK_MEMBERSHIPS, computeDashboard, toPublicGroup } from "./mock/groups";
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -107,6 +107,11 @@ export function createMockGroups(): GroupsApi {
 
       request.status = "cancelled";
       return { success: true };
+    },
+
+    async getGroupDashboard(groupId) {
+      await delay(400);
+      return computeDashboard(groupId);
     },
 
     async createGroup(payload: CreateGroupPayload): Promise<CreateGroupResult> {

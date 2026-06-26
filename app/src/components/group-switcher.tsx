@@ -1,6 +1,6 @@
 import type { JSX } from "react";
-import { View, Pressable } from "react-native";
-import { BottomSheet } from "heroui-native";
+import { View } from "react-native";
+import { Avatar, BottomSheet, Button, Radio, RadioGroup } from "heroui-native";
 import { Ionicons } from "@expo/vector-icons";
 import { withUniwind } from "uniwind";
 import type { GroupMembership } from "../api/types";
@@ -32,56 +32,55 @@ export function GroupSwitcher({
         <BottomSheet.Content>
           <BottomSheet.Title>Your groups</BottomSheet.Title>
 
-          <View className="gap-1 mt-4">
-            {memberships.map((m) => {
-              const isActive = m.group.id === activeGroupId;
-              return (
-                <Pressable
-                  key={m.group.id}
-                  onPress={() => {
-                    onSelectGroup(m);
-                    onOpenChange(false);
-                  }}
-                >
-                  <View
-                    className={`flex-row items-center gap-3 p-3 rounded-xl ${
-                      isActive ? "bg-accent/10" : ""
-                    }`}
+          <View className="mt-4 mb-2">
+            <RadioGroup
+              value={activeGroupId}
+              onValueChange={(val) => {
+                const membership = memberships.find((m) => m.group.id === val);
+                if (membership) onSelectGroup(membership);
+                onOpenChange(false);
+              }}
+            >
+              {memberships.map((m) => {
+                const isActive = m.group.id === activeGroupId;
+                return (
+                  <RadioGroup.Item
+                    key={m.group.id}
+                    value={m.group.id}
+                    onPress={() => {
+                      if (isActive) onOpenChange(false);
+                    }}
                   >
-                    <View className="size-10 rounded-full bg-accent/10 items-center justify-center">
-                      <AppText className="text-sm font-bold text-accent">
-                        {m.group.avatarInitials}
-                      </AppText>
-                    </View>
-                    <View className="flex-1 gap-0.5">
-                      <AppText className="text-base font-semibold text-foreground">
-                        {m.group.name}
-                      </AppText>
-                      <AppText className="text-xs text-muted capitalize">{m.role}</AppText>
-                    </View>
-                    {isActive && (
-                      <StyledIonicons
-                        name="checkmark-circle"
-                        size={22}
-                        className="text-foreground"
-                      />
+                    {() => (
+                      <View className="flex-row items-center gap-3 flex-1">
+                        <Avatar size="md" color="accent">
+                          <Avatar.Fallback>{m.group.avatarInitials}</Avatar.Fallback>
+                        </Avatar>
+                        <View className="flex-1 gap-0.5">
+                          <AppText className="text-base font-semibold text-foreground">
+                            {m.group.name}
+                          </AppText>
+                          <AppText className="text-xs text-muted capitalize">{m.role}</AppText>
+                        </View>
+                        <Radio>
+                          <Radio.Indicator className="border-none shadow-none bg-transparent size-6">
+                            {isActive && (
+                              <StyledIonicons name="checkmark-circle" size={22} className="text-foreground" />
+                            )}
+                          </Radio.Indicator>
+                        </Radio>
+                      </View>
                     )}
-                  </View>
-                </Pressable>
-              );
-            })}
+                  </RadioGroup.Item>
+                );
+              })}
+            </RadioGroup>
           </View>
 
-          <View className="mt-4 pt-4 border-t border-border">
-            <Pressable onPress={onJoinOrCreate}>
-              <View className="flex-row items-center gap-3 p-3">
-                <View className="size-10 rounded-full bg-surface-secondary items-center justify-center">
-                  <StyledIonicons name="add" size={20} className="text-muted" />
-                </View>
-                <AppText className="text-base text-muted">Join or create another group</AppText>
-              </View>
-            </Pressable>
-          </View>
+          <Button variant="ghost" onPress={onJoinOrCreate} className="mt-2">
+            <StyledIonicons name="add" size={20} className="text-accent" />
+            <Button.Label className="text-accent">Join or create another group</Button.Label>
+          </Button>
         </BottomSheet.Content>
       </BottomSheet.Portal>
     </BottomSheet>
