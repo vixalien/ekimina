@@ -19,6 +19,7 @@ import { withUniwind } from "uniwind";
 import { api } from "../../../api";
 import type { MemberListItem } from "../../../api/types";
 import { AppText } from "../../../components/ui/app-text";
+import { Header } from "../../../components/ui/header";
 import { ScreenContainer } from "../../../components/ui/screen-container";
 import { FilterBottomSheet, type FilterKey } from "../../../components/members/filter-bottom-sheet";
 import { $activeGroup } from "../../../stores/active-group";
@@ -97,9 +98,9 @@ export default function MembersTab(): JSX.Element {
 
   return (
     <ScreenContainer>
-      <View className="px-4 pt-2 pb-3 gap-3">
-        <AppText className="text-xl font-semibold text-foreground">Members</AppText>
+      <Header title="Members" canGoBack={false} />
 
+      <View className="px-4 pt-2 pb-3 gap-3">
         <View className="flex-row items-center gap-2">
           <View className="flex-1">
             <InputGroup>

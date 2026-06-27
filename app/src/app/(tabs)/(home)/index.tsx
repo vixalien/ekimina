@@ -4,7 +4,7 @@ import { useStore } from "@nanostores/react";
 import { router } from "expo-router";
 import type { JSX } from "react";
 import { startTransition, useEffect, useState } from "react";
-import { ScrollView, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 import { withUniwind } from "uniwind";
 
 import { api } from "../../../api";
@@ -12,8 +12,9 @@ import type { GroupDashboardData, GroupMembership } from "../../../api/types";
 import { DonutChart } from "../../../components/ui/donut-chart";
 import { MemberAvatar } from "../../../components/member-avatar";
 import { Sparkline } from "../../../components/ui/sparkline";
-import { TopBar } from "../../../components/top-bar";
 import { AppText } from "../../../components/ui/app-text";
+import { Header } from "../../../components/ui/header";
+import { ScreenContainer } from "../../../components/ui/screen-container";
 import { GroupSwitcher } from "../../../components/group-switcher";
 import {
   $activeGroup,
@@ -80,9 +81,9 @@ export default function HomeTab(): JSX.Element {
 
   if (loading || !dashboard) {
     return (
-      <View className="flex-1 bg-background items-center justify-center px-6">
+      <ScreenContainer className="items-center justify-center">
         <AppText className="text-muted text-base">Loading...</AppText>
-      </View>
+      </ScreenContainer>
     );
   }
 
@@ -100,10 +101,26 @@ export default function HomeTab(): JSX.Element {
   const isOverdue = dashboard.daysUntilPayout < 0;
 
   return (
-    <>
-      <TopBar groupName={groupName} userInitials={userInitials} onPress={triggerSwitcher} />
+    <ScreenContainer>
+      <Header
+        canGoBack={false}
+        title={
+          <Pressable onPress={triggerSwitcher}>
+            <AppText className="text-lg font-semibold text-foreground" numberOfLines={1}>
+              {groupName || "e-Kimina"}
+            </AppText>
+          </Pressable>
+        }
+        options={
+          <Pressable onPress={triggerSwitcher}>
+            <Avatar size="sm" color="accent">
+              <Avatar.Fallback>{userInitials}</Avatar.Fallback>
+            </Avatar>
+          </Pressable>
+        }
+      />
       <ScrollView
-        className="flex-1 bg-background"
+        className="flex-1"
         showsVerticalScrollIndicator={false}
         contentContainerClassName="pb-36"
       >
@@ -209,6 +226,6 @@ export default function HomeTab(): JSX.Element {
         onSelectGroup={handleSelectGroup}
         onJoinOrCreate={handleJoinOrCreate}
       />
-    </>
+    </ScreenContainer>
   );
 }

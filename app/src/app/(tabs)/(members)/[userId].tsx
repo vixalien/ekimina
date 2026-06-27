@@ -1,15 +1,14 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Avatar, Button } from "heroui-native";
 import { useStore } from "@nanostores/react";
-import { router, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import type { JSX } from "react";
 import { startTransition, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
-import { withUniwind } from "uniwind";
 
 import { api } from "../../../api";
 import type { MemberDetail as MemberDetailType } from "../../../api/types";
 import { AppText } from "../../../components/ui/app-text";
+import { Header } from "../../../components/ui/header";
 import { ScreenContainer } from "../../../components/ui/screen-container";
 import { ReputationGauge } from "../../../components/members/reputation-gauge";
 import { StatChipsRow } from "../../../components/members/stat-chips";
@@ -17,8 +16,6 @@ import { ContributionHistory } from "../../../components/members/contribution-hi
 import { LoansSection } from "../../../components/members/loans-section";
 import { $activeGroup } from "../../../stores/active-group";
 import { $auth } from "../../../stores/auth";
-
-const StyledIonicons = withUniwind(Ionicons);
 
 export default function MemberDetailScreen(): JSX.Element {
   const { userId } = useLocalSearchParams<{ userId: string }>();
@@ -41,8 +38,11 @@ export default function MemberDetailScreen(): JSX.Element {
 
   if (loading || !detail) {
     return (
-      <ScreenContainer className="justify-center items-center">
-        <AppText className="text-muted text-base">Loading...</AppText>
+      <ScreenContainer>
+        <Header canGoBack />
+        <View className="flex-1 items-center justify-center">
+          <AppText className="text-muted text-base">Loading...</AppText>
+        </View>
       </ScreenContainer>
     );
   }
@@ -52,17 +52,13 @@ export default function MemberDetailScreen(): JSX.Element {
 
   return (
     <ScreenContainer>
+      <Header canGoBack />
+
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
         contentContainerClassName="pb-36"
       >
-        <View className="px-4 pt-4">
-          <Button onPress={() => router.back()} isIconOnly variant="ghost">
-            <StyledIonicons name="arrow-back" size={22} />
-          </Button>
-        </View>
-
         <View className="px-6 pt-4 pb-6 gap-6">
           <View className="flex-row items-center gap-3">
             <Avatar size="lg" color="accent">
