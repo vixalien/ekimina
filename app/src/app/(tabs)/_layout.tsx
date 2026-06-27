@@ -11,15 +11,15 @@ import { withUniwind } from "uniwind";
 import { api } from "../../api";
 import type { GroupMembership } from "../../api/types";
 import { GroupSwitcher } from "../../components/group-switcher";
-import { TopBar } from "../../components/top-bar";
 import { $auth } from "../../stores/auth";
 import {
   $activeGroup,
+  $openSwitcher,
   dismissSwitcherOnMount,
   setMemberships,
   switchGroup,
+  clearOpenSwitcher,
 } from "../../stores/active-group";
-import { initialsOf } from "../../lib/strings";
 
 type IoniconName = ComponentProps<typeof Ionicons>["name"];
 
@@ -38,13 +38,7 @@ function TabIcon({
   return <StyledIonicons name={iconName} size={22} color={color} />;
 }
 
-function ActivityIcon({
-  focused,
-  color,
-}: {
-  focused: boolean;
-  color: ColorValue;
-}): JSX.Element {
+function ActivityIcon({ focused, color }: { focused: boolean; color: ColorValue }): JSX.Element {
   const hasPending = true;
 
   return (
@@ -60,20 +54,13 @@ function ActivityIcon({
 export default function TabsLayout(): JSX.Element {
   const auth = useStore($auth);
   const activeGroup = useStore($activeGroup);
+  const openSwitcherFlag = useStore($openSwitcher);
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
 
   const backgroundColor = String(useThemeColor("background"));
   const borderColor = String(useThemeColor("border"));
   const accentColor = String(useThemeColor("accent"));
   const mutedColor = String(useThemeColor("muted"));
-
-  const activeMembership = activeGroup.memberships.find(
-    (m) => m.group.id === activeGroup.activeGroupId,
-  );
-  const groupName = activeMembership?.group.name ?? "";
-
-  const userInitials =
-    auth?.name ? initialsOf(auth.name) : auth?.phone?.slice(-4) ?? "?";
 
   useEffect(() => {
     const a = auth;
@@ -97,9 +84,14 @@ export default function TabsLayout(): JSX.Element {
     }
   }, [activeGroup.showSwitcherOnMount]);
 
-  function openSwitcher() {
-    setIsSwitcherOpen(true);
-  }
+  useEffect(() => {
+    if (openSwitcherFlag) {
+      startTransition(() => {
+        setIsSwitcherOpen(true);
+        clearOpenSwitcher();
+      });
+    }
+  }, [openSwitcherFlag]);
 
   function handleSelectGroup(membership: GroupMembership) {
     switchGroup(membership.group.id);
@@ -113,12 +105,6 @@ export default function TabsLayout(): JSX.Element {
 
   return (
     <View className="flex-1 bg-background">
-      <TopBar
-        groupName={groupName}
-        userInitials={userInitials}
-        onPress={openSwitcher}
-      />
-
       <Tabs
         screenOptions={{
           headerShown: false,
@@ -154,9 +140,7 @@ export default function TabsLayout(): JSX.Element {
           name="activity"
           options={{
             title: "Activity",
-            tabBarIcon: ({ focused, color }) => (
-              <ActivityIcon focused={focused} color={color} />
-            ),
+            tabBarIcon: ({ focused, color }) => <ActivityIcon focused={focused} color={color} />,
           }}
         />
         <Tabs.Screen
@@ -166,6 +150,12 @@ export default function TabsLayout(): JSX.Element {
             tabBarIcon: ({ focused, color }) => (
               <TabIcon name="person" focused={focused} color={color} />
             ),
+          }}
+        />
+        <Tabs.Screen
+          name="member-detail"
+          options={{
+            href: null,
           }}
         />
       </Tabs>

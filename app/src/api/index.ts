@@ -21,4 +21,8 @@ export type {
   CreateGroupResult,
   GroupDashboardData,
   MemberStanding,
+  MemberListItem,
+  MemberDetail,
+  ContributionHistoryEntry,
+  LoanEntry,
 } from "./types";

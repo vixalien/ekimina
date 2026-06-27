@@ -1,5 +1,15 @@
-import { map } from "nanostores";
+import { atom, map } from "nanostores";
 import type { GroupMembership } from "../api/types";
+
+export const $openSwitcher = atom(false);
+
+export function triggerSwitcher(): void {
+  $openSwitcher.set(true);
+}
+
+export function clearOpenSwitcher(): void {
+  $openSwitcher.set(false);
+}
 
 export interface ActiveGroupState {
   memberships: GroupMembership[];
@@ -15,7 +25,8 @@ export const $activeGroup = map<ActiveGroupState>({
 
 export function setMemberships(memberships: GroupMembership[]): void {
   const state = $activeGroup.get();
-  const hasActive = state.activeGroupId && memberships.some((m) => m.group.id === state.activeGroupId);
+  const hasActive =
+    state.activeGroupId && memberships.some((m) => m.group.id === state.activeGroupId);
   $activeGroup.set({
     memberships,
     activeGroupId: hasActive ? state.activeGroupId : (memberships[0]?.group.id ?? null),

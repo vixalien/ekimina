@@ -1,11 +1,56 @@
-import type { CreateGroupPayload, CreateGroupResult, Group, GroupsApi, JoinRequest } from "./types";
-import { ALL_GROUPS, INVITE_CODE_MAP, MOCK_MEMBERSHIPS, computeDashboard, toPublicGroup } from "./mock/groups";
+import type {
+  CreateGroupPayload,
+  CreateGroupResult,
+  Group,
+  GroupsApi,
+  JoinRequest,
+  MemberListItem,
+  MemberDetail,
+} from "./types";
+import {
+  ALL_GROUPS,
+  INVITE_CODE_MAP,
+  MOCK_MEMBERSHIPS,
+  MOCK_GROUP_DATA,
+  computeDashboard,
+  toPublicGroup,
+} from "./mock/groups";
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 let pendingRequests: Record<string, JoinRequest> = {};
+
+function memberListForGroup(groupId: string): MemberListItem[] {
+  const extra = MOCK_GROUP_DATA[groupId];
+  if (!extra) throw new Error("Group not found");
+
+  const { members, currentCyclePayments, memberReputations, memberLoans, paymentHistory } = extra;
+
+  return members.map((m) => {
+    const status = currentCyclePayments[m.userId] ?? "no_status";
+    const lns = memberLoans[m.userId] ?? [];
+    const activeLoan = lns.find(
+      (l) =>
+        l.state.includes("repaying") ||
+        l.state.includes("disbursed") ||
+        l.state.includes("requested"),
+    );
+
+    return {
+      userId: m.userId,
+      initials: m.initials,
+      name: m.name,
+      status,
+      reputation: memberReputations[m.userId] ?? 50,
+      activeLoanAmount: activeLoan?.amount ?? null,
+      penaltyCount: Object.values(paymentHistory[m.userId] ?? {}).filter(
+        (s) => s === "missed",
+      ).length,
+    };
+  });
+}
 
 export function createMockGroups(): GroupsApi {
   return {
@@ -146,6 +191,76 @@ export function createMockGroups(): GroupsApi {
       ];
 
       return { group, inviteCode };
+    },
+
+    async getGroupMembers(groupId: string): Promise<MemberListItem[]> {
+      return memberListForGroup(groupId);
+    },
+
+    async searchMembers(groupId: string, query: string): Promise<MemberListItem[]> {
+      await delay(300);
+      const all = memberListForGroup(groupId);
+      if (!query.trim()) return all;
+      const lower = query.toLowerCase();
+      return all.filter((m) => m.name.toLowerCase().includes(lower));
+    },
+
+    async getMemberDetail(
+      groupId: string,
+      userId: string,
+      _requestingUserId: string
+    ): Promise<MemberDetail> {
+      await delay(400);
+      const extra = MOCK_GROUP_DATA[groupId];
+      if (!extra) throw new Error("Group not found");
+
+      const member = extra.members.find((m) => m.userId === userId);
+      if (!member) throw new Error("Member not found");
+
+      const contributionAmount = extra.cycleConfig.contributionAmount;
+      const history = extra.paymentHistory[userId] ?? {};
+      const historyEntries = Object.entries(history)
+        .map(([cycle, s]) => ({
+          cycle: Number(cycle),
+          status: s,
+          penaltyAmount: s === "paid_late" ? Math.round(contributionAmount * 0.1) : undefined,
+        }))
+        .sort((a, b) => b.cycle - a.cycle);
+
+      const onTimeCount = historyEntries.filter((e) => e.status === "paid_on_time").length;
+      const totalCount = historyEntries.length;
+
+      const loans = extra.memberLoans[userId] ?? [];
+      const activeLoanCount = loans.filter(
+        (l) =>
+          l.state.includes("repaying") ||
+          l.state.includes("disbursed") ||
+          l.state.includes("requested")
+      ).length;
+      const penaltyCount = historyEntries.filter((e) => e.status === "missed").length;
+
+      const isCommittee = userId === "user-1" || userId === "user-2";
+
+      const role: "admin" | "treasurer" | "member" =
+        userId === "user-1" ? "admin" : userId === "user-2" ? "treasurer" : "member";
+
+      const joinedCycle = 1;
+
+      return {
+        userId: member.userId,
+        name: member.name,
+        initials: member.initials,
+        role,
+        joinedCycle,
+        reputation: extra.memberReputations[userId] ?? 50,
+        onTimeContributions: onTimeCount,
+        totalContributions: totalCount,
+        activeLoanCount,
+        penaltyCount,
+        contributionHistory: historyEntries.slice(0, 12),
+        loans,
+        isCommitteeMember: isCommittee,
+      };
     },
   };
 }

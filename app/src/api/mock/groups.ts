@@ -1,4 +1,12 @@
-import type { Group, GroupMembership, PublicGroup, JoinRequest, GroupDashboardData, MemberStanding } from "../types";
+import type {
+  Group,
+  GroupMembership,
+  PublicGroup,
+  JoinRequest,
+  GroupDashboardData,
+  MemberStanding,
+  ContributionHistoryEntry,
+} from "../types";
 import { MOCK_USERS } from "./users";
 
 // ── Groups ──────────────────────────────────────────────────────────────
@@ -98,6 +106,9 @@ interface MockGroupExtendedData {
   cycleConfig: MockCycleConfig;
   members: MockMemberEntry[];
   currentCyclePayments: Record<string, MemberStanding["status"]>;
+  paymentHistory: Record<string, Record<number, ContributionHistoryEntry["status"]>>;
+  memberReputations: Record<string, number>;
+  memberLoans: Record<string, { id: string; amount: number; state: string }[]>;
   reserveHistory: number[];
   nextPayoutRecipientId: string;
   daysUntilPayout: number;
@@ -116,10 +127,45 @@ function initialsOf(name: string): string {
  * Build a member roster for a group that includes known app users (from MOCK_USERS
  * matching MOCK_MEMBERSHIPS) plus filler members to reach `count`.
  */
+type MemberStatus = ContributionHistoryEntry["status"];
+
+function generatePaymentHistory(
+  currentStatus: MemberStanding["status"],
+  currentCycle: number
+): Record<number, MemberStatus> {
+  const history: Record<number, MemberStatus> = {};
+  for (let c = 1; c <= currentCycle; c++) {
+    if (c === currentCycle) {
+      if (currentStatus === "paid") history[c] = "paid_on_time";
+      else if (currentStatus === "pending_late") history[c] = "paid_late";
+      else if (currentStatus === "missed_penalised") history[c] = "missed";
+      else history[c] = "paid_on_time"; // no_status defaults to on time for past
+    } else {
+      const rand = (c * 7 + currentCycle * 3) % 10;
+      if (rand < 7) history[c] = "paid_on_time";
+      else if (rand < 9) history[c] = "paid_late";
+      else history[c] = "missed";
+    }
+  }
+  return history;
+}
+
+function calcReputation(history: Record<number, MemberStatus>): number {
+  const entries = Object.values(history);
+  if (entries.length === 0) return 50;
+  const onTime = entries.filter((s) => s === "paid_on_time").length;
+  const late = entries.filter((s) => s === "paid_late").length;
+  const missed = entries.filter((s) => s === "missed").length;
+  const score = Math.round(
+    (onTime / entries.length) * 70 + (late / entries.length) * 15 + 15 - missed * 3
+  );
+  return Math.min(100, Math.max(0, score));
+}
+
 function buildRoster(
   groupId: string,
   count: number,
-  extras: { userId: string; name: string }[],
+  extras: { userId: string; name: string }[]
 ): MockMemberEntry[] {
   // Known app users in this group
   const known: MockMemberEntry[] = [];
@@ -184,6 +230,60 @@ const GROUP_2_MEMBERS = buildRoster("group-2", 12, [
   { userId: "g2m-12", name: "Lauren Yvonne" },
 ]);
 
+function buildPaymentHistories(
+  members: MockMemberEntry[],
+  currentCyclePayments: Record<string, MemberStanding["status"]>,
+  currentCycle: number
+): {
+  paymentHistory: Record<string, Record<number, MemberStatus>>;
+  memberReputations: Record<string, number>;
+} {
+  const paymentHistory: Record<string, Record<number, MemberStatus>> = {};
+  const memberReputations: Record<string, number> = {};
+  for (const m of members) {
+    const history = generatePaymentHistory(
+      currentCyclePayments[m.userId] ?? "no_status",
+      currentCycle
+    );
+    paymentHistory[m.userId] = history;
+    memberReputations[m.userId] = calcReputation(history);
+  }
+  return { paymentHistory, memberReputations };
+}
+
+const G1_PAYMENTS = {
+  "user-1": "paid" as const, // Jean Mugabo
+  "user-2": "paid" as const, // Marie Uwimana
+  "g1m-3": "paid" as const,
+  "g1m-4": "paid" as const,
+  "g1m-5": "paid" as const,
+  "g1m-6": "paid" as const,
+  "g1m-7": "paid" as const,
+  "g1m-8": "paid" as const,
+  "g1m-9": "pending_late" as const,
+  "g1m-10": "paid" as const,
+  "g1m-11": "paid" as const,
+  "g1m-12": "paid" as const,
+  "g1m-13": "pending_late" as const,
+  "g1m-14": "paid" as const,
+  "g1m-15": "paid" as const,
+  "g1m-16": "missed_penalised" as const,
+  "g1m-17": "paid" as const,
+  "g1m-18": "no_status" as const,
+  "g1m-19": "paid" as const,
+  "g1m-20": "paid" as const,
+  "g1m-21": "paid" as const,
+  "g1m-22": "pending_late" as const,
+  "g1m-23": "paid" as const,
+  "g1m-24": "paid" as const,
+  "g1m-25": "paid" as const,
+  "g1m-26": "paid" as const,
+  "g1m-27": "paid" as const,
+  "g1m-28": "paid" as const,
+};
+
+const G1_HISTORIES = buildPaymentHistories(GROUP_1_MEMBERS, G1_PAYMENTS, 7);
+
 const MOCK_GROUP_DATA: Record<string, MockGroupExtendedData> = {
   "group-1": {
     cycleConfig: {
@@ -195,35 +295,14 @@ const MOCK_GROUP_DATA: Record<string, MockGroupExtendedData> = {
       startDate: "2024-08-01T00:00:00Z",
     },
     members: GROUP_1_MEMBERS,
-    currentCyclePayments: {
-      "user-1": "paid", // Jean Mugabo
-      "user-2": "paid", // Marie Uwimana
-      "g1m-3": "paid",
-      "g1m-4": "paid",
-      "g1m-5": "paid",
-      "g1m-6": "paid",
-      "g1m-7": "paid",
-      "g1m-8": "paid",
-      "g1m-9": "pending_late",
-      "g1m-10": "paid",
-      "g1m-11": "paid",
-      "g1m-12": "paid",
-      "g1m-13": "pending_late",
-      "g1m-14": "paid",
-      "g1m-15": "paid",
-      "g1m-16": "missed_penalised",
-      "g1m-17": "paid",
-      "g1m-18": "no_status",
-      "g1m-19": "paid",
-      "g1m-20": "paid",
-      "g1m-21": "paid",
-      "g1m-22": "pending_late",
-      "g1m-23": "paid",
-      "g1m-24": "paid",
-      "g1m-25": "paid",
-      "g1m-26": "paid",
-      "g1m-27": "paid",
-      "g1m-28": "paid",
+    currentCyclePayments: G1_PAYMENTS,
+    paymentHistory: G1_HISTORIES.paymentHistory,
+    memberReputations: G1_HISTORIES.memberReputations,
+    memberLoans: {
+      "user-1": [{ id: "loan-1", amount: 25000, state: "requested, 1 of 3 signed" }],
+      "user-2": [{ id: "loan-2", amount: 12000, state: "repaying cycle 9" }],
+      "g1m-5": [{ id: "loan-3", amount: 30000, state: "disbursed, repaying cycle 8" }],
+      "g1m-16": [{ id: "loan-4", amount: 8000, state: "repaying cycle 4" }],
     },
     reserveHistory: [120000, 132000, 141000, 153000, 162000, 174000, 184500],
     nextPayoutRecipientId: "user-1",
@@ -251,6 +330,43 @@ const MOCK_GROUP_DATA: Record<string, MockGroupExtendedData> = {
       "g2m-10": "paid",
       "g2m-11": "paid",
       "g2m-12": "no_status",
+    },
+    paymentHistory: buildPaymentHistories(
+      GROUP_2_MEMBERS,
+      {
+        "user-2": "paid",
+        "g2m-3": "paid",
+        "g2m-4": "paid",
+        "g2m-5": "paid",
+        "g2m-6": "paid",
+        "g2m-7": "paid",
+        "g2m-8": "paid",
+        "g2m-9": "pending_late",
+        "g2m-10": "paid",
+        "g2m-11": "paid",
+        "g2m-12": "no_status",
+      },
+      3
+    ).paymentHistory,
+    memberReputations: buildPaymentHistories(
+      GROUP_2_MEMBERS,
+      {
+        "user-2": "paid",
+        "g2m-3": "paid",
+        "g2m-4": "paid",
+        "g2m-5": "paid",
+        "g2m-6": "paid",
+        "g2m-7": "paid",
+        "g2m-8": "paid",
+        "g2m-9": "pending_late",
+        "g2m-10": "paid",
+        "g2m-11": "paid",
+        "g2m-12": "no_status",
+      },
+      3
+    ).memberReputations,
+    memberLoans: {
+      "g2m-5": [{ id: "loan-5", amount: 20000, state: "requested, 2 of 4 signed" }],
     },
     reserveHistory: [45000, 62000, 85000],
     nextPayoutRecipientId: "user-2",
@@ -297,6 +413,8 @@ export function computeDashboard(groupId: string): GroupDashboardData {
     })),
   };
 }
+
+export { MOCK_GROUP_DATA };
 
 // ── Pending requests ────────────────────────────────────────────────────
 

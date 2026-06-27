@@ -57,6 +57,44 @@ export interface AuthApi {
   updateProfile(token: string, name: string): Promise<User>;
 }
 
+export interface ContributionHistoryEntry {
+  cycle: number;
+  status: "paid_on_time" | "paid_late" | "missed";
+  penaltyAmount?: number;
+}
+
+export interface LoanEntry {
+  id: string;
+  amount: number;
+  state: string;
+}
+
+export interface MemberListItem {
+  userId: string;
+  initials: string;
+  name: string;
+  status: MemberStanding["status"];
+  reputation: number;
+  activeLoanAmount: number | null;
+  penaltyCount: number;
+}
+
+export interface MemberDetail {
+  userId: string;
+  name: string;
+  initials: string;
+  role: string;
+  joinedCycle: number;
+  reputation: number;
+  onTimeContributions: number;
+  totalContributions: number;
+  activeLoanCount: number;
+  penaltyCount: number;
+  contributionHistory: ContributionHistoryEntry[];
+  loans: LoanEntry[];
+  isCommitteeMember: boolean;
+}
+
 export interface GroupsApi {
   myGroups(userId: string): Promise<GroupMembership[]>;
   joinByInviteCode(userId: string, code: string): Promise<JoinRequest>;
@@ -67,6 +105,9 @@ export interface GroupsApi {
   cancelJoinRequest(requestId: string): Promise<{ success: boolean }>;
   createGroup(payload: CreateGroupPayload): Promise<CreateGroupResult>;
   getGroupDashboard(groupId: string): Promise<GroupDashboardData>;
+  getGroupMembers(groupId: string): Promise<MemberListItem[]>;
+  searchMembers(groupId: string, query: string): Promise<MemberListItem[]>;
+  getMemberDetail(groupId: string, userId: string, requestingUserId: string): Promise<MemberDetail>;
 }
 
 export interface MemberStanding {
