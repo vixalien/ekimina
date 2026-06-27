@@ -1,173 +1,118 @@
-import { Ionicons } from "@expo/vector-icons";
-import { router, Tabs } from "expo-router";
-import { useThemeColor } from "heroui-native";
-import { useStore } from "@nanostores/react";
 import type { ComponentProps, JSX } from "react";
-import { startTransition, useEffect, useState } from "react";
-import type { ColorValue } from "react-native";
+import { startTransition, useEffect } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { Tabs as HeroTabs, useThemeColor } from "heroui-native";
+import { Tabs, TabList, TabSlot, TabTrigger } from "expo-router/ui";
+import { router, usePathname } from "expo-router";
+import { useStore } from "@nanostores/react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { View } from "react-native";
 import { withUniwind } from "uniwind";
 
 import { api } from "../../api";
-import type { GroupMembership } from "../../api/types";
-import { GroupSwitcher } from "../../components/group-switcher";
 import { $auth } from "../../stores/auth";
-import {
-  $activeGroup,
-  $openSwitcher,
-  dismissSwitcherOnMount,
-  setMemberships,
-  switchGroup,
-  clearOpenSwitcher,
-} from "../../stores/active-group";
-
-type IoniconName = ComponentProps<typeof Ionicons>["name"];
+import { setMemberships } from "../../stores/active-group";
 
 const StyledIonicons = withUniwind(Ionicons);
 
-function TabIcon({
-  name,
-  focused,
-  color,
-}: {
-  name: IoniconName;
-  focused: boolean;
-  color: ColorValue;
-}): JSX.Element {
-  const iconName: IoniconName = focused ? name : (`${name}-outline` as IoniconName);
-  return <StyledIonicons name={iconName} size={22} color={color} />;
+type IoniconName = ComponentProps<typeof Ionicons>["name"];
+type TabValue = "home" | "members" | "activity" | "profile";
+
+const TABS: {
+  name: string;
+  href: string;
+  value: TabValue;
+  icon: IoniconName;
+  iconActive: IoniconName;
+}[] = [
+  { name: "(home)", href: "/(tabs)/(home)", value: "home", icon: "home-outline", iconActive: "home" },
+  { name: "(members)", href: "/(tabs)/(members)", value: "members", icon: "people-outline", iconActive: "people" },
+  { name: "(activity)", href: "/(tabs)/(activity)", value: "activity", icon: "pulse-outline", iconActive: "pulse" },
+  { name: "(profile)", href: "/(tabs)/(profile)", value: "profile", icon: "person-outline", iconActive: "person" },
+];
+
+const TAB_ROUTES: Record<TabValue, string> = {
+  home: "/(tabs)/(home)",
+  members: "/(tabs)/(members)",
+  activity: "/(tabs)/(activity)",
+  profile: "/(tabs)/(profile)",
+};
+
+function getActiveTab(pathname: string): TabValue {
+  if (pathname.includes("/(members)")) return "members";
+  if (pathname.includes("/(activity)")) return "activity";
+  if (pathname.includes("/(profile)")) return "profile";
+  return "home";
 }
 
-function ActivityIcon({ focused, color }: { focused: boolean; color: ColorValue }): JSX.Element {
-  const hasPending = true;
+function HeroTabBar(): JSX.Element {
+  const pathname = usePathname();
+  const insets = useSafeAreaInsets();
+  const activeValue = getActiveTab(pathname);
+  const backgroundColor = String(useThemeColor("background"));
+  const borderColor = String(useThemeColor("border"));
+
+  function handleTabChange(value: string) {
+    const route = TAB_ROUTES[value as TabValue];
+    if (route) router.navigate(route as any);
+  }
 
   return (
-    <View className="relative">
-      <TabIcon name="pulse" focused={focused} color={color} />
-      {hasPending && !focused && (
-        <View className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-danger" />
-      )}
+    <View
+      style={{
+        backgroundColor,
+        borderTopWidth: 0.5,
+        borderTopColor: borderColor,
+        paddingBottom: insets.bottom,
+      }}
+    >
+      <HeroTabs value={activeValue} onValueChange={handleTabChange}>
+        <HeroTabs.List className="h-14 mx-4 rounded-none bg-transparent gap-0">
+          <HeroTabs.Indicator />
+          {TABS.map((tab) => (
+            <HeroTabs.Trigger key={tab.value} value={tab.value} className="flex-1">
+              <StyledIonicons
+                name={activeValue === tab.value ? tab.iconActive : tab.icon}
+                size={22}
+                className={activeValue === tab.value ? "text-accent" : "text-muted"}
+              />
+            </HeroTabs.Trigger>
+          ))}
+        </HeroTabs.List>
+      </HeroTabs>
     </View>
   );
 }
 
 export default function TabsLayout(): JSX.Element {
   const auth = useStore($auth);
-  const activeGroup = useStore($activeGroup);
-  const openSwitcherFlag = useStore($openSwitcher);
-  const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
 
-  const backgroundColor = String(useThemeColor("background"));
-  const borderColor = String(useThemeColor("border"));
-  const accentColor = String(useThemeColor("accent"));
-  const mutedColor = String(useThemeColor("muted"));
-
+  // Load memberships whenever auth changes -- shared across all tabs via store
   useEffect(() => {
-    const a = auth;
-    if (!a) return;
-    const userId = a.phone ?? a.userId ?? "";
-    async function load() {
-      try {
-        const memberships = await api.groups.myGroups(userId);
-        startTransition(() => setMemberships(memberships));
-      } catch {
-        // ignore
-      }
-    }
-    load();
+    if (!auth) return;
+    const userId = auth.phone ?? auth.userId ?? "";
+    api.groups
+      .myGroups(userId)
+      .then((memberships) => startTransition(() => setMemberships(memberships)))
+      .catch(() => {});
   }, [auth]);
 
-  useEffect(() => {
-    if (activeGroup.showSwitcherOnMount) {
-      dismissSwitcherOnMount();
-      startTransition(() => setIsSwitcherOpen(true));
-    }
-  }, [activeGroup.showSwitcherOnMount]);
-
-  useEffect(() => {
-    if (openSwitcherFlag) {
-      startTransition(() => {
-        setIsSwitcherOpen(true);
-        clearOpenSwitcher();
-      });
-    }
-  }, [openSwitcherFlag]);
-
-  function handleSelectGroup(membership: GroupMembership) {
-    switchGroup(membership.group.id);
-    setIsSwitcherOpen(false);
-  }
-
-  function handleJoinOrCreate() {
-    setIsSwitcherOpen(false);
-    router.push("/(onboarding)/join-or-create");
-  }
-
   return (
-    <View className="flex-1 bg-background">
-      <Tabs
-        screenOptions={{
-          headerShown: false,
-          tabBarActiveTintColor: accentColor,
-          tabBarInactiveTintColor: mutedColor,
-          tabBarStyle: {
-            backgroundColor,
-            borderTopColor: borderColor,
-            borderTopWidth: 0.5,
-          },
-          tabBarLabelStyle: { fontSize: 11, fontWeight: "500" as const },
-        }}
-      >
-        <Tabs.Screen
-          name="index"
-          options={{
-            title: "Home",
-            tabBarIcon: ({ focused, color }) => (
-              <TabIcon name="home" focused={focused} color={color} />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="members"
-          options={{
-            title: "Members",
-            tabBarIcon: ({ focused, color }) => (
-              <TabIcon name="people" focused={focused} color={color} />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="activity"
-          options={{
-            title: "Activity",
-            tabBarIcon: ({ focused, color }) => <ActivityIcon focused={focused} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="profile"
-          options={{
-            title: "Profile",
-            tabBarIcon: ({ focused, color }) => (
-              <TabIcon name="person" focused={focused} color={color} />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="member-detail"
-          options={{
-            href: null,
-          }}
-        />
-      </Tabs>
+    <Tabs style={{ flex: 1 }}>
+      {/* Active screen content */}
+      <View style={{ flex: 1 }}>
+        <TabSlot />
+      </View>
 
-      <GroupSwitcher
-        isOpen={isSwitcherOpen}
-        onOpenChange={setIsSwitcherOpen}
-        memberships={activeGroup.memberships}
-        activeGroupId={activeGroup.activeGroupId ?? undefined}
-        onSelectGroup={handleSelectGroup}
-        onJoinOrCreate={handleJoinOrCreate}
-      />
-    </View>
+      {/* HeroUI visual tab bar */}
+      <HeroTabBar />
+
+      {/* Hidden TabList registers routes with the headless tab navigator */}
+      <TabList style={{ height: 0, overflow: "hidden" }}>
+        {TABS.map((tab) => (
+          <TabTrigger key={tab.name} name={tab.name} href={tab.href as any} />
+        ))}
+      </TabList>
+    </Tabs>
   );
 }

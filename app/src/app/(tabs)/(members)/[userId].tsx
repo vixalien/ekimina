@@ -4,19 +4,19 @@ import { useStore } from "@nanostores/react";
 import { router, useLocalSearchParams } from "expo-router";
 import type { JSX } from "react";
 import { startTransition, useEffect, useState } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { withUniwind } from "uniwind";
 
-import { api } from "../../api";
-import type { MemberDetail as MemberDetailType } from "../../api/types";
-import { AppText } from "../../components/ui/app-text";
-import { ScreenContainer } from "../../components/ui/screen-container";
-import { ReputationGauge } from "../../components/members/reputation-gauge";
-import { StatChipsRow } from "../../components/members/stat-chips";
-import { ContributionHistory } from "../../components/members/contribution-history";
-import { LoansSection } from "../../components/members/loans-section";
-import { $activeGroup } from "../../stores/active-group";
-import { $auth } from "../../stores/auth";
+import { api } from "../../../api";
+import type { MemberDetail as MemberDetailType } from "../../../api/types";
+import { AppText } from "../../../components/ui/app-text";
+import { ScreenContainer } from "../../../components/ui/screen-container";
+import { ReputationGauge } from "../../../components/members/reputation-gauge";
+import { StatChipsRow } from "../../../components/members/stat-chips";
+import { ContributionHistory } from "../../../components/members/contribution-history";
+import { LoansSection } from "../../../components/members/loans-section";
+import { $activeGroup } from "../../../stores/active-group";
+import { $auth } from "../../../stores/auth";
 
 const StyledIonicons = withUniwind(Ionicons);
 

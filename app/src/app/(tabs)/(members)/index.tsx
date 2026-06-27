@@ -16,15 +16,15 @@ import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { withUniwind } from "uniwind";
 
-import { api } from "../../api";
-import type { MemberListItem } from "../../api/types";
-import { AppText } from "../../components/ui/app-text";
-import { ScreenContainer } from "../../components/ui/screen-container";
+import { api } from "../../../api";
+import type { MemberListItem } from "../../../api/types";
+import { AppText } from "../../../components/ui/app-text";
+import { ScreenContainer } from "../../../components/ui/screen-container";
 import {
   FilterBottomSheet,
   type FilterKey,
-} from "../../components/members/filter-bottom-sheet";
-import { $activeGroup } from "../../stores/active-group";
+} from "../../../components/members/filter-bottom-sheet";
+import { $activeGroup } from "../../../stores/active-group";
 import { LinearGradient } from "expo-linear-gradient";
 
 const StyledIonicons = withUniwind(Ionicons);
@@ -90,7 +90,10 @@ export default function MembersTab(): JSX.Element {
   }, [members, activeFilter]);
 
   function handleMemberPress(userId: string) {
-    router.push({ pathname: "/(tabs)/member-detail", params: { userId } });
+    router.push({
+      pathname: "/(tabs)/(members)/[userId]",
+      params: { userId },
+    });
   }
 
   const isFiltered = activeFilter !== "all";
@@ -146,7 +149,7 @@ export default function MembersTab(): JSX.Element {
           <AppText className="text-muted text-base">Loading...</AppText>
         </View>
       ) : (
-        <ScrollShadow LinearGradientComponent={LinearGradient} className="mb-18">
+        <ScrollShadow LinearGradientComponent={LinearGradient}>
           <ScrollView className="px-4" showsVerticalScrollIndicator={false}>
             {sorted.length > 0 ? (
               <ListGroup>

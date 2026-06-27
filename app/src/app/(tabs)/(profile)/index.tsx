@@ -1,6 +1,6 @@
 import type { JSX } from "react";
 import { View } from "react-native";
-import { AppText } from "../../components/ui/app-text";
+import { AppText } from "../../../components/ui/app-text";
 
 export default function ProfileTab(): JSX.Element {
   return (

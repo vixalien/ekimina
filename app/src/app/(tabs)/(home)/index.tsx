@@ -1,29 +1,40 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Avatar, Card, Chip, PressableFeedback, Surface } from "heroui-native";
 import { useStore } from "@nanostores/react";
+import { router } from "expo-router";
 import type { JSX } from "react";
 import { startTransition, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { withUniwind } from "uniwind";
 
-import { api } from "../../api";
-import type { GroupDashboardData } from "../../api/types";
-import { DonutChart } from "../../components/ui/donut-chart";
-import { MemberAvatar } from "../../components/member-avatar";
-import { Sparkline } from "../../components/ui/sparkline";
-import { TopBar } from "../../components/top-bar";
-import { AppText } from "../../components/ui/app-text";
-import { $activeGroup, triggerSwitcher } from "../../stores/active-group";
-import { $auth } from "../../stores/auth";
-import { formatRWF, initialsOf } from "../../lib/strings";
+import { api } from "../../../api";
+import type { GroupDashboardData, GroupMembership } from "../../../api/types";
+import { DonutChart } from "../../../components/ui/donut-chart";
+import { MemberAvatar } from "../../../components/member-avatar";
+import { Sparkline } from "../../../components/ui/sparkline";
+import { TopBar } from "../../../components/top-bar";
+import { AppText } from "../../../components/ui/app-text";
+import { GroupSwitcher } from "../../../components/group-switcher";
+import {
+  $activeGroup,
+  $openSwitcher,
+  clearOpenSwitcher,
+  dismissSwitcherOnMount,
+  switchGroup,
+  triggerSwitcher,
+} from "../../../stores/active-group";
+import { $auth } from "../../../stores/auth";
+import { formatRWF, initialsOf } from "../../../lib/strings";
 
 const StyledIonicons = withUniwind(Ionicons);
 
 export default function HomeTab(): JSX.Element {
   const auth = useStore($auth);
   const activeGroup = useStore($activeGroup);
+  const openSwitcherFlag = useStore($openSwitcher);
   const [dashboard, setDashboard] = useState<GroupDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
 
   const activeMembership = activeGroup.memberships.find(
     (m) => m.group.id === activeGroup.activeGroupId
@@ -40,6 +51,32 @@ export default function HomeTab(): JSX.Element {
       .catch(() => {})
       .finally(() => startTransition(() => setLoading(false)));
   }, [activeGroup.activeGroupId]);
+
+  useEffect(() => {
+    if (activeGroup.showSwitcherOnMount) {
+      dismissSwitcherOnMount();
+      startTransition(() => setIsSwitcherOpen(true));
+    }
+  }, [activeGroup.showSwitcherOnMount]);
+
+  useEffect(() => {
+    if (openSwitcherFlag) {
+      startTransition(() => {
+        setIsSwitcherOpen(true);
+        clearOpenSwitcher();
+      });
+    }
+  }, [openSwitcherFlag]);
+
+  function handleSelectGroup(membership: GroupMembership) {
+    switchGroup(membership.group.id);
+    setIsSwitcherOpen(false);
+  }
+
+  function handleJoinOrCreate() {
+    setIsSwitcherOpen(false);
+    router.push("/(onboarding)/join-or-create");
+  }
 
   if (loading || !dashboard) {
     return (
@@ -159,6 +196,15 @@ export default function HomeTab(): JSX.Element {
           </View>
         </View>
       </ScrollView>
+
+      <GroupSwitcher
+        isOpen={isSwitcherOpen}
+        onOpenChange={setIsSwitcherOpen}
+        memberships={activeGroup.memberships}
+        activeGroupId={activeGroup.activeGroupId ?? undefined}
+        onSelectGroup={handleSelectGroup}
+        onJoinOrCreate={handleJoinOrCreate}
+      />
     </>
   );
 }
