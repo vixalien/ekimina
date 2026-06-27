@@ -1,5 +1,5 @@
 import type { JSX } from "react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import {
   Sora_400Regular,
   Sora_500Medium,
@@ -26,6 +26,7 @@ import "../global.css";
 SplashScreen.setOptions({ duration: 300, fade: true });
 
 export default function RootLayout(): JSX.Element | null {
+  const bootstrappedRef = useRef(false);
   const [fontsLoaded] = useFonts({
     Sora_400Regular,
     Sora_500Medium,
@@ -37,6 +38,7 @@ export default function RootLayout(): JSX.Element | null {
   });
 
   useEffect(() => {
+    if (bootstrappedRef.current) return;
     if (!fontsLoaded) return;
 
     async function bootstrap() {
@@ -82,6 +84,7 @@ export default function RootLayout(): JSX.Element | null {
         router.replace(Routes.welcome);
       } finally {
         $authLoading.set(false);
+        bootstrappedRef.current = true;
       }
     }
 
