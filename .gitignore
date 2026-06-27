@@ -3,3 +3,6 @@ dist/
 .env
 
 .playwright-*
+
+.agents
+skills-lock.json
