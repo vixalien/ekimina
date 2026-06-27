@@ -9,7 +9,7 @@ app/                Expo Router React Native app (HeroUI Native + Uniwind)
   src/
     api/            API client (auth, groups) with mock data
     app/            Expo Router file-based routes
-    components/     Reusable components (ui/, group-switcher)
+    components/     Reusable components (ui/, group-switcher, members/)
     lib/            Utilities (nav helper)
 contract/           Hardhat + viem Solidity contracts
 backend/            (placeholder)
@@ -123,6 +123,7 @@ Colors come from theme CSS variables and are applied via className:
 - `text-foreground` -- primary text
 - `text-muted` -- secondary text
 - `text-accent` -- accent-colored text (links, actions)
+- `text-success` / `text-warning` / `text-danger` / `text-info` -- status text
 - `bg-background` -- screen background
 - `bg-surface-secondary` -- card/input backgrounds
 - `bg-accent/10` -- accent with 10% opacity
@@ -131,7 +132,7 @@ Colors come from theme CSS variables and are applied via className:
 **WRONG:** `style={{ color: useThemeColor("muted") }}`
 **RIGHT:** `className="text-muted"`
 
-`useThemeColor` is only for native APIs that need raw color strings (e.g., `headerStyle` in navigation).
+`useThemeColor` is only for native APIs that need raw color strings (e.g., `headerStyle` in navigation), or for SVG stroke/fill colors in custom charts.
 
 ### Icons: withUniwind + className
 
@@ -226,6 +227,7 @@ Primary buttons have backgrounds by default. No extra `bg-` class needed.
 - `variant="primary"` -- accent background, accent-foreground text
 - `variant="secondary"` -- surface background
 - `variant="ghost"` -- transparent, for inline actions
+- `variant="danger"` -- destructive action (red background)
 - `variant="danger-soft"` -- soft destructive actions
 
 ### Prefer className over StyleSheet
@@ -255,6 +257,101 @@ When the root layout uses `<Stack.Screen>` explicitly, every screen must be list
 
 Without this, `Redirect` or `router.replace` to those routes will silently fail.
 
+### Tab sub-screens: hide from tab bar
+
+Sub-screens in `(tabs)/` that shouldn't appear as tabs (e.g. detail pages):
+
+```tsx
+<Tabs.Screen
+  name="member-detail"
+  options={{ href: null }}
+/>
+```
+
+### TopBar: home screen only
+
+TopBar renders only in `(tabs)/index.tsx`. The group switcher overlay lives in the tabs
+layout (`(tabs)/_layout.tsx`) and is triggered via `triggerSwitcher()` from
+`stores/active-group.ts` (sets `$openSwitcher` atom). The layout watches `$openSwitcher`
+via `useStore()` and opens the sheet. Always import `triggerSwitcher` from the store,
+do not manage sheet state in the screen.
+
+### List screens: ListGroup + PressableFeedback
+
+Use `ListGroup` for any grouped list (member list, settings, history, loans).
+Wrap tappable rows in PressableFeedback with Scale + Ripple:
+
+```tsx
+<ListGroup>
+  {items.map((item, index) => (
+    <Fragment key={item.id}>
+      {index > 0 && <Separator className="mx-4" />}
+      <PressableFeedback animation={false} onPress={handlePress}>
+        <PressableFeedback.Scale>
+          <ListGroup.Item>
+            <ListGroup.ItemPrefix>
+              <Avatar size="sm" color="accent">
+                <Avatar.Fallback>{item.initials}</Avatar.Fallback>
+              </Avatar>
+            </ListGroup.ItemPrefix>
+            <ListGroup.ItemContent>
+              <ListGroup.ItemTitle>{item.title}</ListGroup.ItemTitle>
+              <ListGroup.ItemDescription className="text-muted">
+                {item.subtitle}
+              </ListGroup.ItemDescription>
+            </ListGroup.ItemContent>
+            <ListGroup.ItemSuffix />
+          </ListGroup.Item>
+        </PressableFeedback.Scale>
+        <PressableFeedback.Ripple />
+      </PressableFeedback>
+    </Fragment>
+  ))}
+</ListGroup>
+```
+
+`ListGroup.ItemSuffix` renders a default chevron when empty. `ListGroup.ItemPrefix`
+accepts an `Avatar` or any icon wrapper. `ItemDescription` accepts className for status
+colors (`text-success`, `text-warning`, `text-danger`, `text-info`).
+
+### Search + filter pattern
+
+Server-side search with debounce (300ms) + filter bottom sheet:
+
+```tsx
+<InputGroup>
+  <InputGroup.Prefix isDecorative>
+    <StyledIonicons name="search-outline" size={16} className="text-muted" />
+  </InputGroup.Prefix>
+  <InputGroup.Input placeholder="Search..." value={query} onChangeText={handleSearch} />
+  {query && (
+    <InputGroup.Suffix>
+      <Pressable onPress={() => handleSearch("")} hitSlop={12}>
+        <StyledIonicons name="close-circle" size={18} className="text-muted" />
+      </Pressable>
+    </InputGroup.Suffix>
+  )}
+</InputGroup>
+```
+
+Debounce via `useRef<ReturnType<typeof setTimeout> | undefined>(undefined)` + `setTimeout`/`clearTimeout`.
+Call `api.groups.searchMembers(groupId, query)` on debounce. Use a detached `BottomSheet` for
+filter options with `Chip` components. Show a badge dot on the filter button when a non-"all"
+filter is active.
+
+### Committee-only actions (member detail)
+
+`getMemberDetail` response includes `isCommitteeMember` (boolean). Use it to
+conditionally show destructive actions like "Withdraw member":
+
+```tsx
+{detail.isCommitteeMember && (
+  <Button variant="danger">
+    <Button.Label>Withdraw member</Button.Label>
+  </Button>
+)}
+```
+
 ### HeroUI Native Component Patterns
 
 **Reference repo:** `/home/alien/sites/alu/heroui-native-example/`
@@ -266,13 +363,15 @@ Always check the reference project & docs before implementing ANY HeroUI compone
 |---|---|---|
 | `Surface` | Grouped content containers, stat cards, list rows | `variant="secondary"` for card bg |
 | `Card` | Tappable card surfaces | Wrap in `PressableFeedback`, never `onPress` directly |
-| `Avatar` | User/group avatars with initials | Border rings need wrapping `View` |
+| `Avatar` | User/group avatars with initials | `size="sm"`/`"md"`/`"lg"`, `color="accent"` for custom bg |
 | `BottomSheet` | Modal sheets from bottom | Uses `Portal`/`Overlay`/`Content` pattern |
 | `RadioGroup` | List selection (group switcher, filters) | Use custom `Radio.Indicator` for icons |
 | `Button` | All action buttons | Compound with `Button.Label`, never raw `Pressable` |
 | `PressableFeedback` | Custom pressable surfaces (cards, rows) | Adds scale/highlight animation |
-| `Chip` | Labels, badges, status pills | `size="sm"` for compact |
+| `Chip` | Labels, badges, status pills, filter options | `variant="primary"`/`"soft"`, `color="accent"`/`"danger"`/etc |
 | `Separator` | Visual dividers | `orientation="vertical"` for inline |
+| `ListGroup` | Grouped list displays (settings, members, history) | Compound with `Item`/`ItemPrefix`/`ItemContent`/`ItemTitle`/`ItemDescription`/`ItemSuffix` |
+| `InputGroup` | Search bars, decorated inputs | Compound with `Prefix`/`Input`/`Suffix`; `isDecorative` on prefix |
 | `AppText` | All UI text | Not `Typography` (demos only) |
 
 ### Less is more
@@ -298,12 +397,12 @@ Before implementing any HeroUI Native component, check:
 
 ```
 src/api/
-  types.ts           # AuthApi, GroupsApi, ApiClient interfaces
+  types.ts           # AuthApi, GroupsApi, ApiClient interfaces + data types
   auth.ts            # createMockAuth() - sendOtp, resendOtp, verifyOtp
-  groups.ts          # createMockGroups() - myGroups, joinByInviteCode, etc
+  groups.ts          # createMockGroups() - myGroups, joinByInviteCode, searchMembers, etc
   mock/
     users.ts         # MOCK_OTP, MOCK_USERS
-    groups.ts        # ALL_GROUPS, MOCK_MEMBERSHIPS, INVITE_CODE_MAP, toPublicGroup()
+    groups.ts        # ALL_GROUPS, MOCK_MEMBERSHIPS, INVITE_CODE_MAP, MOCK_GROUP_DATA, computeDashboard()
   index.ts           # exports api = { auth, groups }
 ```
 
@@ -311,3 +410,40 @@ Usage: `import { api } from "../../api"` then `api.auth.sendOtp()`, `api.groups.
 
 Mock OTP: `123456`
 Pre-seeded users: `+250788123456` (1 group), `+250788654321` (2 groups), `+250788999888` (no groups)
+
+### GroupsApi methods
+
+| Method | Returns | Description |
+|---|---|---|
+| `myGroups(userId)` | `GroupMembership[]` | User's group memberships |
+| `joinByInviteCode(userId, code)` | `JoinRequest` | Join by invite code |
+| `searchPublicGroups(query)` | `PublicGroup[]` | Browse public groups |
+| `getGroupDetails(groupId)` | `PublicGroup` | Single group info |
+| `requestToJoinGroup(userId, groupId)` | `JoinRequest` | Request to join |
+| `getJoinRequestStatus(requestId)` | `JoinRequest` | Poll pending request |
+| `cancelJoinRequest(requestId)` | `{ success }` | Cancel pending request |
+| `createGroup(payload)` | `CreateGroupResult` | Create new group |
+| `getGroupDashboard(groupId)` | `GroupDashboardData` | Home dashboard data |
+| `getGroupMembers(groupId)` | `MemberListItem[]` | Full member roster for current cycle |
+| `searchMembers(groupId, query)` | `MemberListItem[]` | Filter members by name (server-side) |
+| `getMemberDetail(groupId, userId, requestingUserId)` | `MemberDetail` | Full member profile |
+
+### Key data types
+
+| Type | Fields | Used by |
+|---|---|---|
+| `MemberStanding` | `userId, initials, name, status` | Dashboard member avatars |
+| `MemberListItem` | `userId, initials, name, status, reputation, activeLoanAmount, penaltyCount` | Members list |
+| `MemberDetail` | `userId, name, initials, role, joinedCycle, reputation, onTimeContributions, totalContributions, activeLoanCount, penaltyCount, contributionHistory[], loans[], isCommitteeMember` | Member detail screen |
+| `ContributionHistoryEntry` | `cycle, status ("paid_on_time"\|"paid_late"\|"missed"), penaltyAmount?` | Contribution history section |
+| `LoanEntry` | `id, amount, state` | Loans section |
+
+Status colors per contribution:
+- `"paid_on_time"` -- `text-success`
+- `"paid_late"` -- `text-warning` (with penalty amount)
+- `"missed"` -- `text-danger`
+
+Reputation gauge color bands:
+- Score > 70: success color
+- Score 40-70: warning color
+- Score < 40: danger color
