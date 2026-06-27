@@ -1,6 +1,9 @@
-import { BottomSheet, Chip } from "heroui-native";
-import type { JSX } from "react";
+import { BottomSheet, Button, Radio, RadioGroup, Separator, Surface } from "heroui-native";
+import { Fragment, startTransition, type JSX } from "react";
+import { useEffect, useState } from "react";
 import { View } from "react-native";
+
+import { AppText } from "../ui/app-text";
 
 export type FilterKey = "all" | "unpaid" | "has_loan" | "penalty";
 
@@ -31,6 +34,16 @@ export function FilterBottomSheet({
   activeFilter,
   onSelectFilter,
 }: FilterBottomSheetProps): JSX.Element {
+  function handleApply(filter: FilterKey) {
+    onSelectFilter(filter);
+    onOpenChange(false);
+  }
+
+  function handleReset() {
+    onSelectFilter("all");
+    onOpenChange(false);
+  }
+
   return (
     <BottomSheet isOpen={isOpen} onOpenChange={onOpenChange}>
       <BottomSheet.Trigger asChild>
@@ -38,38 +51,39 @@ export function FilterBottomSheet({
       </BottomSheet.Trigger>
       <BottomSheet.Portal>
         <BottomSheet.Overlay />
-        <BottomSheet.Content
-          detached={true}
-          bottomInset={12}
-          className="mx-4"
-          backgroundClassName="rounded-3xl"
-          contentContainerClassName="pb-4"
-        >
-          <View className="px-2 pt-2 pb-4 gap-4">
+        <BottomSheet.Content contentContainerClassName="pb-12">
+          <View className="px-2 pt-2">
             <BottomSheet.Title>Filter members</BottomSheet.Title>
-            <BottomSheet.Description>
-              Show members matching a specific status
-            </BottomSheet.Description>
-            <View className="flex-row flex-wrap gap-2 pt-2">
-              {FILTER_OPTIONS.map((opt) => {
-                const isActive = activeFilter === opt.key;
-                return (
-                  <Chip
-                    key={opt.key}
-                    size="md"
-                    variant={isActive ? "primary" : "soft"}
-                    color={isActive ? "accent" : "default"}
-                    onPress={() => {
-                      onSelectFilter(opt.key);
-                      onOpenChange(false);
-                    }}
-                  >
-                    <Chip.Label>{opt.label}</Chip.Label>
-                  </Chip>
-                );
-              })}
-            </View>
           </View>
+
+          <View className="mt-4 mb-6">
+            <Surface variant="secondary">
+              <RadioGroup
+                value={activeFilter}
+                onValueChange={(val) => handleApply(val as FilterKey)}
+              >
+                {FILTER_OPTIONS.map((opt, index) => (
+                  <Fragment key={opt.key}>
+                    {index > 0 && <Separator />}
+                    <RadioGroup.Item value={opt.key}>
+                      {() => (
+                        <View className="flex-row items-center justify-between flex-1">
+                          <AppText>{opt.label}</AppText>
+                          <Radio>
+                            <Radio.Indicator />
+                          </Radio>
+                        </View>
+                      )}
+                    </RadioGroup.Item>
+                  </Fragment>
+                ))}
+              </RadioGroup>
+            </Surface>
+          </View>
+
+          <Button variant="primary" onPress={handleReset} isDisabled={activeFilter === "all"}>
+            <Button.Label>Reset</Button.Label>
+          </Button>
         </BottomSheet.Content>
       </BottomSheet.Portal>
     </BottomSheet>
