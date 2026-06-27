@@ -1,4 +1,4 @@
-import { Surface } from "heroui-native";
+import { Card } from "heroui-native";
 import type { JSX } from "react";
 import { View } from "react-native";
 
@@ -11,10 +11,10 @@ interface StatChipProps {
 
 function StatChip({ value, label }: StatChipProps): JSX.Element {
   return (
-    <Surface variant="secondary" className="flex-1 items-center py-3 rounded-xl">
-      <AppText className="text-lg font-semibold text-foreground">{value}</AppText>
-      <AppText className="text-[11px] text-muted mt-0.5">{label}</AppText>
-    </Surface>
+    <Card className="flex-1 items-center">
+      <AppText className="text-lg font-hero">{value}</AppText>
+      <AppText className="text-sm text-muted mt-0.5">{label}</AppText>
+    </Card>
   );
 }
 

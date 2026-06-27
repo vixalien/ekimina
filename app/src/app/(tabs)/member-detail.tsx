@@ -58,14 +58,12 @@ export default function MemberDetailScreen(): JSX.Element {
         contentContainerClassName="pb-10"
       >
         <View className="px-4 pt-4">
-          <PressableFeedback>
-            <Pressable onPress={() => router.back()}>
-              <StyledIonicons name="arrow-back" size={22} className="text-foreground" />
-            </Pressable>
-          </PressableFeedback>
+          <Button onPress={() => router.back()} isIconOnly variant="ghost">
+            <StyledIonicons name="arrow-back" size={22} />
+          </Button>
         </View>
 
-        <View className="items-center px-6 pt-4 pb-6 gap-6">
+        <View className="px-6 pt-4 pb-6 gap-6">
           <View className="flex-row items-center gap-3">
             <Avatar size="lg" color="accent">
               <Avatar.Fallback>{detail.initials}</Avatar.Fallback>
