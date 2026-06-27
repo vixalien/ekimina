@@ -18,11 +18,11 @@
  * font-weight utilities so that font-normal, font-medium etc. set the font family.
  */
 @theme {
-  --font-normal: "Inter_400Regular";
-  --font-medium: "Inter_500Medium";
-  --font-semibold: "Inter_600SemiBold";
-  --font-bold: "Inter_700Bold";
-  --font-black: "Inter_900Black";
+  --font-normal: "Sora_400Regular";
+  --font-medium: "Sora_500Medium";
+  --font-semibold: "Sora_600SemiBold";
+  --font-bold: "Sora_700Bold";
+  --font-black: "Sora_800ExtraBold";
   --font-mono: "JetBrainsMono_400Regular";
   --font-hero: "SpaceGrotesk_700Bold";
 }

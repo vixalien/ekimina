@@ -1,13 +1,13 @@
 import type { JSX } from "react";
 import { useEffect } from "react";
 import {
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-  Inter_700Bold,
-  Inter_900Black,
+  Sora_400Regular,
+  Sora_500Medium,
+  Sora_600SemiBold,
+  Sora_700Bold,
+  Sora_800ExtraBold,
   useFonts,
-} from "@expo-google-fonts/inter";
+} from "@expo-google-fonts/sora";
 import { JetBrainsMono_400Regular } from "@expo-google-fonts/jetbrains-mono";
 import { SpaceGrotesk_700Bold } from "@expo-google-fonts/space-grotesk";
 import { Stack, router } from "expo-router";
@@ -27,11 +27,11 @@ SplashScreen.setOptions({ duration: 300, fade: true });
 
 export default function RootLayout(): JSX.Element | null {
   const [fontsLoaded] = useFonts({
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
-    Inter_700Bold,
-    Inter_900Black,
+    Sora_400Regular,
+    Sora_500Medium,
+    Sora_600SemiBold,
+    Sora_700Bold,
+    Sora_800ExtraBold,
     SpaceGrotesk_700Bold,
     JetBrainsMono_400Regular,
   });
