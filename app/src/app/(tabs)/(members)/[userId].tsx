@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Avatar, Button, PressableFeedback } from "heroui-native";
+import { Avatar, Button } from "heroui-native";
 import { useStore } from "@nanostores/react";
 import { router, useLocalSearchParams } from "expo-router";
 import type { JSX } from "react";
@@ -55,7 +55,7 @@ export default function MemberDetailScreen(): JSX.Element {
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
-        contentContainerClassName="pb-10"
+        contentContainerClassName="pb-36"
       >
         <View className="px-4 pt-4">
           <Button onPress={() => router.back()} isIconOnly variant="ghost">

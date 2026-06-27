@@ -20,10 +20,7 @@ import { api } from "../../../api";
 import type { MemberListItem } from "../../../api/types";
 import { AppText } from "../../../components/ui/app-text";
 import { ScreenContainer } from "../../../components/ui/screen-container";
-import {
-  FilterBottomSheet,
-  type FilterKey,
-} from "../../../components/members/filter-bottom-sheet";
+import { FilterBottomSheet, type FilterKey } from "../../../components/members/filter-bottom-sheet";
 import { $activeGroup } from "../../../stores/active-group";
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -150,7 +147,11 @@ export default function MembersTab(): JSX.Element {
         </View>
       ) : (
         <ScrollShadow LinearGradientComponent={LinearGradient}>
-          <ScrollView className="px-4" showsVerticalScrollIndicator={false}>
+          <ScrollView
+            className="px-4"
+            showsVerticalScrollIndicator={false}
+            contentContainerClassName="pb-36"
+          >
             {sorted.length > 0 ? (
               <ListGroup>
                 {sorted.map((member, index) => (

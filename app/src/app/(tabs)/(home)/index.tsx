@@ -102,8 +102,12 @@ export default function HomeTab(): JSX.Element {
   return (
     <>
       <TopBar groupName={groupName} userInitials={userInitials} onPress={triggerSwitcher} />
-      <ScrollView className="flex-1 bg-background" showsVerticalScrollIndicator={false}>
-        <View className="px-4 pt-6 pb-8 gap-6">
+      <ScrollView
+        className="flex-1 bg-background"
+        showsVerticalScrollIndicator={false}
+        contentContainerClassName="pb-36"
+      >
+        <View className="px-4 pt-6 gap-6">
           <View className="flex-row items-center justify-between">
             <AppText className="text-sm text-muted">This cycle</AppText>
             <Chip size="sm" color="accent">

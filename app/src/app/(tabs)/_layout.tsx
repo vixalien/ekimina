@@ -1,11 +1,9 @@
 import type { ComponentProps, JSX } from "react";
-import { startTransition, useEffect } from "react";
+import { startTransition, useEffect, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { Tabs as HeroTabs, useThemeColor } from "heroui-native";
+import { Tabs as HeroTabs } from "heroui-native";
 import { Tabs, TabList, TabSlot, TabTrigger } from "expo-router/ui";
-import { router, usePathname } from "expo-router";
 import { useStore } from "@nanostores/react";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { View } from "react-native";
 import { withUniwind } from "uniwind";
 
@@ -23,59 +21,46 @@ const TABS: {
   href: string;
   value: TabValue;
   icon: IoniconName;
-  iconActive: IoniconName;
 }[] = [
-  { name: "(home)", href: "/(tabs)/(home)", value: "home", icon: "home-outline", iconActive: "home" },
-  { name: "(members)", href: "/(tabs)/(members)", value: "members", icon: "people-outline", iconActive: "people" },
-  { name: "(activity)", href: "/(tabs)/(activity)", value: "activity", icon: "pulse-outline", iconActive: "pulse" },
-  { name: "(profile)", href: "/(tabs)/(profile)", value: "profile", icon: "person-outline", iconActive: "person" },
+  {
+    name: "(home)",
+    href: "/(tabs)/(home)",
+    value: "home",
+    icon: "home-outline",
+  },
+  {
+    name: "(members)",
+    href: "/(tabs)/(members)",
+    value: "members",
+    icon: "people-outline",
+  },
+  {
+    name: "(activity)",
+    href: "/(tabs)/(activity)",
+    value: "activity",
+    icon: "pulse-outline",
+  },
+  {
+    name: "(profile)",
+    href: "/(tabs)/(profile)",
+    value: "profile",
+    icon: "person-outline",
+  },
 ];
 
-const TAB_ROUTES: Record<TabValue, string> = {
-  home: "/(tabs)/(home)",
-  members: "/(tabs)/(members)",
-  activity: "/(tabs)/(activity)",
-  profile: "/(tabs)/(profile)",
-};
-
-function getActiveTab(pathname: string): TabValue {
-  if (pathname.includes("/(members)")) return "members";
-  if (pathname.includes("/(activity)")) return "activity";
-  if (pathname.includes("/(profile)")) return "profile";
-  return "home";
-}
-
 function HeroTabBar(): JSX.Element {
-  const pathname = usePathname();
-  const insets = useSafeAreaInsets();
-  const activeValue = getActiveTab(pathname);
-  const backgroundColor = String(useThemeColor("background"));
-  const borderColor = String(useThemeColor("border"));
-
-  function handleTabChange(value: string) {
-    const route = TAB_ROUTES[value as TabValue];
-    if (route) router.navigate(route as any);
-  }
+  const [activeTab, setActiveTab] = useState<TabValue>("home");
 
   return (
-    <View
-      style={{
-        backgroundColor,
-        borderTopWidth: 0.5,
-        borderTopColor: borderColor,
-        paddingBottom: insets.bottom,
-      }}
-    >
-      <HeroTabs value={activeValue} onValueChange={handleTabChange}>
-        <HeroTabs.List className="h-14 mx-4 rounded-none bg-transparent gap-0">
+    <View className="self-center mb-8 absolute bottom-2">
+      <HeroTabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabValue)}>
+        <HeroTabs.List className="shadow-lg p-1.5">
           <HeroTabs.Indicator />
           {TABS.map((tab) => (
-            <HeroTabs.Trigger key={tab.value} value={tab.value} className="flex-1">
-              <StyledIonicons
-                name={activeValue === tab.value ? tab.iconActive : tab.icon}
-                size={22}
-                className={activeValue === tab.value ? "text-accent" : "text-muted"}
-              />
+            <HeroTabs.Trigger key={tab.value} value={tab.value} asChild>
+              <TabTrigger name={tab.name}>
+                <StyledIonicons name={tab.icon} size={32} className="text-muted" />
+              </TabTrigger>
             </HeroTabs.Trigger>
           ))}
         </HeroTabs.List>
@@ -99,12 +84,10 @@ export default function TabsLayout(): JSX.Element {
 
   return (
     <Tabs style={{ flex: 1 }}>
-      {/* Active screen content */}
-      <View style={{ flex: 1 }}>
-        <TabSlot />
-      </View>
+      {/* Active screen -- fills full height, tab bar floats over it */}
+      <TabSlot />
 
-      {/* HeroUI visual tab bar */}
+      {/* Floating HeroUI tab bar */}
       <HeroTabBar />
 
       {/* Hidden TabList registers routes with the headless tab navigator */}
