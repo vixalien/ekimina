@@ -16,13 +16,13 @@ import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { withUniwind } from "uniwind";
 
-import { api } from "../../../api";
-import type { MemberListItem } from "../../../api/types";
-import { AppText } from "../../../components/ui/app-text";
-import { Header } from "../../../components/ui/header";
-import { ScreenContainer } from "../../../components/ui/screen-container";
-import { FilterBottomSheet, type FilterKey } from "../../../components/members/filter-bottom-sheet";
-import { $activeGroup } from "../../../stores/active-group";
+import { api } from "@/api";
+import type { MemberListItem } from "@/api/types";
+import { AppText } from "@/components/ui/app-text";
+import { Header } from "@/components/ui/header";
+import { ScreenContainer } from "@/components/ui/screen-container";
+import { FilterBottomSheet, type FilterKey } from "@/components/members/filter-bottom-sheet";
+import { $activeGroup } from "@/stores/active-group";
 import { LinearGradient } from "expo-linear-gradient";
 
 const StyledIonicons = withUniwind(Ionicons);
@@ -89,7 +89,7 @@ export default function MembersTab(): JSX.Element {
 
   function handleMemberPress(userId: string) {
     router.push({
-      pathname: "/(tabs)/(members)/[userId]",
+      pathname: "/(tabs)/members/[userId]",
       params: { userId },
     });
   }

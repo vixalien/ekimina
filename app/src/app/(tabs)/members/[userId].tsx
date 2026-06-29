@@ -5,17 +5,17 @@ import type { JSX } from "react";
 import { startTransition, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 
-import { api } from "../../../api";
-import type { MemberDetail as MemberDetailType } from "../../../api/types";
-import { AppText } from "../../../components/ui/app-text";
-import { Header } from "../../../components/ui/header";
-import { ScreenContainer } from "../../../components/ui/screen-container";
-import { ReputationGauge } from "../../../components/members/reputation-gauge";
-import { StatChipsRow } from "../../../components/members/stat-chips";
-import { ContributionHistory } from "../../../components/members/contribution-history";
-import { LoansSection } from "../../../components/members/loans-section";
-import { $activeGroup } from "../../../stores/active-group";
-import { $auth } from "../../../stores/auth";
+import { api } from "@/api";
+import type { MemberDetail as MemberDetailType } from "@/api/types";
+import { AppText } from "@/components/ui/app-text";
+import { Header } from "@/components/ui/header";
+import { ScreenContainer } from "@/components/ui/screen-container";
+import { ReputationGauge } from "@/components/members/reputation-gauge";
+import { StatChipsRow } from "@/components/members/stat-chips";
+import { ContributionHistory } from "@/components/members/contribution-history";
+import { LoansSection } from "@/components/members/loans-section";
+import { $activeGroup } from "@/stores/active-group";
+import { $auth } from "@/stores/auth";
 
 export default function MemberDetailScreen(): JSX.Element {
   const { userId } = useLocalSearchParams<{ userId: string }>();

@@ -1,8 +1,8 @@
 import type { JSX } from "react";
 import { View } from "react-native";
-import { Header } from "../../../components/ui/header";
-import { ScreenContainer } from "../../../components/ui/screen-container";
-import { AppText } from "../../../components/ui/app-text";
+import { Header } from "@/components/ui/header";
+import { ScreenContainer } from "@/components/ui/screen-container";
+import { AppText } from "@/components/ui/app-text";
 
 export default function ActivityTab(): JSX.Element {
   return (

@@ -2,7 +2,7 @@ import { router } from "expo-router";
 
 export const Routes = {
   welcome: "/welcome" as const,
-  tabs: "/(tabs)/(home)" as const,
+  tabs: "/(tabs)/home" as const,
 
   onboarding: {
     phone: "/(onboarding)/phone" as const,

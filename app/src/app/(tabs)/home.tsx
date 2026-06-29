@@ -7,15 +7,15 @@ import { startTransition, useEffect, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { withUniwind } from "uniwind";
 
-import { api } from "../../../api";
-import type { GroupDashboardData, GroupMembership } from "../../../api/types";
-import { DonutChart } from "../../../components/ui/donut-chart";
-import { MemberAvatar } from "../../../components/member-avatar";
-import { Sparkline } from "../../../components/ui/sparkline";
-import { AppText } from "../../../components/ui/app-text";
-import { Header } from "../../../components/ui/header";
-import { ScreenContainer } from "../../../components/ui/screen-container";
-import { GroupSwitcher } from "../../../components/group-switcher";
+import { api } from "@/api";
+import type { GroupDashboardData, GroupMembership } from "@/api/types";
+import { DonutChart } from "@/components/ui/donut-chart";
+import { MemberAvatar } from "@/components/member-avatar";
+import { Sparkline } from "@/components/ui/sparkline";
+import { AppText } from "@/components/ui/app-text";
+import { Header } from "@/components/ui/header";
+import { ScreenContainer } from "@/components/ui/screen-container";
+import { GroupSwitcher } from "@/components/group-switcher";
 import {
   $activeGroup,
   $openSwitcher,
@@ -23,9 +23,9 @@ import {
   dismissSwitcherOnMount,
   switchGroup,
   triggerSwitcher,
-} from "../../../stores/active-group";
-import { $auth } from "../../../stores/auth";
-import { formatRWF, initialsOf } from "../../../lib/strings";
+} from "@/stores/active-group";
+import { $auth } from "@/stores/auth";
+import { formatRWF, initialsOf } from "@/lib/strings";
 
 const StyledIonicons = withUniwind(Ionicons);
 
