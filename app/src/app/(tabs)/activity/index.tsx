@@ -1,7 +1,8 @@
+import { LinearGradient } from "expo-linear-gradient";
 import type { JSX } from "react";
 import { startTransition, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
-import { ListGroup, PressableFeedback, Separator } from "heroui-native";
+import { ListGroup, PressableFeedback, ScrollShadow, Separator } from "heroui-native";
 import { useStore } from "@nanostores/react";
 import { api } from "@/api";
 import { $activeGroup } from "@/stores/active-group";
@@ -57,76 +58,86 @@ export default function ActivityTab(): JSX.Element {
           <AppText className="text-muted text-base">Loading...</AppText>
         </View>
       ) : (
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="p-4 gap-8">
-          {/* Section 1: Needs your action */}
-          {pendingRequests.length > 0 && (
-            <View className="gap-3">
-              <SectionLabel label="Needs your action" showBadge />
-              <ListGroup>
-                {pendingRequests.map((req, index) => (
-                  <PendingRequestCard
-                    key={req.id}
-                    request={req}
-                    showSeparator={index > 0}
-                    onReview={() => nav.activity.toReview(req.id, req.type)}
-                  />
-                ))}
-              </ListGroup>
-            </View>
-          )}
-
-          {/* Section 2: Outstanding loans */}
-          {loans.length > 0 && (
-            <View className="gap-3">
-              <SectionLabel label="Outstanding loans" />
-              <ListGroup>
-                {loans.map((loan, index) => (
-                  <LoanListItem
-                    key={loan.loanId}
-                    loan={loan}
-                    showSeparator={index > 0}
-                    onPress={() => {
-                      // Loan detail screen — future phase
-                    }}
-                  />
-                ))}
-              </ListGroup>
-            </View>
-          )}
-
-          {/* Section 3: Recent transactions */}
-          <View className="gap-3">
-            <SectionLabel label="Recent transactions" />
-            {transactions.length === 0 ? (
-              <AppText className="text-sm text-muted text-center py-6">
-                No transactions yet.
-              </AppText>
-            ) : (
-              <ListGroup>
-                {transactions.map((tx, index) => (
-                  <TransactionListItem
-                    key={tx.id}
-                    transaction={tx}
-                    showSeparator={index > 0}
-                    onPress={() => nav.activity.toDetail(tx.id)}
-                  />
-                ))}
-                <Separator className="mx-4" />
-                <PressableFeedback animation={false} onPress={() => nav.activity.toTransactions()}>
-                  <PressableFeedback.Scale>
-                    <ListGroup.Item>
-                      <ListGroup.ItemContent>
-                        <ListGroup.ItemTitle className="text-accent">View all</ListGroup.ItemTitle>
-                      </ListGroup.ItemContent>
-                      <ListGroup.ItemSuffix />
-                    </ListGroup.Item>
-                  </PressableFeedback.Scale>
-                  <PressableFeedback.Ripple />
-                </PressableFeedback>
-              </ListGroup>
+        <ScrollShadow LinearGradientComponent={LinearGradient}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerClassName="p-4 gap-8 pb-18"
+          >
+            {/* Section 1: Needs your action */}
+            {pendingRequests.length > 0 && (
+              <View className="gap-3">
+                <SectionLabel label="Needs your action" showBadge />
+                <ListGroup>
+                  {pendingRequests.map((req, index) => (
+                    <PendingRequestCard
+                      key={req.id}
+                      request={req}
+                      showSeparator={index > 0}
+                      onReview={() => nav.activity.toReview(req.id, req.type)}
+                    />
+                  ))}
+                </ListGroup>
+              </View>
             )}
-          </View>
-        </ScrollView>
+
+            {/* Section 2: Outstanding loans */}
+            {loans.length > 0 && (
+              <View className="gap-3">
+                <SectionLabel label="Outstanding loans" />
+                <ListGroup>
+                  {loans.map((loan, index) => (
+                    <LoanListItem
+                      key={loan.loanId}
+                      loan={loan}
+                      showSeparator={index > 0}
+                      onPress={() => {
+                        // Loan detail screen — future phase
+                      }}
+                    />
+                  ))}
+                </ListGroup>
+              </View>
+            )}
+
+            {/* Section 3: Recent transactions */}
+            <View className="gap-3">
+              <SectionLabel label="Recent transactions" />
+              {transactions.length === 0 ? (
+                <AppText className="text-sm text-muted text-center py-6">
+                  No transactions yet.
+                </AppText>
+              ) : (
+                <ListGroup>
+                  {transactions.map((tx, index) => (
+                    <TransactionListItem
+                      key={tx.id}
+                      transaction={tx}
+                      showSeparator={index > 0}
+                      onPress={() => nav.activity.toDetail(tx.id)}
+                    />
+                  ))}
+                  <Separator className="mx-4" />
+                  <PressableFeedback
+                    animation={false}
+                    onPress={() => nav.activity.toTransactions()}
+                  >
+                    <PressableFeedback.Scale>
+                      <ListGroup.Item>
+                        <ListGroup.ItemContent>
+                          <ListGroup.ItemTitle className="text-accent">
+                            View all
+                          </ListGroup.ItemTitle>
+                        </ListGroup.ItemContent>
+                        <ListGroup.ItemSuffix />
+                      </ListGroup.Item>
+                    </PressableFeedback.Scale>
+                    <PressableFeedback.Ripple />
+                  </PressableFeedback>
+                </ListGroup>
+              )}
+            </View>
+          </ScrollView>
+        </ScrollShadow>
       )}
     </ScreenContainer>
   );

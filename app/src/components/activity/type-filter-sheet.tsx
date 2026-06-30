@@ -2,8 +2,8 @@ import { BottomSheet, Radio, RadioGroup, Separator, Surface } from "heroui-nativ
 import { Fragment, type JSX } from "react";
 import { View } from "react-native";
 import type { TransactionType } from "../../api/types";
+import { TRANSACTION_TYPE_LABELS } from "../../lib/activity-constants";
 import { AppText } from "../ui/app-text";
-import { TRANSACTION_TYPE_LABELS } from "./transaction-list-item";
 
 type TypeFilterValue = "all" | TransactionType;
 

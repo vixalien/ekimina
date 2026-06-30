@@ -3,50 +3,17 @@ import { cn, ListGroup, PressableFeedback, Separator } from "heroui-native";
 import type { JSX } from "react";
 import { View } from "react-native";
 import { withUniwind } from "uniwind";
-import type {
-  Transaction,
-  TransactionDirection,
-  TransactionStatus,
-  TransactionType,
-} from "../../api/types";
+import type { Transaction, TransactionDirection } from "../../api/types";
+import {
+  STATUS_ICON_BG,
+  STATUS_ICON_COLOR,
+  TRANSACTION_ICONS,
+  TRANSACTION_TYPE_LABELS,
+} from "../../lib/activity-constants";
 import { formatRWF } from "../../lib/strings";
 import { AppText } from "../ui/app-text";
 
 const StyledIonicons = withUniwind(Ionicons);
-
-type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
-
-const TRANSACTION_ICONS: Record<TransactionType, IoniconName> = {
-  contribution: "arrow-down-circle-outline",
-  payout: "arrow-up-circle-outline",
-  penalty: "warning-outline",
-  loan_repayment: "return-up-forward-outline",
-  loan_disbursement: "cash-outline",
-  discretionary_deposit: "wallet-outline",
-  discretionary_withdrawal: "receipt-outline",
-};
-
-export const TRANSACTION_TYPE_LABELS: Record<TransactionType, string> = {
-  contribution: "Contribution",
-  payout: "Payout",
-  penalty: "Penalty",
-  loan_repayment: "Loan repayment",
-  loan_disbursement: "Loan disbursement",
-  discretionary_deposit: "Disc. deposit",
-  discretionary_withdrawal: "Disc. withdrawal",
-};
-
-const STATUS_BG: Record<TransactionStatus, string> = {
-  confirmed: "bg-accent/10",
-  pending: "bg-warning/10",
-  failed: "bg-danger/10",
-};
-
-const STATUS_ICON_COLOR: Record<TransactionStatus, string> = {
-  confirmed: "text-accent",
-  pending: "text-warning",
-  failed: "text-danger",
-};
 
 const DIRECTION_COLOR: Record<TransactionDirection, string> = {
   inflow: "text-success",
@@ -85,7 +52,7 @@ export function TransactionListItem({
               <View
                 className={cn(
                   "size-9 rounded-full items-center justify-center",
-                  STATUS_BG[transaction.status]
+                  STATUS_ICON_BG[transaction.status]
                 )}
               >
                 <StyledIonicons

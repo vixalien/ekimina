@@ -1,17 +1,21 @@
 import { Ionicons } from "@expo/vector-icons";
 import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
+import { LinearGradient } from "expo-linear-gradient";
 import {
   Avatar,
   BottomSheet,
   Button,
-  InputGroup,
+  Input,
   ListGroup,
   PressableFeedback,
+  ScrollShadow,
   Separator,
+  TextField,
   useBottomSheetAwareHandlers,
+  useThemeColor,
 } from "heroui-native";
-import { Fragment, type JSX, useState } from "react";
-import { Keyboard, View } from "react-native";
+import { Fragment, type JSX, useMemo, useState } from "react";
+import { Keyboard, Pressable, View } from "react-native";
 import { withUniwind } from "uniwind";
 import type { MemberListItem } from "../../api/types";
 
@@ -27,25 +31,29 @@ function SearchInput({
   const { onFocus, onBlur } = useBottomSheetAwareHandlers();
 
   return (
-    <InputGroup>
-      <InputGroup.Prefix isDecorative>
-        <StyledIonicons name="search-outline" size={16} className="text-muted" />
-      </InputGroup.Prefix>
-      <InputGroup.Input
-        placeholder="Search members..."
-        value={query}
-        onChangeText={onChangeText}
-        onFocus={onFocus}
-        onBlur={onBlur}
-      />
-      {query.length > 0 && (
-        <InputGroup.Suffix>
-          <PressableFeedback onPress={() => onChangeText("")} hitSlop={12}>
-            <StyledIonicons name="close-circle" size={18} className="text-muted" />
-          </PressableFeedback>
-        </InputGroup.Suffix>
-      )}
-    </InputGroup>
+    <TextField className="absolute top-0 left-0 right-0 px-5 pt-2">
+      <View className="w-full flex-row items-center">
+        <Input
+          variant="secondary"
+          placeholder="Search members..."
+          value={query}
+          onChangeText={onChangeText}
+          className="flex-1 px-10"
+          autoCapitalize="none"
+          autoCorrect={false}
+          onFocus={onFocus}
+          onBlur={onBlur}
+        />
+        <View className="absolute left-3.5" pointerEvents="none">
+          <StyledIonicons name="search-outline" size={16} className="text-muted" />
+        </View>
+        {query.length > 0 && (
+          <Pressable className="absolute right-3 p-1" onPress={() => onChangeText("")} hitSlop={12}>
+            <StyledIonicons name="close-circle" size={20} className="text-muted" />
+          </Pressable>
+        )}
+      </View>
+    </TextField>
   );
 }
 
@@ -66,10 +74,15 @@ export function MemberFilterSheet({
 }: MemberFilterSheetProps): JSX.Element {
   const [query, setQuery] = useState("");
   const [localSelected, setLocalSelected] = useState<string[]>(selectedIds);
+  const themeColorOverlay = useThemeColor("overlay");
 
-  const filtered = query.trim()
-    ? members.filter((m) => m.name.toLowerCase().includes(query.toLowerCase()))
-    : members;
+  const snapPoints = useMemo(() => ["50%", "90%"], []);
+
+  const filtered = useMemo(() => {
+    if (!query.trim()) return members;
+    const lower = query.toLowerCase();
+    return members.filter((m) => m.name.toLowerCase().includes(lower));
+  }, [members, query]);
 
   function toggleMember(userId: string) {
     setLocalSelected((prev) =>
@@ -102,56 +115,60 @@ export function MemberFilterSheet({
       </BottomSheet.Trigger>
       <BottomSheet.Portal>
         <BottomSheet.Overlay />
-        <BottomSheet.Content contentContainerClassName="pb-4" keyboardBehavior="extend">
-          <View className="px-2 pt-2 mb-3">
-            <BottomSheet.Title>Filter by member</BottomSheet.Title>
-          </View>
-          <View className="mb-3">
-            <SearchInput query={query} onChangeText={setQuery} />
-          </View>
-          <BottomSheetScrollView
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            <ListGroup>
-              {filtered.map((member, index) => {
-                const isSelected = localSelected.includes(member.userId);
-                return (
-                  <Fragment key={member.userId}>
-                    {index > 0 && <Separator className="mx-4" />}
-                    <PressableFeedback
-                      animation={false}
-                      onPress={() => toggleMember(member.userId)}
-                    >
-                      <PressableFeedback.Scale>
-                        <ListGroup.Item>
-                          <ListGroup.ItemPrefix>
-                            <Avatar size="sm" color="accent">
-                              <Avatar.Fallback>{member.initials}</Avatar.Fallback>
-                            </Avatar>
-                          </ListGroup.ItemPrefix>
-                          <ListGroup.ItemContent>
-                            <ListGroup.ItemTitle>{member.name}</ListGroup.ItemTitle>
-                          </ListGroup.ItemContent>
-                          <ListGroup.ItemSuffix>
-                            {isSelected && (
-                              <StyledIonicons
-                                name="checkmark-circle"
-                                size={20}
-                                className="text-accent"
-                              />
-                            )}
-                          </ListGroup.ItemSuffix>
-                        </ListGroup.Item>
-                      </PressableFeedback.Scale>
-                      <PressableFeedback.Ripple />
-                    </PressableFeedback>
-                  </Fragment>
-                );
-              })}
-            </ListGroup>
-          </BottomSheetScrollView>
-          <View className="mt-4 gap-2">
+        <BottomSheet.Content
+          snapPoints={snapPoints}
+          enableOverDrag={false}
+          enableDynamicSizing={false}
+          contentContainerClassName="h-full pt-16 pb-2"
+          keyboardBehavior="extend"
+        >
+          <SearchInput query={query} onChangeText={setQuery} />
+          <ScrollShadow LinearGradientComponent={LinearGradient} color={themeColorOverlay}>
+            <BottomSheetScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerClassName="pt-3"
+              keyboardShouldPersistTaps="handled"
+            >
+              <ListGroup>
+                {filtered.map((member, index) => {
+                  const isSelected = localSelected.includes(member.userId);
+                  return (
+                    <Fragment key={member.userId}>
+                      {index > 0 && <Separator className="mx-4" />}
+                      <PressableFeedback
+                        animation={false}
+                        onPress={() => toggleMember(member.userId)}
+                      >
+                        <PressableFeedback.Scale>
+                          <ListGroup.Item>
+                            <ListGroup.ItemPrefix>
+                              <Avatar size="sm" color="accent">
+                                <Avatar.Fallback>{member.initials}</Avatar.Fallback>
+                              </Avatar>
+                            </ListGroup.ItemPrefix>
+                            <ListGroup.ItemContent>
+                              <ListGroup.ItemTitle>{member.name}</ListGroup.ItemTitle>
+                            </ListGroup.ItemContent>
+                            <ListGroup.ItemSuffix>
+                              {isSelected && (
+                                <StyledIonicons
+                                  name="checkmark-circle"
+                                  size={20}
+                                  className="text-accent"
+                                />
+                              )}
+                            </ListGroup.ItemSuffix>
+                          </ListGroup.Item>
+                        </PressableFeedback.Scale>
+                        <PressableFeedback.Ripple />
+                      </PressableFeedback>
+                    </Fragment>
+                  );
+                })}
+              </ListGroup>
+            </BottomSheetScrollView>
+          </ScrollShadow>
+          <View className="px-5 pt-2 gap-2">
             <Button variant="primary" onPress={handleApply}>
               <Button.Label>
                 {localSelected.length > 0 ? `Apply (${localSelected.length} selected)` : "Apply"}

@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useStore } from "@nanostores/react";
-import { Chip, ListGroup, PressableFeedback } from "heroui-native";
+import { Chip, ListGroup, PressableFeedback, ScrollShadow } from "heroui-native";
+import { LinearGradient } from "expo-linear-gradient";
 import type { JSX } from "react";
 import { startTransition, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
@@ -12,10 +13,8 @@ import type { CycleRange } from "@/components/activity/cycle-filter-sheet";
 import { DateFilterSheet, DATE_LABELS } from "@/components/activity/date-filter-sheet";
 import type { DatePreset } from "@/components/activity/date-filter-sheet";
 import { MemberFilterSheet } from "@/components/activity/member-filter-sheet";
-import {
-  TransactionListItem,
-  TRANSACTION_TYPE_LABELS,
-} from "@/components/activity/transaction-list-item";
+import { TransactionListItem } from "@/components/activity/transaction-list-item";
+import { TRANSACTION_TYPE_LABELS } from "@/lib/activity-constants";
 import { TypeFilterSheet } from "@/components/activity/type-filter-sheet";
 import type { TypeFilterValue } from "@/components/activity/type-filter-sheet";
 import { Header } from "@/components/ui/header";
@@ -162,40 +161,38 @@ export default function TransactionsScreen(): JSX.Element {
       </ScrollView>
 
       {/* Transaction list */}
-      <ScrollView
-        className="flex-1"
-        showsVerticalScrollIndicator={false}
-        contentContainerClassName="p-4 pt-1"
-      >
-        {loading ? (
-          <View className="flex-1 items-center justify-center py-16">
-            <AppText className="text-muted text-base">Loading...</AppText>
-          </View>
-        ) : transactions.length === 0 ? (
-          <View className="items-center justify-center py-16 gap-3">
-            <StyledIonicons name="receipt-outline" size={40} className="text-muted" />
-            <AppText className="text-muted text-base text-center">
-              No transactions match these filters.
-            </AppText>
-            {anyFilterActive && (
-              <PressableFeedback onPress={clearAllFilters}>
-                <AppText className="text-accent text-sm font-medium">Clear filters</AppText>
-              </PressableFeedback>
-            )}
-          </View>
-        ) : (
-          <ListGroup>
-            {transactions.map((tx, index) => (
-              <TransactionListItem
-                key={tx.id}
-                transaction={tx}
-                showSeparator={index > 0}
-                onPress={() => nav.activity.toDetail(tx.id)}
-              />
-            ))}
-          </ListGroup>
-        )}
-      </ScrollView>
+      <ScrollShadow LinearGradientComponent={LinearGradient} className="flex-1">
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="p-4 pt-1">
+          {loading ? (
+            <View className="flex-1 items-center justify-center py-16">
+              <AppText className="text-muted text-base">Loading...</AppText>
+            </View>
+          ) : transactions.length === 0 ? (
+            <View className="items-center justify-center py-16 gap-3">
+              <StyledIonicons name="receipt-outline" size={40} className="text-muted" />
+              <AppText className="text-muted text-base text-center">
+                No transactions match these filters.
+              </AppText>
+              {anyFilterActive && (
+                <PressableFeedback onPress={clearAllFilters}>
+                  <AppText className="text-accent text-sm font-medium">Clear filters</AppText>
+                </PressableFeedback>
+              )}
+            </View>
+          ) : (
+            <ListGroup>
+              {transactions.map((tx, index) => (
+                <TransactionListItem
+                  key={tx.id}
+                  transaction={tx}
+                  showSeparator={index > 0}
+                  onPress={() => nav.activity.toDetail(tx.id)}
+                />
+              ))}
+            </ListGroup>
+          )}
+        </ScrollView>
+      </ScrollShadow>
 
       {/* Filter sheets */}
       <TypeFilterSheet
