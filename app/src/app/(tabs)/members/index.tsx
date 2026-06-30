@@ -151,7 +151,7 @@ export default function MembersTab(): JSX.Element {
           <ScrollView
             className="px-4"
             showsVerticalScrollIndicator={false}
-            contentContainerClassName="pb-36"
+            contentContainerClassName="pb-30"
           >
             {sorted.length > 0 ? (
               <ListGroup>

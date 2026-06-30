@@ -69,10 +69,121 @@ export interface LoanEntry {
   state: string;
 }
 
+// ── Loan lifecycle types ──────────────────────────────────────────────
+
+export type LoanState =
+  | "requested"
+  | "signing"
+  | "approved"
+  | "disbursed"
+  | "repaying"
+  | "repaid"
+  | "defaulted";
+
+export interface LoanSignature {
+  userId: string;
+  name: string;
+  initials: string;
+  role?: string;
+  signed: boolean;
+  signedAt?: string;
+}
+
+export interface LoanDetailBase {
+  loanId: string;
+  borrowerName: string;
+  borrowerInitials: string;
+  borrowerUserId: string;
+  borrowerRole: string;
+  borrowerJoinedCycle: number;
+  amount: number;
+  interestRate: number;
+  currentState: LoanState;
+  purpose: string;
+  deadline: string;
+}
+
+export interface RequestedLoanDetail extends LoanDetailBase {
+  currentState: "requested";
+  submittedAt: string;
+  signatureThreshold: number;
+  collectedSignatures: number;
+}
+
+export interface SigningLoanDetail extends LoanDetailBase {
+  currentState: "signing";
+  signatureThreshold: number;
+  collectedSignatures: number;
+  signatures: LoanSignature[];
+}
+
+export interface ApprovedLoanDetail extends LoanDetailBase {
+  currentState: "approved";
+  approvedAt: string;
+}
+
+export interface DisbursedLoanDetail extends LoanDetailBase {
+  currentState: "disbursed";
+  disbursedAt: string;
+  disbursementTransactionId: string;
+  totalOwed: number;
+  amountPaid: number;
+}
+
+export interface RepayingLoanDetail extends LoanDetailBase {
+  currentState: "repaying";
+  totalOwed: number;
+  amountPaid: number;
+  lastPaymentAt?: string;
+}
+
+export interface RepaidLoanDetail extends LoanDetailBase {
+  currentState: "repaid";
+  totalOwed: number;
+  completedAt: string;
+}
+
+export interface DefaultedLoanDetail extends LoanDetailBase {
+  currentState: "defaulted";
+  remainingBalance: number;
+  amountPaidBeforeDefault: number;
+  reputationImpact: number;
+}
+
+export type LoanDetail =
+  | RequestedLoanDetail
+  | SigningLoanDetail
+  | ApprovedLoanDetail
+  | DisbursedLoanDetail
+  | RepayingLoanDetail
+  | RepaidLoanDetail
+  | DefaultedLoanDetail;
+
+export interface LoanRequestReview {
+  loanId: string;
+  borrowerName: string;
+  borrowerInitials: string;
+  borrowerUserId: string;
+  borrowerRole: string;
+  borrowerJoinedCycle: number;
+  borrowerReputation: number;
+  borrowerActiveLoanCount: number;
+  amount: number;
+  interestRate: number;
+  purpose: string;
+  deadline: string;
+  signatureThreshold: number;
+  collectedSignatures: number;
+  signatures: LoanSignature[];
+  currentUserAlreadySigned: boolean;
+  currentUserSignedAt?: string;
+}
+
 export interface MemberListItem {
   userId: string;
   initials: string;
   name: string;
+  address: string;
   status: MemberStanding["status"];
   reputation: number;
   activeLoanAmount: number | null;
@@ -115,6 +226,38 @@ export interface GroupsApi {
   getTransactions(groupId: string, filters?: TransactionFilters): Promise<Transaction[]>;
   getTransactionDetail(groupId: string, transactionId: string): Promise<TransactionDetail>;
   retryTransaction(transactionId: string): Promise<{ success: boolean }>;
+  // Loan lifecycle
+  getLoanDetail(groupId: string, loanId: string): Promise<LoanDetail>;
+  getLoanRequestReview(groupId: string, loanId: string): Promise<LoanRequestReview>;
+  signLoanRequest(
+    groupId: string,
+    loanId: string,
+    userId: string
+  ): Promise<{ success: boolean; thresholdMet: boolean }>;
+  rejectLoanRequest(groupId: string, loanId: string, userId: string): Promise<{ success: boolean }>;
+  // Profile & settings
+  getGroupSettings(groupId: string): Promise<GroupSettings>;
+  getUserProfile(groupId: string, userId: string): Promise<UserProfile>;
+  getCommitteeMembers(groupId: string): Promise<CommitteeMember[]>;
+  getSettingsChangeReview(groupId: string, requestId: string): Promise<SettingsChangeRequest>;
+  signSettingsChange(
+    groupId: string,
+    requestId: string,
+    userId: string
+  ): Promise<{ success: boolean; thresholdMet: boolean }>;
+  rejectSettingsChange(
+    groupId: string,
+    requestId: string,
+    userId: string
+  ): Promise<{ success: boolean }>;
+  submitSettingsChange(
+    groupId: string,
+    field: GroupSettingField,
+    proposedValue: string,
+    userId: string
+  ): Promise<{ success: boolean }>;
+  updateNotifications(userId: string, enabled: boolean): Promise<{ success: boolean }>;
+  leaveGroup(groupId: string, userId: string): Promise<{ success: boolean }>;
 }
 
 export interface MemberStanding {
@@ -154,6 +297,52 @@ export interface GroupSettings {
   loansEnabled: boolean;
   loanInterestRate: number;
   discretionaryFundEnabled: boolean;
+  groupPolicy: "private" | "public";
+}
+
+export type GroupSettingField =
+  | "contribution_amount"
+  | "cycle_length"
+  | "penalty_rate"
+  | "payout_amount"
+  | "approval_threshold"
+  | "committee_size"
+  | "loan_interest_rate"
+  | "discretionary_fund"
+  | "group_policy";
+
+export interface SettingsChangeRequest {
+  id: string;
+  groupId: string;
+  field: GroupSettingField;
+  fieldLabel: string;
+  currentValue: string;
+  proposedValue: string;
+  requesterName: string;
+  requesterInitials: string;
+  requesterUserId: string;
+  signatureCount: number;
+  signatureThreshold: number;
+  signatures: LoanSignature[];
+  currentUserAlreadySigned: boolean;
+  currentUserSignedAt?: string;
+  createdAt: string;
+}
+
+export interface UserProfile {
+  userId: string;
+  name: string;
+  initials: string;
+  reputation: number;
+  onTimeStreak: number;
+  notificationsEnabled: boolean;
+  isCommitteeMember: boolean;
+}
+
+export interface CommitteeMember {
+  userId: string;
+  name: string;
+  initials: string;
 }
 
 export interface CreateGroupPayload {

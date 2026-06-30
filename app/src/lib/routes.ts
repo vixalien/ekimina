@@ -28,6 +28,14 @@ export const Routes = {
     transactions: "/(tabs)/activity/transactions" as const,
     detail: (id: string) => `/(tabs)/activity/${id}` as const,
     review: "/(tabs)/activity/review" as const,
+    loanDetail: (loanId: string) => `/(tabs)/activity/loan/${loanId}` as const,
+    loanReview: (loanId: string) => `/(tabs)/activity/loan-review/${loanId}` as const,
+  },
+
+  profile: {
+    groupSettings: "/(tabs)/profile/group-settings" as const,
+    committee: "/(tabs)/profile/committee" as const,
+    settingsReview: "/(tabs)/profile/settings-review" as const,
   },
 } as const;
 
@@ -63,5 +71,19 @@ export const nav = {
     toDetail: (id: string) => router.push(Routes.activity.detail(id) as any),
     toReview: (requestId: string, requestType: PendingRequestType) =>
       router.push({ pathname: Routes.activity.review as any, params: { requestId, requestType } }),
+    toLoanDetail: (loanId: string) => router.push(Routes.activity.loanDetail(loanId) as any),
+    toLoanReview: (loanId: string) => router.push(Routes.activity.loanReview(loanId) as any),
+    toLoanRepayments: (memberId: string) =>
+      router.push({
+        pathname: Routes.activity.transactions as any,
+        params: { type: "loan_repayment", memberId },
+      }),
+  },
+
+  profile: {
+    toGroupSettings: () => router.push(Routes.profile.groupSettings as any),
+    toCommittee: () => router.push(Routes.profile.committee as any),
+    toSettingsReview: (requestId: string) =>
+      router.push({ pathname: Routes.profile.settingsReview as any, params: { requestId } }),
   },
 };

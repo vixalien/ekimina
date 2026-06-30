@@ -7,6 +7,8 @@ export default function ActivityLayout() {
       <Stack.Screen name="transactions" />
       <Stack.Screen name="[transactionId]" />
       <Stack.Screen name="review" />
+      <Stack.Screen name="loan" />
+      <Stack.Screen name="loan-review" />
     </Stack>
   );
 }

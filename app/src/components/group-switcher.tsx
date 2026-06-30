@@ -65,7 +65,11 @@ export function GroupSwitcher({
                         <Radio>
                           <Radio.Indicator className="border-none shadow-none bg-transparent size-6">
                             {isActive && (
-                              <StyledIonicons name="checkmark-circle" size={22} className="text-foreground" />
+                              <StyledIonicons
+                                name="checkmark-circle"
+                                size={22}
+                                className="text-foreground"
+                              />
                             )}
                           </Radio.Indicator>
                         </Radio>

@@ -23,7 +23,7 @@ export function ScreenContainer({
         paddingTop: insets.top + extraTop,
         // paddingBottom: insets.bottom + 12,
         // No insets because tabs
-        paddingBottom: 0,
+        paddingBottom: insets.bottom,
       }}
     >
       {children}

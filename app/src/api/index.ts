@@ -25,4 +25,8 @@ export type {
   MemberDetail,
   ContributionHistoryEntry,
   LoanEntry,
+  GroupSettingField,
+  SettingsChangeRequest,
+  UserProfile,
+  CommitteeMember,
 } from "./types";

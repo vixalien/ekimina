@@ -73,7 +73,13 @@ export default function ActivityTab(): JSX.Element {
                       key={req.id}
                       request={req}
                       showSeparator={index > 0}
-                      onReview={() => nav.activity.toReview(req.id, req.type)}
+                      onReview={() =>
+                        req.type === "loan_request"
+                          ? nav.activity.toLoanReview(req.id)
+                          : req.type === "settings_change"
+                            ? nav.profile.toSettingsReview(req.id)
+                            : nav.activity.toReview(req.id, req.type)
+                      }
                     />
                   ))}
                 </ListGroup>
@@ -90,9 +96,7 @@ export default function ActivityTab(): JSX.Element {
                       key={loan.loanId}
                       loan={loan}
                       showSeparator={index > 0}
-                      onPress={() => {
-                        // Loan detail screen — future phase
-                      }}
+                      onPress={() => nav.activity.toLoanDetail(loan.loanId)}
                     />
                   ))}
                 </ListGroup>

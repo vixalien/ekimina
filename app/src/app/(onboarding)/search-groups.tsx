@@ -112,31 +112,33 @@ export default function SearchGroupsScreen(): JSX.Element {
         </InputGroup>
       </TextField>
 
-      <View className="mt-4">
-        <Surface>
-          <RadioGroup value={selectedId ?? ""} onValueChange={setSelectedId}>
-            {groups.map((group, index) => (
-              <React.Fragment key={group.id}>
-                {index > 0 && <Separator className="mx-4" />}
-                <RadioGroup.Item value={group.id}>
-                  <View className="flex-row items-center gap-3 flex-1">
-                    <View className="size-10 rounded-full bg-accent/10 items-center justify-center">
-                      <AppText className="text-sm font-bold text-accent">
-                        {group.avatarInitials}
-                      </AppText>
+      {!isLoading && groups.length >= 0 && (
+        <View className="mt-4">
+          <Surface>
+            <RadioGroup value={selectedId ?? ""} onValueChange={setSelectedId}>
+              {groups.map((group, index) => (
+                <React.Fragment key={group.id}>
+                  {index > 0 && <Separator className="mx-4" />}
+                  <RadioGroup.Item value={group.id}>
+                    <View className="flex-row items-center gap-3 flex-1">
+                      <View className="size-10 rounded-full bg-accent/10 items-center justify-center">
+                        <AppText className="text-sm font-bold text-accent">
+                          {group.avatarInitials}
+                        </AppText>
+                      </View>
+                      <View className="flex-1">
+                        <Label>{group.name}</Label>
+                        <Description>{group.memberCount} members</Description>
+                      </View>
                     </View>
-                    <View className="flex-1">
-                      <Label>{group.name}</Label>
-                      <Description>{group.memberCount} members</Description>
-                    </View>
-                  </View>
-                  <Radio />
-                </RadioGroup.Item>
-              </React.Fragment>
-            ))}
-          </RadioGroup>
-        </Surface>
-      </View>
+                    <Radio />
+                  </RadioGroup.Item>
+                </React.Fragment>
+              ))}
+            </RadioGroup>
+          </Surface>
+        </View>
+      )}
 
       {isLoading && <AppText className="text-xs text-center text-muted mt-4">Loading...</AppText>}
 

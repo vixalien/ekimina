@@ -391,6 +391,78 @@ Before implementing any HeroUI Native component, check:
 
 **Default to reference patterns.** Copy the structure, imports, and prop patterns from the reference project. Don't reinvent the wheel — if the reference uses `RadioGroup` + `Surface` + `Separator` for a list, use the same. If it uses `ScrollShadow` + `ScrollView` for scrollable content, use the same. Only deviate when there's a clear reason.
 
+### ScrollShadow on every scrollable screen
+
+Every `ScrollView` must be wrapped in `ScrollShadow` with the LinearGradient component:
+
+```tsx
+import { LinearGradient } from "expo-linear-gradient";
+import { ScrollShadow } from "heroui-native";
+
+<ScrollShadow LinearGradientComponent={LinearGradient} className="flex-1">
+  <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="pb-36">
+    {/* content */}
+  </ScrollView>
+</ScrollShadow>
+```
+
+### Section labels above ListGroups
+
+Use muted uppercase labels to title grouped content. This pattern appears on activity, loan detail, and review screens:
+
+```tsx
+<View className="gap-3">
+  <AppText className="text-xs text-muted uppercase tracking-wider ml-2">Section name</AppText>
+  <ListGroup>
+    {/* items */}
+  </ListGroup>
+</View>
+```
+
+### BottomSheet trigger: use Pressable, not View
+
+`BottomSheet.Trigger asChild` with a bare `View` does not receive press events. Always use `Pressable` with `hitSlop`:
+
+```tsx
+<BottomSheet isOpen={isOpen} onOpenChange={setIsOpen}>
+  <BottomSheet.Trigger asChild>
+    <Pressable hitSlop={8} onPress={() => setIsOpen(true)}>
+      <StyledIonicons name="information-circle-outline" size={18} className="text-muted" />
+    </Pressable>
+  </BottomSheet.Trigger>
+  {/* ... */}
+</BottomSheet>
+```
+
+### Route param initialization for pre-set filters
+
+When navigating to a screen with pre-set filter values, pass them as route params. The target screen reads them with `useLocalSearchParams` to initialize state:
+
+```tsx
+// Navigation helper
+toLoanRepayments: (memberId: string) =>
+  router.push({
+    pathname: Routes.activity.transactions,
+    params: { type: "loan_repayment", memberId },
+  })
+
+// Target screen reads params
+const params = useLocalSearchParams<{ type?: string; memberId?: string }>();
+const [typeFilter, setTypeFilter] = useState<TypeFilterValue>(
+  (params.type as TypeFilterValue) ?? "all"
+);
+const [memberFilter, setMemberFilter] = useState<string[]>(
+  params.memberId ? [params.memberId] : []
+);
+```
+
+### DRY: extract reusable ListGroup patterns
+
+Never duplicate ListGroup layouts across screens. If two screens show the same data card (e.g., loan terms, borrower info, repayment progress), extract it into a shared component in `components/`. Examples:
+- `components/loan/borrower-info.tsx` -- tappable avatar + name + role, navigates to member page
+- `components/loan/loan-terms-card.tsx` -- amount, interest, total, deadline, purpose
+- `components/loan/repayment-info.tsx` -- amount paid, total, percentage, optional press handler
+
 ---
 
 ## API Client Structure
@@ -427,6 +499,16 @@ Pre-seeded users: `+250788123456` (1 group), `+250788654321` (2 groups), `+25078
 | `getGroupMembers(groupId)` | `MemberListItem[]` | Full member roster for current cycle |
 | `searchMembers(groupId, query)` | `MemberListItem[]` | Filter members by name (server-side) |
 | `getMemberDetail(groupId, userId, requestingUserId)` | `MemberDetail` | Full member profile |
+| `getPendingRequests(groupId)` | `ActivityPendingRequest[]` | Committee pending actions |
+| `getOutstandingLoans(groupId)` | `OutstandingLoan[]` | Active loans with borrower info |
+| `getRecentTransactions(groupId, limit?)` | `Transaction[]` | Recent transactions, default limit 5 |
+| `getTransactions(groupId, filters?)` | `Transaction[]` | Full filtered transaction list |
+| `getTransactionDetail(groupId, transactionId)` | `TransactionDetail` | Type-specific transaction detail |
+| `retryTransaction(transactionId)` | `{ success }` | Retry failed transaction |
+| `getLoanDetail(groupId, loanId)` | `LoanDetail` | Loan lifecycle detail (7 states) |
+| `getLoanRequestReview(groupId, loanId)` | `LoanRequestReview` | Committee review data |
+| `signLoanRequest(groupId, loanId, userId)` | `{ success, thresholdMet }` | Sign loan request |
+| `rejectLoanRequest(groupId, loanId, userId)` | `{ success }` | Reject loan request |
 
 ### Key data types
 
@@ -437,6 +519,14 @@ Pre-seeded users: `+250788123456` (1 group), `+250788654321` (2 groups), `+25078
 | `MemberDetail` | `userId, name, initials, role, joinedCycle, reputation, onTimeContributions, totalContributions, activeLoanCount, penaltyCount, contributionHistory[], loans[], isCommitteeMember` | Member detail screen |
 | `ContributionHistoryEntry` | `cycle, status ("paid_on_time"\|"paid_late"\|"missed"), penaltyAmount?` | Contribution history section |
 | `LoanEntry` | `id, amount, state` | Loans section |
+| `ActivityPendingRequest` | `id, type, subject, amountOrValue?, signatureCount, signatureThreshold, timestamp` | Activity pending actions |
+| `OutstandingLoan` | `loanId, borrowerName, borrowerInitials, borrowerUserId, amount, dueCycle` | Activity outstanding loans |
+| `Transaction` | `id, type, memberName, memberInitials, memberId, amount, direction, status, cycle, timestamp` | Transaction list |
+| `TransactionDetail` | Discriminated union per type: `ContributionDetail`, `PayoutDetail`, `PenaltyDetail`, `LoanRepaymentDetail`, `LoanDisbursementDetail`, `DiscretionaryDetail` | Transaction detail screen |
+| `LoanState` | `"requested"\|"signing"\|"approved"\|"disbursed"\|"repaying"\|"repaid"\|"defaulted"` | Loan lifecycle |
+| `LoanDetail` | Discriminated union per state: `RequestedLoanDetail`, `SigningLoanDetail`, `ApprovedLoanDetail`, `DisbursedLoanDetail`, `RepayingLoanDetail`, `RepaidLoanDetail`, `DefaultedLoanDetail` | Loan detail screen |
+| `LoanRequestReview` | `loanId, borrowerName, borrowerInitials, borrowerUserId, borrowerRole, borrowerJoinedCycle, borrowerReputation, borrowerActiveLoanCount, amount, interestRate, purpose, deadline, signatureThreshold, collectedSignatures, signatures[], currentUserAlreadySigned, currentUserSignedAt?` | Loan review screen |
+| `LoanSignature` | `userId, name, initials, role, signed, signedAt?` | Signature lists |
 
 Status colors per contribution:
 - `"paid_on_time"` -- `text-success`

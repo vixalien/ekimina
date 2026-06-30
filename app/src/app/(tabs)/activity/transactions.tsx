@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useStore } from "@nanostores/react";
 import { Chip, ListGroup, PressableFeedback, ScrollShadow } from "heroui-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { useLocalSearchParams } from "expo-router";
 import type { JSX } from "react";
 import { startTransition, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
@@ -29,15 +30,20 @@ type OpenSheet = "type" | "member" | "cycle" | "date" | null;
 
 export default function TransactionsScreen(): JSX.Element {
   const { activeGroupId } = useStore($activeGroup);
+  const params = useLocalSearchParams<{ type?: string; memberId?: string }>();
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [members, setMembers] = useState<MemberListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [openSheet, setOpenSheet] = useState<OpenSheet>(null);
 
-  // Filter state
-  const [typeFilter, setTypeFilter] = useState<TypeFilterValue>("all");
-  const [memberFilter, setMemberFilter] = useState<string[]>([]);
+  // Filter state - initialize from route params if present
+  const [typeFilter, setTypeFilter] = useState<TypeFilterValue>(
+    (params.type as TypeFilterValue) ?? "all"
+  );
+  const [memberFilter, setMemberFilter] = useState<string[]>(
+    params.memberId ? [params.memberId] : []
+  );
   const [cycleFilter, setCycleFilter] = useState<CycleRange | null>(null);
   const [dateFilter, setDateFilter] = useState<DatePreset>("all");
 

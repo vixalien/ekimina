@@ -7,6 +7,13 @@ import type {
   MemberListItem,
   MemberDetail,
   TransactionFilters,
+  LoanDetail,
+  LoanRequestReview,
+  GroupSettings,
+  UserProfile,
+  CommitteeMember,
+  SettingsChangeRequest,
+  GroupSettingField,
 } from "./types";
 import {
   ALL_GROUPS,
@@ -17,8 +24,18 @@ import {
   MOCK_OUTSTANDING_LOANS,
   MOCK_TRANSACTIONS,
   getTransactionDetail,
+  getLoanDetail,
+  getLoanRequestReview,
+  signLoan,
+  rejectLoan,
   computeDashboard,
   toPublicGroup,
+  MOCK_GROUP_SETTINGS,
+  MOCK_COMMITTEE,
+  MOCK_USER_PROFILES,
+  getSettingsChangeReview,
+  signSettingsChange,
+  rejectSettingsChange,
 } from "./mock/groups";
 
 function delay(ms: number): Promise<void> {
@@ -26,6 +43,15 @@ function delay(ms: number): Promise<void> {
 }
 
 let pendingRequests: Record<string, JoinRequest> = {};
+
+function shortAddress(userId: string): string {
+  // Generate a deterministic short address from userId
+  const hash = userId.split("").reduce((acc, char) => {
+    return ((acc << 5) - acc + char.charCodeAt(0)) & 0xffffffff;
+  }, 0);
+  const hex = Math.abs(hash).toString(16).padStart(8, "0");
+  return `0x${hex.slice(0, 4)}...${hex.slice(-4)}`;
+}
 
 function memberListForGroup(groupId: string): MemberListItem[] {
   const extra = MOCK_GROUP_DATA[groupId];
@@ -40,19 +66,19 @@ function memberListForGroup(groupId: string): MemberListItem[] {
       (l) =>
         l.state.includes("repaying") ||
         l.state.includes("disbursed") ||
-        l.state.includes("requested"),
+        l.state.includes("requested")
     );
 
     return {
       userId: m.userId,
       initials: m.initials,
       name: m.name,
+      address: shortAddress(m.userId),
       status,
       reputation: memberReputations[m.userId] ?? 50,
       activeLoanAmount: activeLoan?.amount ?? null,
-      penaltyCount: Object.values(paymentHistory[m.userId] ?? {}).filter(
-        (s) => s === "missed",
-      ).length,
+      penaltyCount: Object.values(paymentHistory[m.userId] ?? {}).filter((s) => s === "missed")
+        .length,
     };
   });
 }
@@ -238,7 +264,7 @@ export function createMockGroups(): GroupsApi {
       }
       if (filters?.cycleRange) {
         txns = txns.filter(
-          (t) => t.cycle >= filters.cycleRange!.from && t.cycle <= filters.cycleRange!.to,
+          (t) => t.cycle >= filters.cycleRange!.from && t.cycle <= filters.cycleRange!.to
         );
       }
       if (filters?.datePreset && filters.datePreset !== "all") {
@@ -327,6 +353,116 @@ export function createMockGroups(): GroupsApi {
         loans,
         isCommitteeMember: isCommittee,
       };
+    },
+
+    async getLoanDetail(_groupId: string, loanId: string): Promise<LoanDetail> {
+      await delay(350);
+      const detail = getLoanDetail(loanId);
+      if (!detail) throw new Error("Loan not found");
+      return detail;
+    },
+
+    async getLoanRequestReview(_groupId: string, loanId: string): Promise<LoanRequestReview> {
+      await delay(350);
+      const review = getLoanRequestReview(loanId);
+      if (!review) throw new Error("Loan request not found");
+      return review;
+    },
+
+    async signLoanRequest(
+      _groupId: string,
+      loanId: string,
+      userId: string
+    ): Promise<{ success: boolean; thresholdMet: boolean }> {
+      await delay(800);
+      return signLoan(loanId, userId);
+    },
+
+    async rejectLoanRequest(
+      _groupId: string,
+      loanId: string,
+      _userId: string
+    ): Promise<{ success: boolean }> {
+      await delay(800);
+      return rejectLoan(loanId);
+    },
+
+    async getGroupSettings(groupId: string): Promise<GroupSettings> {
+      await delay(400);
+      const settings = MOCK_GROUP_SETTINGS[groupId];
+      if (!settings) throw new Error("Group not found");
+      return settings;
+    },
+
+    async getUserProfile(groupId: string, userId: string): Promise<UserProfile> {
+      await delay(300);
+      const profile = MOCK_USER_PROFILES[userId];
+      if (profile) return profile;
+      // Generate a default profile for any user
+      const extra = MOCK_GROUP_DATA[groupId];
+      const member = extra?.members.find((m) => m.userId === userId);
+      return {
+        userId,
+        name: member?.name ?? "Unknown",
+        initials: member?.initials ?? "??",
+        reputation: extra?.memberReputations[userId] ?? 50,
+        onTimeStreak: 0,
+        notificationsEnabled: true,
+        isCommitteeMember: userId === "user-1" || userId === "user-2",
+      };
+    },
+
+    async getCommitteeMembers(groupId: string): Promise<CommitteeMember[]> {
+      await delay(300);
+      return MOCK_COMMITTEE[groupId] ?? [];
+    },
+
+    async getSettingsChangeReview(
+      _groupId: string,
+      requestId: string
+    ): Promise<SettingsChangeRequest> {
+      await delay(350);
+      const review = getSettingsChangeReview(requestId);
+      if (!review) throw new Error("Settings change request not found");
+      return review;
+    },
+
+    async signSettingsChange(
+      _groupId: string,
+      requestId: string,
+      userId: string
+    ): Promise<{ success: boolean; thresholdMet: boolean }> {
+      await delay(800);
+      return signSettingsChange(requestId, userId);
+    },
+
+    async rejectSettingsChange(
+      _groupId: string,
+      requestId: string,
+      _userId: string
+    ): Promise<{ success: boolean }> {
+      await delay(800);
+      return rejectSettingsChange(requestId);
+    },
+
+    async submitSettingsChange(
+      _groupId: string,
+      _field: GroupSettingField,
+      _proposedValue: string,
+      _userId: string
+    ): Promise<{ success: boolean }> {
+      await delay(1000);
+      return { success: true };
+    },
+
+    async updateNotifications(_userId: string, _enabled: boolean): Promise<{ success: boolean }> {
+      await delay(400);
+      return { success: true };
+    },
+
+    async leaveGroup(_groupId: string, _userId: string): Promise<{ success: boolean }> {
+      await delay(800);
+      return { success: true };
     },
   };
 }

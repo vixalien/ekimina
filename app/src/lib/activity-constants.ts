@@ -1,5 +1,5 @@
 import type { Ionicons } from "@expo/vector-icons";
-import type { TransactionStatus, TransactionType } from "../api/types";
+import type { LoanState, TransactionStatus, TransactionType } from "../api/types";
 
 type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
 
@@ -50,3 +50,26 @@ export const STATUS_CHIP_COLOR: Record<TransactionStatus, "success" | "warning" 
   pending: "warning",
   failed: "danger",
 };
+
+// ── Loan state constants ──────────────────────────────────────────────
+
+export const LOAN_STATE_LABELS: Record<LoanState, string> = {
+  requested: "Requested",
+  signing: "Awaiting approval",
+  approved: "Approved",
+  disbursed: "Disbursed",
+  repaying: "Repaying",
+  repaid: "Repaid",
+  defaulted: "Defaulted",
+};
+
+export const LOAN_STATE_CHIP_COLOR: Record<LoanState, "default" | "accent" | "success" | "danger"> =
+  {
+    requested: "default",
+    signing: "accent",
+    approved: "success",
+    disbursed: "accent",
+    repaying: "accent",
+    repaid: "success",
+    defaulted: "danger",
+  };
