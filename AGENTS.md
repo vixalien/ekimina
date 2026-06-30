@@ -406,6 +406,100 @@ import { ScrollShadow } from "heroui-native";
 </ScrollShadow>
 ```
 
+### Floating button outside ScrollView
+
+For sticky footer actions (approve, submit), place the button **outside** `ScrollView` but
+inside `ScreenContainer`. The button stays pinned at the bottom while content scrolls:
+
+```tsx
+<ScreenContainer>
+  <ScrollShadow LinearGradientComponent={LinearGradient} className="flex-1">
+    <ScrollView contentContainerClassName="pb-4">
+      {/* scrollable content */}
+    </ScrollView>
+  </ScrollShadow>
+  {/* Button floats outside scroll */}
+  <View className="px-4 pb-6 pt-2">
+    <Button variant="primary" onPress={handleApprove}>
+      <Button.Label>Approve</Button.Label>
+    </Button>
+  </View>
+</ScreenContainer>
+```
+
+### ControlField: use Label + Description, not ControlField.Label
+
+`ControlField` uses standalone `Label` and `Description` imports from `heroui-native`.
+`ControlField.Label` and `ControlField.Description` do NOT exist.
+
+```tsx
+import { ControlField, Description, Label } from "heroui-native";
+
+// CORRECT
+<ControlField isSelected={...} onSelectedChange={...}>
+  <View className="flex-1">
+    <Label><Label.Text>Title</Label.Text></Label>
+    <Description>Description text</Description>
+  </View>
+  <ControlField.Indicator />
+</ControlField>
+
+// WRONG -- these subcomponents don't exist
+<ControlField.Label>...</ControlField.Label>
+<ControlField.Description>...</ControlField.Description>
+```
+
+For a set of toggles, use `Surface` + `Separator` (the "Switch ControlField set" pattern
+from the reference project):
+
+```tsx
+<Surface variant="secondary" className="py-4 px-4">
+  {items.map((item, index) => (
+    <View key={item.id}>
+      {index > 0 && <Separator className="my-3" />}
+      <ControlField isSelected={...} onSelectedChange={...}>
+        <View className="flex-1">
+          <Label><Label.Text>{item.title}</Label.Text></Label>
+          <Description>{item.description}</Description>
+        </View>
+        <ControlField.Indicator />
+      </ControlField>
+    </View>
+  ))}
+</Surface>
+```
+
+### Nested Stack layout inside tabs
+
+For tab screens that need sub-screens (e.g. profile > group-settings, committee),
+use a directory-based layout:
+
+```
+(tabs)/profile/
+  _layout.tsx     # Stack layout with slide_from_right animation
+  index.tsx       # Tab screen (profile home)
+  group-settings.tsx  # Sub-screen
+  committee.tsx       # Sub-screen
+```
+
+The `_layout.tsx` defines a Stack navigator:
+
+```tsx
+import { Stack } from "expo-router";
+
+export default function ProfileLayout() {
+  return (
+    <Stack screenOptions={{ headerShown: false, animation: "slide_from_right" }}>
+      <Stack.Screen name="index" />
+      <Stack.Screen name="group-settings" />
+      <Stack.Screen name="committee" />
+    </Stack>
+  );
+}
+```
+
+Routes use `router.push` to navigate to sub-screens. The tab bar stays visible.
+
 ### Section labels above ListGroups
 
 Use muted uppercase labels to title grouped content. This pattern appears on activity, loan detail, and review screens:
@@ -509,13 +603,22 @@ Pre-seeded users: `+250788123456` (1 group), `+250788654321` (2 groups), `+25078
 | `getLoanRequestReview(groupId, loanId)` | `LoanRequestReview` | Committee review data |
 | `signLoanRequest(groupId, loanId, userId)` | `{ success, thresholdMet }` | Sign loan request |
 | `rejectLoanRequest(groupId, loanId, userId)` | `{ success }` | Reject loan request |
+| `getGroupSettings(groupId)` | `GroupSettings` | Current group configuration |
+| `getUserProfile(groupId, userId)` | `UserProfile` | Profile screen data |
+| `getCommitteeMembers(groupId)` | `CommitteeMember[]` | Committee member list |
+| `getSettingsChangeReview(groupId, requestId)` | `SettingsChangeRequest` | Settings change review data |
+| `signSettingsChange(groupId, requestId, userId)` | `{ success, thresholdMet }` | Sign settings change |
+| `rejectSettingsChange(groupId, requestId, userId)` | `{ success }` | Reject settings change |
+| `submitSettingsChange(groupId, field, proposedValue, userId)` | `{ success }` | Submit settings change request |
+| `updateNotifications(userId, enabled)` | `{ success }` | Toggle notifications |
+| `leaveGroup(groupId, userId)` | `{ success }` | Leave group |
 
 ### Key data types
 
 | Type | Fields | Used by |
 |---|---|---|
 | `MemberStanding` | `userId, initials, name, status` | Dashboard member avatars |
-| `MemberListItem` | `userId, initials, name, status, reputation, activeLoanAmount, penaltyCount` | Members list |
+| `MemberListItem` | `userId, initials, name, address, status, reputation, activeLoanAmount, penaltyCount` | Members list |
 | `MemberDetail` | `userId, name, initials, role, joinedCycle, reputation, onTimeContributions, totalContributions, activeLoanCount, penaltyCount, contributionHistory[], loans[], isCommitteeMember` | Member detail screen |
 | `ContributionHistoryEntry` | `cycle, status ("paid_on_time"\|"paid_late"\|"missed"), penaltyAmount?` | Contribution history section |
 | `LoanEntry` | `id, amount, state` | Loans section |
@@ -526,7 +629,11 @@ Pre-seeded users: `+250788123456` (1 group), `+250788654321` (2 groups), `+25078
 | `LoanState` | `"requested"\|"signing"\|"approved"\|"disbursed"\|"repaying"\|"repaid"\|"defaulted"` | Loan lifecycle |
 | `LoanDetail` | Discriminated union per state: `RequestedLoanDetail`, `SigningLoanDetail`, `ApprovedLoanDetail`, `DisbursedLoanDetail`, `RepayingLoanDetail`, `RepaidLoanDetail`, `DefaultedLoanDetail` | Loan detail screen |
 | `LoanRequestReview` | `loanId, borrowerName, borrowerInitials, borrowerUserId, borrowerRole, borrowerJoinedCycle, borrowerReputation, borrowerActiveLoanCount, amount, interestRate, purpose, deadline, signatureThreshold, collectedSignatures, signatures[], currentUserAlreadySigned, currentUserSignedAt?` | Loan review screen |
-| `LoanSignature` | `userId, name, initials, role, signed, signedAt?` | Signature lists |
+| `LoanSignature` | `userId, name, initials, role?, signed, signedAt?` | Signature lists |
+| `UserProfile` | `userId, name, initials, reputation, onTimeStreak, notificationsEnabled, isCommitteeMember` | Profile screen |
+| `CommitteeMember` | `userId, name, initials` | Committee members screen |
+| `SettingsChangeRequest` | `id, groupId, field, fieldLabel, currentValue, proposedValue, requesterName, requesterInitials, requesterUserId, signatureCount, signatureThreshold, signatures[], currentUserAlreadySigned, currentUserSignedAt?, createdAt` | Settings change review |
+| `GroupSettingField` | `"contribution_amount"\|"cycle_length"\|"penalty_rate"\|"payout_amount"\|"approval_threshold"\|"committee_size"\|"loan_interest_rate"\|"discretionary_fund"\|"group_policy"` | Settings modal |
 
 Status colors per contribution:
 - `"paid_on_time"` -- `text-success`
