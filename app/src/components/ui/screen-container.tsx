@@ -21,7 +21,9 @@ export function ScreenContainer({
       className={`flex-1 bg-background ${className}`}
       style={{
         paddingTop: insets.top + extraTop,
-        paddingBottom: insets.bottom + 12,
+        // paddingBottom: insets.bottom + 12,
+        // No insets because tabs
+        paddingBottom: 0,
       }}
     >
       {children}

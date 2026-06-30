@@ -6,12 +6,17 @@ import type {
   JoinRequest,
   MemberListItem,
   MemberDetail,
+  TransactionFilters,
 } from "./types";
 import {
   ALL_GROUPS,
   INVITE_CODE_MAP,
   MOCK_MEMBERSHIPS,
   MOCK_GROUP_DATA,
+  MOCK_ACTIVITY_REQUESTS,
+  MOCK_OUTSTANDING_LOANS,
+  MOCK_TRANSACTIONS,
+  getTransactionDetail,
   computeDashboard,
   toPublicGroup,
 } from "./mock/groups";
@@ -203,6 +208,67 @@ export function createMockGroups(): GroupsApi {
       if (!query.trim()) return all;
       const lower = query.toLowerCase();
       return all.filter((m) => m.name.toLowerCase().includes(lower));
+    },
+
+    async getPendingRequests(groupId: string) {
+      await delay(300);
+      return MOCK_ACTIVITY_REQUESTS[groupId] ?? [];
+    },
+
+    async getOutstandingLoans(groupId: string) {
+      await delay(300);
+      return MOCK_OUTSTANDING_LOANS[groupId] ?? [];
+    },
+
+    async getRecentTransactions(groupId: string, limit = 5) {
+      await delay(400);
+      const all = MOCK_TRANSACTIONS[groupId] ?? [];
+      return all.slice(0, limit);
+    },
+
+    async getTransactions(groupId: string, filters?: TransactionFilters) {
+      await delay(400);
+      let txns = [...(MOCK_TRANSACTIONS[groupId] ?? [])];
+
+      if (filters?.types && filters.types.length > 0) {
+        txns = txns.filter((t) => filters.types!.includes(t.type));
+      }
+      if (filters?.memberIds && filters.memberIds.length > 0) {
+        txns = txns.filter((t) => filters.memberIds!.includes(t.memberId));
+      }
+      if (filters?.cycleRange) {
+        txns = txns.filter(
+          (t) => t.cycle >= filters.cycleRange!.from && t.cycle <= filters.cycleRange!.to,
+        );
+      }
+      if (filters?.datePreset && filters.datePreset !== "all") {
+        const now = new Date();
+        let cutoff: Date;
+        if (filters.datePreset === "this_week") {
+          cutoff = new Date(now);
+          cutoff.setDate(now.getDate() - 7);
+        } else if (filters.datePreset === "this_month") {
+          cutoff = new Date(now.getFullYear(), now.getMonth(), 1);
+        } else {
+          cutoff = new Date(now);
+          cutoff.setDate(now.getDate() - 30);
+        }
+        txns = txns.filter((t) => new Date(t.timestamp) >= cutoff);
+      }
+
+      return txns;
+    },
+
+    async getTransactionDetail(_groupId: string, transactionId: string) {
+      await delay(350);
+      const detail = getTransactionDetail(transactionId);
+      if (!detail) throw new Error("Transaction not found");
+      return detail;
+    },
+
+    async retryTransaction(_transactionId: string) {
+      await delay(1500);
+      return { success: true };
     },
 
     async getMemberDetail(

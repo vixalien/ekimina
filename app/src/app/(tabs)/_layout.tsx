@@ -1,6 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useStore } from "@nanostores/react";
 import { Tabs } from "expo-router";
-import { ComponentProps } from "react";
+import { ComponentProps, startTransition, useEffect } from "react";
+
+import { api } from "../../api";
+import { $auth } from "../../stores/auth";
+import { setMemberships } from "../../stores/active-group";
 
 type IoniconName = ComponentProps<typeof Ionicons>["name"];
 
@@ -32,6 +37,17 @@ const TABS: {
 ];
 
 export default function TabLayout() {
+  const auth = useStore($auth);
+
+  useEffect(() => {
+    if (!auth) return;
+    const userId = auth.phone ?? auth.userId ?? "";
+    api.groups
+      .myGroups(userId)
+      .then((memberships) => startTransition(() => setMemberships(memberships)))
+      .catch(() => {});
+  }, [auth]);
+
   return (
     <Tabs screenOptions={{ tabBarActiveTintColor: "blue", headerShown: false }}>
       {TABS.map((tab) => (

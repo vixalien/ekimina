@@ -1,4 +1,5 @@
 import { router } from "expo-router";
+import type { PendingRequestType } from "../api/types";
 
 export const Routes = {
   welcome: "/welcome" as const,
@@ -21,6 +22,12 @@ export const Routes = {
       step: (n: 1 | 2 | 3 | 4 | 5 | 6) => `/(onboarding)/create-group/step-${n}` as const,
       success: "/(onboarding)/create-group/success" as const,
     },
+  },
+
+  activity: {
+    transactions: "/(tabs)/activity/transactions" as const,
+    detail: (id: string) => `/(tabs)/activity/${id}` as const,
+    review: "/(tabs)/activity/review" as const,
   },
 } as const;
 
@@ -49,5 +56,12 @@ export const nav = {
         router.push(Routes.onboarding.createGroup.step(n) as any),
       toSuccess: () => router.replace(Routes.onboarding.createGroup.success),
     },
+  },
+
+  activity: {
+    toTransactions: () => router.push(Routes.activity.transactions as any),
+    toDetail: (id: string) => router.push(Routes.activity.detail(id) as any),
+    toReview: (requestId: string, requestType: PendingRequestType) =>
+      router.push({ pathname: Routes.activity.review as any, params: { requestId, requestType } }),
   },
 };

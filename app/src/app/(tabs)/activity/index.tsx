@@ -1,0 +1,133 @@
+import type { JSX } from "react";
+import { startTransition, useEffect, useState } from "react";
+import { ScrollView, View } from "react-native";
+import { ListGroup, PressableFeedback, Separator } from "heroui-native";
+import { useStore } from "@nanostores/react";
+import { api } from "@/api";
+import { $activeGroup } from "@/stores/active-group";
+import { nav } from "@/lib/routes";
+import type { ActivityPendingRequest, OutstandingLoan, Transaction } from "@/api/types";
+import { Header } from "@/components/ui/header";
+import { ScreenContainer } from "@/components/ui/screen-container";
+import { AppText } from "@/components/ui/app-text";
+import { PendingRequestCard } from "@/components/activity/pending-request-card";
+import { LoanListItem } from "@/components/activity/loan-list-item";
+import { TransactionListItem } from "@/components/activity/transaction-list-item";
+
+function SectionLabel({ label, showBadge }: { label: string; showBadge?: boolean }): JSX.Element {
+  return (
+    <View className="flex-row items-center gap-2">
+      <AppText className=" text-muted font-medium tracking-wider">{label}</AppText>
+      {showBadge && <View className="size-1.5 rounded-full bg-accent" />}
+    </View>
+  );
+}
+
+export default function ActivityTab(): JSX.Element {
+  const { activeGroupId } = useStore($activeGroup);
+  const [pendingRequests, setPendingRequests] = useState<ActivityPendingRequest[]>([]);
+  const [loans, setLoans] = useState<OutstandingLoan[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!activeGroupId) return;
+    startTransition(() => setLoading(true));
+    Promise.all([
+      api.groups.getPendingRequests(activeGroupId),
+      api.groups.getOutstandingLoans(activeGroupId),
+      api.groups.getRecentTransactions(activeGroupId, 5),
+    ])
+      .then(([requests, activeLoans, recentTxns]) => {
+        startTransition(() => {
+          setPendingRequests(requests);
+          setLoans(activeLoans);
+          setTransactions(recentTxns);
+          setLoading(false);
+        });
+      })
+      .catch(() => setLoading(false));
+  }, [activeGroupId]);
+
+  return (
+    <ScreenContainer>
+      <Header title="Activity" canGoBack={false} />
+      {loading ? (
+        <View className="flex-1 items-center justify-center">
+          <AppText className="text-muted text-base">Loading...</AppText>
+        </View>
+      ) : (
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="p-4 gap-8">
+          {/* Section 1: Needs your action */}
+          {pendingRequests.length > 0 && (
+            <View className="gap-3">
+              <SectionLabel label="Needs your action" showBadge />
+              <ListGroup>
+                {pendingRequests.map((req, index) => (
+                  <PendingRequestCard
+                    key={req.id}
+                    request={req}
+                    showSeparator={index > 0}
+                    onReview={() => nav.activity.toReview(req.id, req.type)}
+                  />
+                ))}
+              </ListGroup>
+            </View>
+          )}
+
+          {/* Section 2: Outstanding loans */}
+          {loans.length > 0 && (
+            <View className="gap-3">
+              <SectionLabel label="Outstanding loans" />
+              <ListGroup>
+                {loans.map((loan, index) => (
+                  <LoanListItem
+                    key={loan.loanId}
+                    loan={loan}
+                    showSeparator={index > 0}
+                    onPress={() => {
+                      // Loan detail screen — future phase
+                    }}
+                  />
+                ))}
+              </ListGroup>
+            </View>
+          )}
+
+          {/* Section 3: Recent transactions */}
+          <View className="gap-3">
+            <SectionLabel label="Recent transactions" />
+            {transactions.length === 0 ? (
+              <AppText className="text-sm text-muted text-center py-6">
+                No transactions yet.
+              </AppText>
+            ) : (
+              <ListGroup>
+                {transactions.map((tx, index) => (
+                  <TransactionListItem
+                    key={tx.id}
+                    transaction={tx}
+                    showSeparator={index > 0}
+                    onPress={() => nav.activity.toDetail(tx.id)}
+                  />
+                ))}
+                <Separator className="mx-4" />
+                <PressableFeedback animation={false} onPress={() => nav.activity.toTransactions()}>
+                  <PressableFeedback.Scale>
+                    <ListGroup.Item>
+                      <ListGroup.ItemContent>
+                        <ListGroup.ItemTitle className="text-accent">View all</ListGroup.ItemTitle>
+                      </ListGroup.ItemContent>
+                      <ListGroup.ItemSuffix />
+                    </ListGroup.Item>
+                  </PressableFeedback.Scale>
+                  <PressableFeedback.Ripple />
+                </PressableFeedback>
+              </ListGroup>
+            )}
+          </View>
+        </ScrollView>
+      )}
+    </ScreenContainer>
+  );
+}

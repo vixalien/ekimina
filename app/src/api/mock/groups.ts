@@ -6,6 +6,16 @@ import type {
   GroupDashboardData,
   MemberStanding,
   ContributionHistoryEntry,
+  ActivityPendingRequest,
+  OutstandingLoan,
+  Transaction,
+  TransactionDetail,
+  ContributionDetail,
+  PayoutDetail,
+  PenaltyDetail,
+  LoanRepaymentDetail,
+  LoanDisbursementDetail,
+  DiscretionaryDetail,
 } from "../types";
 import { MOCK_USERS } from "./users";
 
@@ -427,3 +437,251 @@ export const MOCK_PENDING_REQUESTS: Record<string, JoinRequest> = {
     requestedAt: "2026-06-25T09:00:00Z",
   },
 };
+
+// ── Activity: pending requests (multi-sig committee actions) ────────────
+
+export const MOCK_ACTIVITY_REQUESTS: Record<string, ActivityPendingRequest[]> = {
+  "group-1": [
+    {
+      id: "act-req-1",
+      type: "loan_request",
+      subject: "Habimana P.",
+      amountOrValue: "25,000 RWF",
+      signatureCount: 1,
+      signatureThreshold: 3,
+      timestamp: "2026-06-28T10:30:00Z",
+    },
+    {
+      id: "act-req-2",
+      type: "join_request",
+      subject: "Kagabo D.",
+      amountOrValue: undefined,
+      signatureCount: 0,
+      signatureThreshold: 2,
+      timestamp: "2026-06-29T08:00:00Z",
+    },
+    {
+      id: "act-req-3",
+      type: "settings_change",
+      subject: "penalty rate",
+      amountOrValue: "15% \u2192 20%",
+      signatureCount: 1,
+      signatureThreshold: 2,
+      timestamp: "2026-06-29T14:00:00Z",
+    },
+  ],
+};
+
+// ── Activity: outstanding loans ─────────────────────────────────────────
+
+export const MOCK_OUTSTANDING_LOANS: Record<string, OutstandingLoan[]> = {
+  "group-1": [
+    {
+      loanId: "loan-3",
+      borrowerName: "Eric Bakunda",
+      borrowerInitials: "EB",
+      borrowerUserId: "g1m-5",
+      amount: 30000,
+      dueCycle: 8,
+    },
+    {
+      loanId: "loan-2",
+      borrowerName: "Marie Uwimana",
+      borrowerInitials: "MU",
+      borrowerUserId: "user-2",
+      amount: 12000,
+      dueCycle: 9,
+    },
+    {
+      loanId: "loan-4",
+      borrowerName: "Alain Kamanzi",
+      borrowerInitials: "AK",
+      borrowerUserId: "g1m-16",
+      amount: 8000,
+      dueCycle: 10,
+    },
+  ],
+};
+
+// ── Activity: transaction feed ──────────────────────────────────────────
+
+export const MOCK_TRANSACTIONS: Record<string, Transaction[]> = {
+  "group-1": [
+    // Cycle 7 (current) — most recent first
+    { id: "tx-01", type: "contribution",   memberName: "Jean Mugabo",      memberInitials: "JM", memberId: "user-1",  amount: 5000,  direction: "inflow",  status: "confirmed", cycle: 7, timestamp: "2026-06-28T09:14:00Z" },
+    { id: "tx-02", type: "contribution",   memberName: "Marie Uwimana",    memberInitials: "MU", memberId: "user-2",  amount: 5000,  direction: "inflow",  status: "confirmed", cycle: 7, timestamp: "2026-06-27T11:02:00Z" },
+    { id: "tx-03", type: "contribution",   memberName: "Diane Mukamana",   memberInitials: "DM", memberId: "g1m-4",   amount: 5000,  direction: "inflow",  status: "confirmed", cycle: 7, timestamp: "2026-06-26T14:30:00Z" },
+    { id: "tx-04", type: "contribution",   memberName: "Patrick Kabera",   memberInitials: "PK", memberId: "g1m-3",   amount: 5000,  direction: "inflow",  status: "confirmed", cycle: 7, timestamp: "2026-06-25T08:45:00Z" },
+    { id: "tx-05", type: "contribution",   memberName: "Rose Shyaka",      memberInitials: "RS", memberId: "g1m-22",  amount: 5000,  direction: "inflow",  status: "pending",   cycle: 7, timestamp: "2026-06-24T16:20:00Z" },
+    { id: "tx-06", type: "contribution",   memberName: "Alain Kamanzi",    memberInitials: "AK", memberId: "g1m-16",  amount: 5000,  direction: "inflow",  status: "failed",    cycle: 6, timestamp: "2026-05-29T10:05:00Z" },
+    { id: "tx-07", type: "penalty",        memberName: "Alain Kamanzi",    memberInitials: "AK", memberId: "g1m-16",  amount: 500,   direction: "inflow",  status: "confirmed", cycle: 7, timestamp: "2026-06-23T09:00:00Z" },
+    { id: "tx-08", type: "loan_repayment", memberName: "Marie Uwimana",    memberInitials: "MU", memberId: "user-2",  amount: 2400,  direction: "inflow",  status: "confirmed", cycle: 7, timestamp: "2026-06-20T13:44:00Z" },
+    // Cycle 6
+    { id: "tx-09", type: "payout",         memberName: "Beatrice Zawadi",  memberInitials: "BZ", memberId: "g1m-14",  amount: 21000, direction: "outflow", status: "confirmed", cycle: 6, timestamp: "2026-05-31T10:00:00Z" },
+    { id: "tx-10", type: "loan_repayment", memberName: "Eric Bakunda",     memberInitials: "EB", memberId: "g1m-5",   amount: 3000,  direction: "inflow",  status: "confirmed", cycle: 6, timestamp: "2026-05-20T15:10:00Z" },
+    { id: "tx-11", type: "contribution",   memberName: "Jean Havugimana",  memberInitials: "JH", memberId: "g1m-7",   amount: 5000,  direction: "inflow",  status: "confirmed", cycle: 6, timestamp: "2026-05-15T09:30:00Z" },
+    { id: "tx-12", type: "contribution",   memberName: "Fiston Mugisha",   memberInitials: "FM", memberId: "g1m-11",  amount: 5000,  direction: "inflow",  status: "confirmed", cycle: 6, timestamp: "2026-05-10T11:00:00Z" },
+    { id: "tx-13", type: "loan_disbursement", memberName: "Eric Bakunda",  memberInitials: "EB", memberId: "g1m-5",   amount: 30000, direction: "outflow", status: "confirmed", cycle: 6, timestamp: "2026-05-05T14:00:00Z" },
+    { id: "tx-14", type: "penalty",        memberName: "Rose Shyaka",      memberInitials: "RS", memberId: "g1m-22",  amount: 500,   direction: "inflow",  status: "confirmed", cycle: 6, timestamp: "2026-05-03T09:00:00Z" },
+    // Cycle 5
+    { id: "tx-15", type: "payout",         memberName: "Grace Niyonsaba",  memberInitials: "GN", memberId: "g1m-8",   amount: 21000, direction: "outflow", status: "confirmed", cycle: 5, timestamp: "2026-04-30T10:00:00Z" },
+    { id: "tx-16", type: "discretionary_deposit", memberName: "Claudine Kagame", memberInitials: "CK", memberId: "g1m-10", amount: 15000, direction: "inflow", status: "confirmed", cycle: 5, timestamp: "2026-04-20T13:00:00Z" },
+    { id: "tx-17", type: "contribution",   memberName: "David Bizimana",   memberInitials: "DB", memberId: "g1m-9",   amount: 5000,  direction: "inflow",  status: "confirmed", cycle: 5, timestamp: "2026-04-15T10:30:00Z" },
+    // Cycle 4
+    { id: "tx-18", type: "loan_disbursement", memberName: "Marie Uwimana", memberInitials: "MU", memberId: "user-2",  amount: 12000, direction: "outflow", status: "confirmed", cycle: 4, timestamp: "2026-03-10T11:00:00Z" },
+    { id: "tx-19", type: "discretionary_withdrawal", memberName: "Cyprien Yuhi", memberInitials: "CY", memberId: "g1m-20", amount: 8000, direction: "outflow", status: "confirmed", cycle: 4, timestamp: "2026-03-05T09:30:00Z" },
+    { id: "tx-20", type: "payout",         memberName: "Emmanuel Kirezi",  memberInitials: "EK", memberId: "g1m-23",  amount: 21000, direction: "outflow", status: "confirmed", cycle: 4, timestamp: "2026-02-28T10:00:00Z" },
+  ],
+};
+
+// ── Activity: transaction details ───────────────────────────────────────
+
+const TX_DETAIL_MAP: Record<string, TransactionDetail> = {
+  "tx-01": {
+    id: "tx-01", type: "contribution", memberName: "Jean Mugabo", memberInitials: "JM", memberId: "user-1",
+    amount: 5000, direction: "inflow", status: "confirmed", cycle: 7, timestamp: "2026-06-28T09:14:00Z",
+    fromName: "Jean Mugabo", method: "MTN MoMo", referenceId: "MM260628.0914.A7B3",
+    contextNote: "Counted toward cycle 7 completion.",
+  } satisfies ContributionDetail,
+
+  "tx-02": {
+    id: "tx-02", type: "contribution", memberName: "Marie Uwimana", memberInitials: "MU", memberId: "user-2",
+    amount: 5000, direction: "inflow", status: "confirmed", cycle: 7, timestamp: "2026-06-27T11:02:00Z",
+    fromName: "Marie Uwimana", method: "MTN MoMo", referenceId: "MM260627.1102.C4D9",
+    contextNote: "Counted toward cycle 7 completion.",
+  } satisfies ContributionDetail,
+
+  "tx-03": {
+    id: "tx-03", type: "contribution", memberName: "Diane Mukamana", memberInitials: "DM", memberId: "g1m-4",
+    amount: 5000, direction: "inflow", status: "confirmed", cycle: 7, timestamp: "2026-06-26T14:30:00Z",
+    fromName: "Diane Mukamana", method: "MTN MoMo", referenceId: "MM260626.1430.E2F1",
+    contextNote: "Counted toward cycle 7 completion.",
+  } satisfies ContributionDetail,
+
+  "tx-04": {
+    id: "tx-04", type: "contribution", memberName: "Patrick Kabera", memberInitials: "PK", memberId: "g1m-3",
+    amount: 5000, direction: "inflow", status: "confirmed", cycle: 7, timestamp: "2026-06-25T08:45:00Z",
+    fromName: "Patrick Kabera", method: "MTN MoMo", referenceId: "MM260625.0845.F8G2",
+    contextNote: "Counted toward cycle 7 completion.",
+  } satisfies ContributionDetail,
+
+  "tx-05": {
+    id: "tx-05", type: "contribution", memberName: "Rose Shyaka", memberInitials: "RS", memberId: "g1m-22",
+    amount: 5000, direction: "inflow", status: "pending", cycle: 7, timestamp: "2026-06-24T16:20:00Z",
+    fromName: "Rose Shyaka", method: "MTN MoMo", referenceId: "MM260624.1620.H5K7",
+    failureReason: undefined,
+    contextNote: undefined,
+  } satisfies ContributionDetail,
+
+  "tx-06": {
+    id: "tx-06", type: "contribution", memberName: "Alain Kamanzi", memberInitials: "AK", memberId: "g1m-16",
+    amount: 5000, direction: "inflow", status: "failed", cycle: 6, timestamp: "2026-05-29T10:05:00Z",
+    fromName: "Alain Kamanzi", method: "MTN MoMo", referenceId: "MM260529.1005.J3L9",
+    failureReason: "Insufficient balance on the MTN MoMo account. This contribution was not counted toward cycle 6.",
+    contextNote: undefined,
+  } satisfies ContributionDetail,
+
+  "tx-07": {
+    id: "tx-07", type: "penalty", memberName: "Alain Kamanzi", memberInitials: "AK", memberId: "g1m-16",
+    amount: 500, direction: "inflow", status: "confirmed", cycle: 7, timestamp: "2026-06-23T09:00:00Z",
+    reason: "Missed cycle 6 contribution", appliedBy: "System rule",
+    contextNote: "Penalty added to the group reserve.",
+  } satisfies PenaltyDetail,
+
+  "tx-08": {
+    id: "tx-08", type: "loan_repayment", memberName: "Marie Uwimana", memberInitials: "MU", memberId: "user-2",
+    amount: 2400, direction: "inflow", status: "confirmed", cycle: 7, timestamp: "2026-06-20T13:44:00Z",
+    installmentNumber: 3, totalInstallments: 5, method: "MTN MoMo", linkedLoanId: "loan-2",
+    contextNote: "Interest contributed to the group reserve.",
+  } satisfies LoanRepaymentDetail,
+
+  "tx-09": {
+    id: "tx-09", type: "payout", memberName: "Beatrice Zawadi", memberInitials: "BZ", memberId: "g1m-14",
+    amount: 21000, direction: "outflow", status: "confirmed", cycle: 6, timestamp: "2026-05-31T10:00:00Z",
+    toName: "Beatrice Zawadi", source: "Cycle 6 pool", method: "MTN MoMo",
+    contextNote: "Payout for cycle 6 rotation.",
+  } satisfies PayoutDetail,
+
+  "tx-10": {
+    id: "tx-10", type: "loan_repayment", memberName: "Eric Bakunda", memberInitials: "EB", memberId: "g1m-5",
+    amount: 3000, direction: "inflow", status: "confirmed", cycle: 6, timestamp: "2026-05-20T15:10:00Z",
+    installmentNumber: 1, totalInstallments: 5, method: "MTN MoMo", linkedLoanId: "loan-3",
+    contextNote: "Interest contributed to the group reserve.",
+  } satisfies LoanRepaymentDetail,
+
+  "tx-11": {
+    id: "tx-11", type: "contribution", memberName: "Jean Havugimana", memberInitials: "JH", memberId: "g1m-7",
+    amount: 5000, direction: "inflow", status: "confirmed", cycle: 6, timestamp: "2026-05-15T09:30:00Z",
+    fromName: "Jean Havugimana", method: "MTN MoMo", referenceId: "MM260515.0930.K1M4",
+    contextNote: "Counted toward cycle 6 completion.",
+  } satisfies ContributionDetail,
+
+  "tx-12": {
+    id: "tx-12", type: "contribution", memberName: "Fiston Mugisha", memberInitials: "FM", memberId: "g1m-11",
+    amount: 5000, direction: "inflow", status: "confirmed", cycle: 6, timestamp: "2026-05-10T11:00:00Z",
+    fromName: "Fiston Mugisha", method: "MTN MoMo", referenceId: "MM260510.1100.L6N8",
+    contextNote: "Counted toward cycle 6 completion.",
+  } satisfies ContributionDetail,
+
+  "tx-13": {
+    id: "tx-13", type: "loan_disbursement", memberName: "Eric Bakunda", memberInitials: "EB", memberId: "g1m-5",
+    amount: 30000, direction: "outflow", status: "confirmed", cycle: 6, timestamp: "2026-05-05T14:00:00Z",
+    toName: "Eric Bakunda", method: "MTN MoMo",
+    contextNote: "Loan approved by committee and disbursed from reserve.",
+  } satisfies LoanDisbursementDetail,
+
+  "tx-14": {
+    id: "tx-14", type: "penalty", memberName: "Rose Shyaka", memberInitials: "RS", memberId: "g1m-22",
+    amount: 500, direction: "inflow", status: "confirmed", cycle: 6, timestamp: "2026-05-03T09:00:00Z",
+    reason: "Late contribution in cycle 5", appliedBy: "System rule",
+    contextNote: "Penalty added to the group reserve.",
+  } satisfies PenaltyDetail,
+
+  "tx-15": {
+    id: "tx-15", type: "payout", memberName: "Grace Niyonsaba", memberInitials: "GN", memberId: "g1m-8",
+    amount: 21000, direction: "outflow", status: "confirmed", cycle: 5, timestamp: "2026-04-30T10:00:00Z",
+    toName: "Grace Niyonsaba", source: "Cycle 5 pool", method: "MTN MoMo",
+    contextNote: "Payout for cycle 5 rotation.",
+  } satisfies PayoutDetail,
+
+  "tx-16": {
+    id: "tx-16", type: "discretionary_deposit", memberName: "Claudine Kagame", memberInitials: "CK", memberId: "g1m-10",
+    amount: 15000, direction: "inflow", status: "confirmed", cycle: 5, timestamp: "2026-04-20T13:00:00Z",
+    category: "Emergency fund", counterparty: "Claudine Kagame", reason: "Personal contribution to discretionary reserve",
+    approvedBy: "Jean Mugabo",
+    contextNote: "Added to the discretionary fund reserve.",
+  } satisfies DiscretionaryDetail,
+
+  "tx-17": {
+    id: "tx-17", type: "contribution", memberName: "David Bizimana", memberInitials: "DB", memberId: "g1m-9",
+    amount: 5000, direction: "inflow", status: "confirmed", cycle: 5, timestamp: "2026-04-15T10:30:00Z",
+    fromName: "David Bizimana", method: "MTN MoMo", referenceId: "MM260415.1030.N2P5",
+    contextNote: "Counted toward cycle 5 completion.",
+  } satisfies ContributionDetail,
+
+  "tx-18": {
+    id: "tx-18", type: "loan_disbursement", memberName: "Marie Uwimana", memberInitials: "MU", memberId: "user-2",
+    amount: 12000, direction: "outflow", status: "confirmed", cycle: 4, timestamp: "2026-03-10T11:00:00Z",
+    toName: "Marie Uwimana", method: "MTN MoMo",
+    contextNote: "Loan approved by committee and disbursed from reserve.",
+  } satisfies LoanDisbursementDetail,
+
+  "tx-19": {
+    id: "tx-19", type: "discretionary_withdrawal", memberName: "Cyprien Yuhi", memberInitials: "CY", memberId: "g1m-20",
+    amount: 8000, direction: "outflow", status: "confirmed", cycle: 4, timestamp: "2026-03-05T09:30:00Z",
+    category: "Medical assistance", counterparty: "Cyprien Yuhi", reason: "Emergency medical expense support",
+    approvedBy: "Jean Mugabo",
+    contextNote: "Withdrawn from the discretionary fund reserve.",
+  } satisfies DiscretionaryDetail,
+
+  "tx-20": {
+    id: "tx-20", type: "payout", memberName: "Emmanuel Kirezi", memberInitials: "EK", memberId: "g1m-23",
+    amount: 21000, direction: "outflow", status: "confirmed", cycle: 4, timestamp: "2026-02-28T10:00:00Z",
+    toName: "Emmanuel Kirezi", source: "Cycle 4 pool", method: "MTN MoMo",
+    contextNote: "Payout for cycle 4 rotation.",
+  } satisfies PayoutDetail,
+};
+
+export function getTransactionDetail(transactionId: string): TransactionDetail | null {
+  return TX_DETAIL_MAP[transactionId] ?? null;
+}

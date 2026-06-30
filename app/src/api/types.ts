@@ -108,6 +108,13 @@ export interface GroupsApi {
   getGroupMembers(groupId: string): Promise<MemberListItem[]>;
   searchMembers(groupId: string, query: string): Promise<MemberListItem[]>;
   getMemberDetail(groupId: string, userId: string, requestingUserId: string): Promise<MemberDetail>;
+  // Activity
+  getPendingRequests(groupId: string): Promise<ActivityPendingRequest[]>;
+  getOutstandingLoans(groupId: string): Promise<OutstandingLoan[]>;
+  getRecentTransactions(groupId: string, limit?: number): Promise<Transaction[]>;
+  getTransactions(groupId: string, filters?: TransactionFilters): Promise<Transaction[]>;
+  getTransactionDetail(groupId: string, transactionId: string): Promise<TransactionDetail>;
+  retryTransaction(transactionId: string): Promise<{ success: boolean }>;
 }
 
 export interface MemberStanding {
@@ -163,3 +170,119 @@ export interface ApiClient {
   auth: AuthApi;
   groups: GroupsApi;
 }
+
+// ── Activity types ────────────────────────────────────────────────────────
+
+export type TransactionType =
+  | "contribution"
+  | "payout"
+  | "penalty"
+  | "loan_repayment"
+  | "loan_disbursement"
+  | "discretionary_deposit"
+  | "discretionary_withdrawal";
+
+export type TransactionDirection = "inflow" | "outflow" | "neutral";
+export type TransactionStatus = "confirmed" | "pending" | "failed";
+
+export type PendingRequestType =
+  | "loan_request"
+  | "discretionary_fund"
+  | "join_request"
+  | "member_withdrawal"
+  | "settings_change";
+
+export interface ActivityPendingRequest {
+  id: string;
+  type: PendingRequestType;
+  subject: string;
+  amountOrValue?: string;
+  signatureCount: number;
+  signatureThreshold: number;
+  timestamp: string;
+}
+
+export interface OutstandingLoan {
+  loanId: string;
+  borrowerName: string;
+  borrowerInitials: string;
+  borrowerUserId: string;
+  amount: number;
+  dueCycle: number;
+}
+
+export interface Transaction {
+  id: string;
+  type: TransactionType;
+  memberName: string;
+  memberInitials: string;
+  memberId: string;
+  amount: number;
+  direction: TransactionDirection;
+  status: TransactionStatus;
+  cycle: number;
+  timestamp: string;
+}
+
+export interface TransactionFilters {
+  types?: TransactionType[];
+  memberIds?: string[];
+  cycleRange?: { from: number; to: number };
+  datePreset?: "all" | "this_week" | "this_month" | "last_30";
+}
+
+// Transaction detail - discriminated union per type
+export interface TransactionDetailBase extends Transaction {
+  failureReason?: string;
+  contextNote?: string;
+}
+
+export interface ContributionDetail extends TransactionDetailBase {
+  type: "contribution";
+  fromName: string;
+  method: string;
+  referenceId: string;
+}
+
+export interface PayoutDetail extends TransactionDetailBase {
+  type: "payout";
+  toName: string;
+  source: string;
+  method: string;
+}
+
+export interface PenaltyDetail extends TransactionDetailBase {
+  type: "penalty";
+  reason: string;
+  appliedBy: string;
+}
+
+export interface LoanRepaymentDetail extends TransactionDetailBase {
+  type: "loan_repayment";
+  installmentNumber: number;
+  totalInstallments: number;
+  method: string;
+  linkedLoanId: string;
+}
+
+export interface LoanDisbursementDetail extends TransactionDetailBase {
+  type: "loan_disbursement";
+  toName: string;
+  method: string;
+}
+
+export interface DiscretionaryDetail extends TransactionDetailBase {
+  type: "discretionary_deposit" | "discretionary_withdrawal";
+  category: string;
+  counterparty: string;
+  reason: string;
+  approvedBy: string;
+}
+
+export type TransactionDetail =
+  | ContributionDetail
+  | PayoutDetail
+  | PenaltyDetail
+  | LoanRepaymentDetail
+  | LoanDisbursementDetail
+  | DiscretionaryDetail;
