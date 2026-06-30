@@ -1,6 +1,8 @@
-import { BottomSheet, Button, useBottomSheetAwareHandlers } from "heroui-native";
+import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
+import { BottomSheet, Button, Input, TextField, useBottomSheetAwareHandlers } from "heroui-native";
 import { type JSX, useState } from "react";
-import { Keyboard, TextInput, View } from "react-native";
+import { Keyboard, View } from "react-native";
+import { KeyboardController } from "react-native-keyboard-controller";
 import { AppText } from "../ui/app-text";
 
 export interface CycleRange {
@@ -8,34 +10,49 @@ export interface CycleRange {
   to: number;
 }
 
-function CycleInput({
-  label,
-  value,
-  onChangeText,
-  placeholder,
+function CycleInputs({
+  fromText,
+  toText,
+  onFromChange,
+  onToChange,
 }: {
-  label: string;
-  value: string;
-  onChangeText: (t: string) => void;
-  placeholder: string;
+  fromText: string;
+  toText: string;
+  onFromChange: (t: string) => void;
+  onToChange: (t: string) => void;
 }) {
   const { onFocus, onBlur } = useBottomSheetAwareHandlers();
 
   return (
-    <View className="gap-1.5">
-      <AppText className="text-sm text-muted font-medium">{label}</AppText>
-      <View className="bg-surface-secondary rounded-xl px-4 py-3">
-        <TextInput
-          value={value}
-          onChangeText={onChangeText}
-          placeholder={placeholder}
+    <View className="gap-4">
+      <TextField>
+        <AppText className="text-sm text-muted font-medium mb-1.5">From cycle</AppText>
+        <Input
+          variant="secondary"
+          placeholder="e.g. 5"
+          value={fromText}
+          onChangeText={onFromChange}
           keyboardType="number-pad"
-          className="text-base text-foreground font-normal"
-          placeholderTextColor="rgba(0,0,0,0.35)"
+          autoCapitalize="none"
+          autoCorrect={false}
           onFocus={onFocus}
           onBlur={onBlur}
         />
-      </View>
+      </TextField>
+      <TextField>
+        <AppText className="text-sm text-muted font-medium mb-1.5">To cycle</AppText>
+        <Input
+          variant="secondary"
+          placeholder="e.g. 7"
+          value={toText}
+          onChangeText={onToChange}
+          keyboardType="number-pad"
+          autoCapitalize="none"
+          autoCorrect={false}
+          onFocus={onFocus}
+          onBlur={onBlur}
+        />
+      </TextField>
     </View>
   );
 }
@@ -88,37 +105,35 @@ export function CycleFilterSheet({
         <View />
       </BottomSheet.Trigger>
       <BottomSheet.Portal>
-        <BottomSheet.Overlay />
-        <BottomSheet.Content contentContainerClassName="pb-12" keyboardBehavior="extend">
-          <View className="px-2 pt-2">
+        <BottomSheet.Overlay onPress={() => KeyboardController.dismiss()} />
+        <BottomSheet.Content onClose={() => KeyboardController.dismiss()}>
+          <BottomSheetScrollView
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerClassName="pb-safe-offset-3"
+          >
             <BottomSheet.Title>Filter by cycle</BottomSheet.Title>
-          </View>
-          <View className="mt-4 gap-3 mb-4">
-            <CycleInput
-              label="From cycle"
-              value={fromText}
-              onChangeText={setFromText}
-              placeholder="e.g. 5"
-            />
-            <CycleInput
-              label="To cycle"
-              value={toText}
-              onChangeText={setToText}
-              placeholder="e.g. 7"
-            />
-          </View>
-          <View className="gap-2">
-            <Button variant="primary" onPress={handleApply}>
-              <Button.Label>Apply</Button.Label>
-            </Button>
-            <Button
-              variant="ghost"
-              onPress={handleClear}
-              isDisabled={!fromText && !toText && value === null}
-            >
-              <Button.Label>Clear</Button.Label>
-            </Button>
-          </View>
+            <View className="mt-4 gap-2">
+              <CycleInputs
+                fromText={fromText}
+                toText={toText}
+                onFromChange={setFromText}
+                onToChange={setToText}
+              />
+              <View className="mt-4 gap-2">
+                <Button variant="primary" onPress={handleApply}>
+                  <Button.Label>Apply</Button.Label>
+                </Button>
+                <Button
+                  variant="ghost"
+                  onPress={handleClear}
+                  isDisabled={!fromText && !toText && value === null}
+                >
+                  <Button.Label>Clear</Button.Label>
+                </Button>
+              </View>
+            </View>
+          </BottomSheetScrollView>
         </BottomSheet.Content>
       </BottomSheet.Portal>
     </BottomSheet>
