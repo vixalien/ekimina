@@ -1,9 +1,11 @@
+import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import type { JSX } from "react";
 import { startTransition, useEffect, useState } from "react";
-import { ScrollView, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 import { ListGroup, PressableFeedback, ScrollShadow, Separator } from "heroui-native";
 import { useStore } from "@nanostores/react";
+import { withUniwind } from "uniwind";
 import { api } from "@/api";
 import { $activeGroup } from "@/stores/active-group";
 import { nav } from "@/lib/routes";
@@ -14,6 +16,8 @@ import { AppText } from "@/components/ui/app-text";
 import { PendingRequestCard } from "@/components/activity/pending-request-card";
 import { LoanListItem } from "@/components/activity/loan-list-item";
 import { TransactionListItem } from "@/components/activity/transaction-list-item";
+
+const StyledIonicons = withUniwind(Ionicons);
 
 function SectionLabel({ label, showBadge }: { label: string; showBadge?: boolean }): JSX.Element {
   return (
@@ -52,7 +56,15 @@ export default function ActivityTab(): JSX.Element {
 
   return (
     <ScreenContainer>
-      <Header title="Activity" canGoBack={false} />
+      <Header
+        title="Activity"
+        canGoBack={false}
+        options={
+          <Pressable onPress={() => nav.activity.toDiscretionaryRequest()} hitSlop={8}>
+            <StyledIonicons name="add-outline" size={24} className="text-foreground" />
+          </Pressable>
+        }
+      />
       {loading ? (
         <View className="flex-1 items-center justify-center">
           <AppText className="text-muted text-base">Loading...</AppText>
@@ -73,13 +85,25 @@ export default function ActivityTab(): JSX.Element {
                       key={req.id}
                       request={req}
                       showSeparator={index > 0}
-                      onReview={() =>
-                        req.type === "loan_request"
-                          ? nav.activity.toLoanReview(req.id)
-                          : req.type === "settings_change"
-                            ? nav.profile.toSettingsReview(req.id)
-                            : nav.activity.toReview(req.id, req.type)
-                      }
+                      onReview={() => {
+                        switch (req.type) {
+                          case "loan_request":
+                            nav.activity.toLoanReview(req.id);
+                            break;
+                          case "settings_change":
+                            nav.profile.toSettingsReview(req.id);
+                            break;
+                          case "join_request":
+                            nav.activity.toJoinReview(req.id);
+                            break;
+                          case "discretionary_fund":
+                            nav.activity.toDiscretionaryReview(req.id);
+                            break;
+                          case "member_withdrawal":
+                            nav.activity.toWithdrawalReview(req.id);
+                            break;
+                        }
+                      }}
                     />
                   ))}
                 </ListGroup>

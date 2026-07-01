@@ -18,6 +18,10 @@ import type {
   DiscretionaryDetail,
   LoanDetail,
   LoanRequestReview,
+  DiscretionaryFundReview,
+  JoinRequestReview,
+  MemberWithdrawalReview,
+  GroupInviteData,
   GroupSettings,
   UserProfile,
   CommitteeMember,
@@ -474,6 +478,24 @@ export const MOCK_ACTIVITY_REQUESTS: Record<string, ActivityPendingRequest[]> = 
       signatureCount: 1,
       signatureThreshold: 2,
       timestamp: "2026-06-29T14:00:00Z",
+    },
+    {
+      id: "act-req-4",
+      type: "discretionary_fund",
+      subject: "Social fund \u00b7 5,000 RWF",
+      amountOrValue: "5,000 RWF",
+      signatureCount: 0,
+      signatureThreshold: 2,
+      timestamp: "2026-06-30T10:00:00Z",
+    },
+    {
+      id: "act-req-5",
+      type: "member_withdrawal",
+      subject: "Uwimana A.",
+      amountOrValue: undefined,
+      signatureCount: 1,
+      signatureThreshold: 2,
+      timestamp: "2026-06-30T12:00:00Z",
     },
   ],
 };
@@ -1501,9 +1523,7 @@ export const MOCK_COMMITTEE: Record<string, CommitteeMember[]> = {
     { userId: "user-2", name: "Marie Uwimana", initials: "MU" },
     { userId: "g1m-3", name: "Patrick Kabera", initials: "PK" },
   ],
-  "group-2": [
-    { userId: "user-2", name: "Marie Uwimana", initials: "MU" },
-  ],
+  "group-2": [{ userId: "user-2", name: "Marie Uwimana", initials: "MU" }],
 };
 
 // ── User profiles ──────────────────────────────────────────────────────
@@ -1605,4 +1625,138 @@ export function rejectSettingsChange(requestId: string): { success: boolean } {
     }
   }
   return { success: false };
+}
+
+// ── Phase 6: Discretionary fund reviews ─────────────────────────────
+
+export const MOCK_DISCRETIONARY_REVIEWS: Record<string, DiscretionaryFundReview> = {
+  "act-req-4": {
+    id: "act-req-4",
+    groupId: "group-1",
+    requesterName: "Diane Mukamana",
+    requesterInitials: "DM",
+    requesterUserId: "g1m-4",
+    direction: "deposit",
+    amount: 5000,
+    category: "Social fund",
+    paidTo: "Community events vendor",
+    reason:
+      "We're organising a community event for Umugongo W'Abaturage members and their families. The funds will cover venue hire, refreshments, and entertainment. This will be our first social fund event and we expect 40+ attendees.",
+    requestedAt: "2026-06-30T10:00:00Z",
+    signatureCount: 0,
+    signatureThreshold: 2,
+    signatures: [
+      { userId: "user-1", name: "Jean Mugabo", initials: "JM", role: "Admin", signed: false },
+      { userId: "user-2", name: "Marie Uwimana", initials: "MU", role: "Treasurer", signed: false },
+    ],
+    currentUserAlreadySigned: false,
+  },
+};
+
+// ── Phase 6: Join request reviews ─────────────────────────────
+
+export const MOCK_JOIN_REQUEST_REVIEWS: Record<string, JoinRequestReview> = {
+  "act-req-2": {
+    id: "act-req-2",
+    groupId: "group-1",
+    applicantName: "Kagabo D.",
+    applicantInitials: "KD",
+    applicantPhone: "+250788000001",
+    joinMethod: "invite_code",
+    inviteCode: "AB3K9F",
+    requestedAt: "2026-06-29T08:00:00Z",
+    signatureCount: 0,
+    signatureThreshold: 2,
+    signatures: [
+      { userId: "user-1", name: "Jean Mugabo", initials: "JM", role: "Admin", signed: false },
+      { userId: "user-2", name: "Marie Uwimana", initials: "MU", role: "Treasurer", signed: false },
+    ],
+    currentUserAlreadySigned: false,
+  },
+};
+
+// ── Phase 6: Member withdrawal reviews ──────────────────────────
+
+export const MOCK_WITHDRAWAL_REVIEWS: Record<string, MemberWithdrawalReview> = {
+  "act-req-5": {
+    id: "act-req-5",
+    groupId: "group-1",
+    memberName: "Alain Kamanzi",
+    memberInitials: "AK",
+    memberUserId: "g1m-16",
+    reasonCategory: "Repeated default",
+    contributionRate: "6 of 10",
+    penaltyCount: 3,
+    outstandingLoanAmount: 12000,
+    requestedAt: "2026-06-30T12:00:00Z",
+    signatureCount: 1,
+    signatureThreshold: 2,
+    signatures: [
+      {
+        userId: "user-1",
+        name: "Jean Mugabo",
+        initials: "JM",
+        role: "Admin",
+        signed: true,
+        signedAt: "2026-06-30T12:00:00Z",
+      },
+      { userId: "user-2", name: "Marie Uwimana", initials: "MU", role: "Treasurer", signed: false },
+    ],
+    currentUserAlreadySigned: false,
+  },
+};
+
+// ── Phase 6: Invite data ────────────────────────────────────────
+
+export const MOCK_INVITE_DATA: Record<string, GroupInviteData> = {
+  "group-1": {
+    inviteCode: "AB3K9F",
+    shareLink: "https://e-kimina.app/join/AB3K9F",
+    sentInvites: [
+      { phone: "+250788112233", sentAt: "2026-06-28T14:00:00Z" },
+      { phone: "+250788445566", sentAt: "2026-06-27T09:30:00Z" },
+      { phone: "+250788778899", sentAt: "2026-06-25T16:45:00Z" },
+    ],
+  },
+};
+
+// ── Phase 6: handler helpers ──────────────────────────────────────
+
+export function signReview(
+  map: Record<
+    string,
+    {
+      signatures: { userId: string; signed: boolean; signedAt?: string }[];
+      signatureCount: number;
+      signatureThreshold: number;
+      currentUserAlreadySigned: boolean;
+      currentUserSignedAt?: string;
+    }
+  >,
+  requestId: string,
+  userId: string
+): { success: boolean; thresholdMet: boolean } {
+  const review = map[requestId];
+  if (!review) return { success: false, thresholdMet: false };
+
+  const sig = review.signatures.find((s) => s.userId === userId);
+  if (!sig || sig.signed) return { success: false, thresholdMet: false };
+
+  sig.signed = true;
+  sig.signedAt = new Date().toISOString();
+  review.signatureCount += 1;
+  review.currentUserAlreadySigned = true;
+  review.currentUserSignedAt = sig.signedAt;
+
+  const thresholdMet = review.signatureCount >= review.signatureThreshold;
+  return { success: true, thresholdMet };
+}
+
+export function rejectReview(
+  map: Record<string, unknown>,
+  requestId: string
+): { success: boolean } {
+  if (!map[requestId]) return { success: false };
+  delete map[requestId];
+  return { success: true };
 }

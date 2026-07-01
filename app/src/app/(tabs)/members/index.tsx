@@ -21,6 +21,7 @@ import type { MemberListItem } from "@/api/types";
 import { AppText } from "@/components/ui/app-text";
 import { Header } from "@/components/ui/header";
 import { ScreenContainer } from "@/components/ui/screen-container";
+import { nav } from "@/lib/routes";
 import { FilterBottomSheet, type FilterKey } from "@/components/members/filter-bottom-sheet";
 import { $activeGroup } from "@/stores/active-group";
 import { LinearGradient } from "expo-linear-gradient";
@@ -98,7 +99,15 @@ export default function MembersTab(): JSX.Element {
 
   return (
     <ScreenContainer>
-      <Header title="Members" canGoBack={false} />
+      <Header
+        title="Members"
+        canGoBack={false}
+        options={
+          <Pressable onPress={() => nav.members.toInvite()} hitSlop={8}>
+            <StyledIonicons name="person-add-outline" size={22} className="text-foreground" />
+          </Pressable>
+        }
+      />
 
       <View className="px-4 pt-2 pb-3 gap-3">
         <View className="flex-row items-center gap-2">

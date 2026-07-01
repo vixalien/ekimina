@@ -1,5 +1,4 @@
 import { router } from "expo-router";
-import type { PendingRequestType } from "../api/types";
 
 export const Routes = {
   welcome: "/welcome" as const,
@@ -27,7 +26,10 @@ export const Routes = {
   activity: {
     transactions: "/(tabs)/activity/transactions" as const,
     detail: (id: string) => `/(tabs)/activity/${id}` as const,
-    review: "/(tabs)/activity/review" as const,
+    discretionaryRequest: "/(tabs)/activity/discretionary-request" as const,
+    discretionaryReview: (id: string) => `/(tabs)/activity/discretionary-review/${id}` as const,
+    joinReview: (id: string) => `/(tabs)/activity/join-review/${id}` as const,
+    withdrawalReview: (id: string) => `/(tabs)/activity/withdrawal-review/${id}` as const,
     loanDetail: (loanId: string) => `/(tabs)/activity/loan/${loanId}` as const,
     loanReview: (loanId: string) => `/(tabs)/activity/loan-review/${loanId}` as const,
   },
@@ -36,6 +38,10 @@ export const Routes = {
     groupSettings: "/(tabs)/profile/group-settings" as const,
     committee: "/(tabs)/profile/committee" as const,
     settingsReview: "/(tabs)/profile/settings-review" as const,
+  },
+
+  members: {
+    invite: "/(tabs)/members/invite" as const,
   },
 } as const;
 
@@ -69,8 +75,13 @@ export const nav = {
   activity: {
     toTransactions: () => router.push(Routes.activity.transactions as any),
     toDetail: (id: string) => router.push(Routes.activity.detail(id) as any),
-    toReview: (requestId: string, requestType: PendingRequestType) =>
-      router.push({ pathname: Routes.activity.review as any, params: { requestId, requestType } }),
+    toDiscretionaryRequest: () => router.push(Routes.activity.discretionaryRequest as any),
+    toDiscretionaryReview: (requestId: string) =>
+      router.push({ pathname: Routes.activity.discretionaryReview(requestId) as any }),
+    toJoinReview: (requestId: string) =>
+      router.push({ pathname: Routes.activity.joinReview(requestId) as any }),
+    toWithdrawalReview: (requestId: string) =>
+      router.push({ pathname: Routes.activity.withdrawalReview(requestId) as any }),
     toLoanDetail: (loanId: string) => router.push(Routes.activity.loanDetail(loanId) as any),
     toLoanReview: (loanId: string) => router.push(Routes.activity.loanReview(loanId) as any),
     toLoanRepayments: (memberId: string) =>
@@ -85,5 +96,9 @@ export const nav = {
     toCommittee: () => router.push(Routes.profile.committee as any),
     toSettingsReview: (requestId: string) =>
       router.push({ pathname: Routes.profile.settingsReview as any, params: { requestId } }),
+  },
+
+  members: {
+    toInvite: () => router.push(Routes.members.invite as any),
   },
 };

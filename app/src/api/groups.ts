@@ -14,6 +14,11 @@ import type {
   CommitteeMember,
   SettingsChangeRequest,
   GroupSettingField,
+  DiscretionaryFundRequest,
+  DiscretionaryFundReview,
+  JoinRequestReview,
+  MemberWithdrawalReview,
+  GroupInviteData,
 } from "./types";
 import {
   ALL_GROUPS,
@@ -36,6 +41,12 @@ import {
   getSettingsChangeReview,
   signSettingsChange,
   rejectSettingsChange,
+  MOCK_DISCRETIONARY_REVIEWS,
+  MOCK_JOIN_REQUEST_REVIEWS,
+  MOCK_WITHDRAWAL_REVIEWS,
+  MOCK_INVITE_DATA,
+  signReview,
+  rejectReview,
 } from "./mock/groups";
 
 function delay(ms: number): Promise<void> {
@@ -462,6 +473,126 @@ export function createMockGroups(): GroupsApi {
 
     async leaveGroup(_groupId: string, _userId: string): Promise<{ success: boolean }> {
       await delay(800);
+      return { success: true };
+    },
+
+    // ── Phase 6: Discretionary fund ─────────────────────────────
+
+    async submitDiscretionaryRequest(
+      _groupId: string,
+      _userId: string,
+      _req: DiscretionaryFundRequest
+    ): Promise<{ success: boolean }> {
+      await delay(600);
+      return { success: true };
+    },
+
+    async getDiscretionaryReview(
+      _groupId: string,
+      requestId: string
+    ): Promise<DiscretionaryFundReview> {
+      await delay(350);
+      const review = MOCK_DISCRETIONARY_REVIEWS[requestId];
+      if (!review) throw new Error("Discretionary request not found");
+      return review;
+    },
+
+    async signDiscretionaryRequest(
+      _groupId: string,
+      requestId: string,
+      userId: string
+    ): Promise<{ success: boolean; thresholdMet: boolean }> {
+      await delay(800);
+      return signReview(MOCK_DISCRETIONARY_REVIEWS as any, requestId, userId);
+    },
+
+    async rejectDiscretionaryRequest(
+      _groupId: string,
+      requestId: string,
+      _userId: string
+    ): Promise<{ success: boolean }> {
+      await delay(800);
+      return rejectReview(MOCK_DISCRETIONARY_REVIEWS as any, requestId);
+    },
+
+    // ── Phase 6: Join request ────────────────────────────────────
+
+    async getJoinRequestReview(_groupId: string, requestId: string): Promise<JoinRequestReview> {
+      await delay(350);
+      const review = MOCK_JOIN_REQUEST_REVIEWS[requestId];
+      if (!review) throw new Error("Join request not found");
+      return review;
+    },
+
+    async signJoinRequest(
+      _groupId: string,
+      requestId: string,
+      userId: string
+    ): Promise<{ success: boolean; thresholdMet: boolean }> {
+      await delay(800);
+      return signReview(MOCK_JOIN_REQUEST_REVIEWS as any, requestId, userId);
+    },
+
+    async rejectJoinRequest(
+      _groupId: string,
+      requestId: string,
+      _userId: string
+    ): Promise<{ success: boolean }> {
+      await delay(800);
+      return rejectReview(MOCK_JOIN_REQUEST_REVIEWS as any, requestId);
+    },
+
+    // ── Phase 6: Member withdrawal ───────────────────────────────
+
+    async initiateWithdrawal(
+      _groupId: string,
+      _memberId: string,
+      _requestingUserId: string,
+      _reasonCategory: string
+    ): Promise<{ success: boolean; requestId: string }> {
+      await delay(600);
+      return { success: true, requestId: "act-req-6" };
+    },
+
+    async getMemberWithdrawalReview(
+      _groupId: string,
+      requestId: string
+    ): Promise<MemberWithdrawalReview> {
+      await delay(350);
+      const review = MOCK_WITHDRAWAL_REVIEWS[requestId];
+      if (!review) throw new Error("Withdrawal request not found");
+      return review;
+    },
+
+    async signMemberWithdrawal(
+      _groupId: string,
+      requestId: string,
+      userId: string
+    ): Promise<{ success: boolean; thresholdMet: boolean }> {
+      await delay(800);
+      return signReview(MOCK_WITHDRAWAL_REVIEWS as any, requestId, userId);
+    },
+
+    async rejectMemberWithdrawal(
+      _groupId: string,
+      requestId: string,
+      _userId: string
+    ): Promise<{ success: boolean }> {
+      await delay(800);
+      return rejectReview(MOCK_WITHDRAWAL_REVIEWS as any, requestId);
+    },
+
+    // ── Phase 6: Invite ───────────────────────────────────────────
+
+    async getGroupInviteData(groupId: string): Promise<GroupInviteData> {
+      await delay(300);
+      const data = MOCK_INVITE_DATA[groupId];
+      if (!data) throw new Error("Group not found");
+      return data;
+    },
+
+    async sendPhoneInvite(_groupId: string, _phone: string): Promise<{ success: boolean }> {
+      await delay(500);
       return { success: true };
     },
   };

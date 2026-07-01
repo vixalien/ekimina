@@ -1,8 +1,8 @@
-import { Avatar, Button } from "heroui-native";
+import { Avatar, Button, useToast } from "heroui-native";
 import { useStore } from "@nanostores/react";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import type { JSX } from "react";
-import { startTransition, useEffect, useState } from "react";
+import { startTransition, useCallback, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 
 import { api } from "@/api";
@@ -14,6 +14,7 @@ import { ReputationGauge } from "@/components/members/reputation-gauge";
 import { StatChipsRow } from "@/components/members/stat-chips";
 import { ContributionHistory } from "@/components/members/contribution-history";
 import { LoansSection } from "@/components/members/loans-section";
+import { WithdrawMemberSheet } from "@/components/activity/withdraw-member-sheet";
 import { $activeGroup } from "@/stores/active-group";
 import { $auth } from "@/stores/auth";
 
@@ -24,6 +25,9 @@ export default function MemberDetailScreen(): JSX.Element {
   const [detail, setDetail] = useState<MemberDetailType | null>(null);
   const [loading, setLoading] = useState(true);
   const [showAllCycles, setShowAllCycles] = useState(false);
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [withdrawing, setWithdrawing] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!activeGroup.activeGroupId || !userId) return;
@@ -35,6 +39,33 @@ export default function MemberDetailScreen(): JSX.Element {
       .catch(() => {})
       .finally(() => startTransition(() => setLoading(false)));
   }, [activeGroup.activeGroupId, userId, auth]);
+
+  const handleWithdraw = useCallback(
+    async (reasonCategory: string) => {
+      if (!activeGroup.activeGroupId || !userId || !auth?.userId) return;
+      setWithdrawing(true);
+      try {
+        await api.groups.initiateWithdrawal(
+          activeGroup.activeGroupId,
+          userId,
+          auth.userId,
+          reasonCategory
+        );
+        toast.show({
+          variant: "success",
+          label: "Withdrawal request submitted",
+          description: "The committee will review it.",
+        });
+        setWithdrawOpen(false);
+        router.back();
+      } catch {
+        toast.show({ variant: "danger", label: "Failed to submit withdrawal" });
+      } finally {
+        setWithdrawing(false);
+      }
+    },
+    [activeGroup.activeGroupId, userId, auth, toast]
+  );
 
   if (loading || !detail) {
     return (
@@ -93,12 +124,19 @@ export default function MemberDetailScreen(): JSX.Element {
 
         {detail.isCommitteeMember && (
           <View className="px-6 pt-8">
-            <Button variant="danger">
+            <Button variant="danger" onPress={() => setWithdrawOpen(true)}>
               <Button.Label>Withdraw member</Button.Label>
             </Button>
           </View>
         )}
       </ScrollView>
+
+      <WithdrawMemberSheet
+        isOpen={withdrawOpen}
+        onOpenChange={setWithdrawOpen}
+        onConfirm={handleWithdraw}
+        isLoading={withdrawing}
+      />
     </ScreenContainer>
   );
 }

@@ -5,6 +5,7 @@ export default function MembersLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" options={{ title: "All Members" }} />
       <Stack.Screen name="[userId]" options={{ title: "Member Profile" }} />
+      <Stack.Screen name="invite" options={{ title: "Invite Members" }} />
     </Stack>
   );
 }

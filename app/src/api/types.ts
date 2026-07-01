@@ -258,6 +258,56 @@ export interface GroupsApi {
   ): Promise<{ success: boolean }>;
   updateNotifications(userId: string, enabled: boolean): Promise<{ success: boolean }>;
   leaveGroup(groupId: string, userId: string): Promise<{ success: boolean }>;
+  // Phase 6: Discretionary fund
+  submitDiscretionaryRequest(
+    groupId: string,
+    userId: string,
+    req: DiscretionaryFundRequest
+  ): Promise<{ success: boolean }>;
+  getDiscretionaryReview(groupId: string, requestId: string): Promise<DiscretionaryFundReview>;
+  signDiscretionaryRequest(
+    groupId: string,
+    requestId: string,
+    userId: string
+  ): Promise<{ success: boolean; thresholdMet: boolean }>;
+  rejectDiscretionaryRequest(
+    groupId: string,
+    requestId: string,
+    userId: string
+  ): Promise<{ success: boolean }>;
+  // Phase 6: Join request
+  getJoinRequestReview(groupId: string, requestId: string): Promise<JoinRequestReview>;
+  signJoinRequest(
+    groupId: string,
+    requestId: string,
+    userId: string
+  ): Promise<{ success: boolean; thresholdMet: boolean }>;
+  rejectJoinRequest(
+    groupId: string,
+    requestId: string,
+    userId: string
+  ): Promise<{ success: boolean }>;
+  // Phase 6: Member withdrawal
+  initiateWithdrawal(
+    groupId: string,
+    memberId: string,
+    requestingUserId: string,
+    reasonCategory: string
+  ): Promise<{ success: boolean; requestId: string }>;
+  getMemberWithdrawalReview(groupId: string, requestId: string): Promise<MemberWithdrawalReview>;
+  signMemberWithdrawal(
+    groupId: string,
+    requestId: string,
+    userId: string
+  ): Promise<{ success: boolean; thresholdMet: boolean }>;
+  rejectMemberWithdrawal(
+    groupId: string,
+    requestId: string,
+    userId: string
+  ): Promise<{ success: boolean }>;
+  // Phase 6: Invite
+  getGroupInviteData(groupId: string): Promise<GroupInviteData>;
+  sendPhoneInvite(groupId: string, phone: string): Promise<{ success: boolean }>;
 }
 
 export interface MemberStanding {
@@ -327,6 +377,80 @@ export interface SettingsChangeRequest {
   currentUserAlreadySigned: boolean;
   currentUserSignedAt?: string;
   createdAt: string;
+}
+
+// ── Phase 6: Discretionary fund, join, withdrawal, invite ─────────────
+
+export interface DiscretionaryFundRequest {
+  direction: "deposit" | "withdrawal";
+  amount: number;
+  category: string;
+  paidTo: string;
+  reason: string;
+}
+
+export interface DiscretionaryFundReview {
+  id: string;
+  groupId: string;
+  requesterName: string;
+  requesterInitials: string;
+  requesterUserId: string;
+  direction: "deposit" | "withdrawal";
+  amount: number;
+  category: string;
+  paidTo: string;
+  reason: string;
+  requestedAt: string;
+  signatureCount: number;
+  signatureThreshold: number;
+  signatures: LoanSignature[];
+  currentUserAlreadySigned: boolean;
+  currentUserSignedAt?: string;
+}
+
+export interface JoinRequestReview {
+  id: string;
+  groupId: string;
+  applicantName: string;
+  applicantInitials: string;
+  applicantPhone: string;
+  joinMethod: "invite_code" | "direct_invite";
+  inviteCode?: string;
+  requestedAt: string;
+  signatureCount: number;
+  signatureThreshold: number;
+  signatures: LoanSignature[];
+  currentUserAlreadySigned: boolean;
+  currentUserSignedAt?: string;
+}
+
+export interface MemberWithdrawalReview {
+  id: string;
+  groupId: string;
+  memberName: string;
+  memberInitials: string;
+  memberUserId: string;
+  reasonCategory: string;
+  contributionRate: string;
+  penaltyCount: number;
+  outstandingLoanAmount: number | null;
+  requestedAt: string;
+  signatureCount: number;
+  signatureThreshold: number;
+  signatures: LoanSignature[];
+  currentUserAlreadySigned: boolean;
+  currentUserSignedAt?: string;
+}
+
+export interface SentInvite {
+  phone: string;
+  sentAt: string;
+}
+
+export interface GroupInviteData {
+  inviteCode: string;
+  shareLink: string;
+  sentInvites: SentInvite[];
 }
 
 export interface UserProfile {
