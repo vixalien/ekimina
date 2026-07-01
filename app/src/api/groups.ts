@@ -19,6 +19,10 @@ import type {
   JoinRequestReview,
   MemberWithdrawalReview,
   GroupInviteData,
+  ReserveDetail,
+  ReserveCycleSummary,
+  ReserveDataPoint,
+  LeaveGroupInfo,
 } from "./types";
 import {
   ALL_GROUPS,
@@ -594,6 +598,85 @@ export function createMockGroups(): GroupsApi {
     async sendPhoneInvite(_groupId: string, _phone: string): Promise<{ success: boolean }> {
       await delay(500);
       return { success: true };
+    },
+
+    // ── Phase 7: Reserve ─────────────────────────────────────────────
+
+    async getReserveDetail(groupId: string): Promise<ReserveDetail> {
+      await delay(400);
+      const extra = MOCK_GROUP_DATA[groupId];
+      if (!extra) throw new Error("Group not found");
+
+      const { cycleConfig, reserveHistory } = extra;
+      const history: ReserveDataPoint[] = reserveHistory.map((b: number, i: number) => ({
+        cycle: i + 1,
+        balance: b,
+      }));
+
+      const lastBalance = reserveHistory[reserveHistory.length - 1] ?? 0;
+      const monthlyGrowth = cycleConfig.payoutAmount > 0
+        ? Math.round((cycleConfig.contributionAmount * 0.6) + (cycleConfig.contributionAmount * 0.1))
+        : 5000;
+
+      const proj6: ReserveDataPoint[] = [];
+      let bal = lastBalance;
+      for (let i = 1; i <= 6; i++) {
+        bal += monthlyGrowth;
+        proj6.push({ cycle: cycleConfig.currentCycle + i, balance: bal });
+      }
+
+      const proj12: ReserveDataPoint[] = [];
+      bal = lastBalance;
+      for (let i = 1; i <= 12; i++) {
+        bal += monthlyGrowth;
+        proj12.push({ cycle: cycleConfig.currentCycle + i, balance: bal });
+      }
+
+      const payoutAmount = cycleConfig.payoutAmount;
+      const reserveCovers = payoutAmount > 0
+        ? Math.max(1, Math.floor(lastBalance / payoutAmount))
+        : 1;
+
+      const cycleSummary: ReserveCycleSummary = {
+        contributionsIn: cycleConfig.contributionAmount * extra.members.length,
+        payoutOut: cycleConfig.payoutAmount,
+        penaltiesAbsorbed: 500,
+        loanInterestIn: 2400,
+        loanDisbursed: 30000,
+        discretionaryDeposits: 15000,
+      };
+
+      return {
+        balance: lastBalance,
+        history,
+        projection6: proj6,
+        projection12: proj12,
+        cycleSummary,
+        insight: `At this rate, the reserve covers about ${reserveCovers} future payouts on its own.`,
+      };
+    },
+
+    async getLeaveGroupInfo(
+      _groupId: string,
+      _userId: string
+    ): Promise<LeaveGroupInfo> {
+      await delay(400);
+      const group = ALL_GROUPS.find((g) => g.id === _groupId);
+      return {
+        groupName: group?.name ?? "Group",
+        isMidCycle: true,
+        contributionStanding: "7 of 7, up to date",
+        outstandingLoanAmount: null,
+      };
+    },
+
+    async verifyPin(
+      _userId: string,
+      pin: string
+    ): Promise<{ success: boolean }> {
+      await delay(600);
+      if (pin === "1234") return { success: true };
+      throw new Error("Incorrect PIN");
     },
   };
 }

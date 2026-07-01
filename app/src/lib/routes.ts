@@ -4,6 +4,10 @@ export const Routes = {
   welcome: "/welcome" as const,
   tabs: "/(tabs)/home" as const,
 
+  home: {
+    reserve: "/(tabs)/home/reserve" as const,
+  },
+
   onboarding: {
     phone: "/(onboarding)/phone" as const,
     verify: "/(onboarding)/verify" as const,
@@ -38,6 +42,9 @@ export const Routes = {
     groupSettings: "/(tabs)/profile/group-settings" as const,
     committee: "/(tabs)/profile/committee" as const,
     settingsReview: "/(tabs)/profile/settings-review" as const,
+    leaveGroupConfirm: "/(tabs)/profile/leave-confirm" as const,
+    leaveGroupPin: "/(tabs)/profile/leave-pin" as const,
+    leaveGroupSent: "/(tabs)/profile/leave-sent" as const,
   },
 
   members: {
@@ -49,6 +56,9 @@ export const nav = {
   toWelcome: () => router.replace(Routes.welcome),
   toTabs: () => router.replace(Routes.tabs),
   back: () => router.back(),
+  home: {
+    toReserve: () => router.push(Routes.home.reserve as any),
+  },
 
   onboarding: {
     toPhone: () => router.push(Routes.onboarding.phone),
@@ -96,6 +106,9 @@ export const nav = {
     toCommittee: () => router.push(Routes.profile.committee as any),
     toSettingsReview: (requestId: string) =>
       router.push({ pathname: Routes.profile.settingsReview as any, params: { requestId } }),
+    toLeaveGroupConfirm: () => router.push(Routes.profile.leaveGroupConfirm as any),
+    toLeaveGroupPin: () => router.push(Routes.profile.leaveGroupPin as any),
+    toLeaveGroupSent: () => router.replace(Routes.profile.leaveGroupSent as any),
   },
 
   members: {

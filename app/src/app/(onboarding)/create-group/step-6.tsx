@@ -16,6 +16,7 @@ import { SettingsReviewList } from "@/components/group-settings/review";
 import type { ReviewSection } from "@/components/group-settings/review";
 import { $group, updateSettings } from "@/stores/group";
 import { $isSubmitting, $submitError } from "@/stores/create-group";
+import { $auth } from "@/stores/auth";
 
 type SectionConfig = {
   title: string;
@@ -51,6 +52,7 @@ const SECTION_MAP: Record<ReviewSection, SectionConfig> = {
 
 export default function CreateGroupStep6(): JSX.Element {
   const group = useStore($group);
+  const auth = useStore($auth);
   const isSubmitting = useStore($isSubmitting);
   const submitError = useStore($submitError);
 
@@ -75,7 +77,7 @@ export default function CreateGroupStep6(): JSX.Element {
     try {
       const result = await api.groups.createGroup({
         settings,
-        founderId: "current-user",
+        founderId: auth?.userId ?? "current-user",
       });
       const { $createdGroup } = await import("@/stores/create-group");
       $createdGroup.set({
@@ -89,7 +91,7 @@ export default function CreateGroupStep6(): JSX.Element {
     } finally {
       $isSubmitting.set(false);
     }
-  }, [settings, isValid]);
+  }, [settings, isValid, auth]);
 
   const handleItemPress = useCallback((section: ReviewSection) => {
     setEditingSection(section);

@@ -308,6 +308,10 @@ export interface GroupsApi {
   // Phase 6: Invite
   getGroupInviteData(groupId: string): Promise<GroupInviteData>;
   sendPhoneInvite(groupId: string, phone: string): Promise<{ success: boolean }>;
+  // Phase 7
+  getReserveDetail(groupId: string): Promise<ReserveDetail>;
+  getLeaveGroupInfo(groupId: string, userId: string): Promise<LeaveGroupInfo>;
+  verifyPin(userId: string, pin: string): Promise<{ success: boolean }>;
 }
 
 export interface MemberStanding {
@@ -477,6 +481,41 @@ export interface CreateGroupPayload {
 export interface CreateGroupResult {
   group: Group;
   inviteCode: string;
+}
+
+// ── Phase 7: Reserve detail ──────────────────────────────────────────────
+
+export interface ReserveDataPoint {
+  cycle: number;
+  balance: number;
+}
+
+export interface ReserveCycleSummary {
+  contributionsIn: number;
+  payoutOut: number;
+  penaltiesAbsorbed: number;
+  loanInterestIn: number;
+  loanDisbursed?: number;
+  discretionaryDeposits?: number;
+  discretionaryWithdrawals?: number;
+}
+
+export interface ReserveDetail {
+  balance: number;
+  history: ReserveDataPoint[];
+  projection6: ReserveDataPoint[];
+  projection12: ReserveDataPoint[];
+  cycleSummary: ReserveCycleSummary;
+  insight: string;
+}
+
+// ── Phase 7: Leave group ─────────────────────────────────────────────────
+
+export interface LeaveGroupInfo {
+  groupName: string;
+  isMidCycle: boolean;
+  contributionStanding: string;
+  outstandingLoanAmount: number | null;
 }
 
 export interface ApiClient {

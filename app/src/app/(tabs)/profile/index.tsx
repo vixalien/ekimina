@@ -1,7 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import {
   BottomSheet,
-  Button,
   ControlField,
   Description,
   Label,
@@ -36,7 +35,6 @@ export default function ProfileTab(): JSX.Element {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [leaveOpen, setLeaveOpen] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   useEffect(() => {
@@ -63,16 +61,6 @@ export default function ProfileTab(): JSX.Element {
     },
     [auth]
   );
-
-  const handleLeaveGroup = useCallback(() => {
-    if (!activeGroupId || !auth?.userId) return;
-    api.groups
-      .leaveGroup(activeGroupId, auth.userId)
-      .then(() => {
-        setLeaveOpen(false);
-      })
-      .catch(() => {});
-  }, [activeGroupId, auth]);
 
   if (loading || !profile) {
     return (
@@ -154,7 +142,7 @@ export default function ProfileTab(): JSX.Element {
 
               <Separator className="mx-4" />
 
-              <PressableFeedback animation={false} onPress={() => setLeaveOpen(true)}>
+              <PressableFeedback animation={false} onPress={nav.profile.toLeaveGroupConfirm}>
                 <PressableFeedback.Scale>
                   <ListGroup.Item>
                     <ListGroup.ItemContent>
@@ -189,28 +177,6 @@ export default function ProfileTab(): JSX.Element {
                 </View>
                 <ControlField.Indicator />
               </ControlField>
-            </View>
-          </BottomSheet.Content>
-        </BottomSheet.Portal>
-      </BottomSheet>
-
-      {/* Leave group confirmation sheet */}
-      <BottomSheet isOpen={leaveOpen} onOpenChange={setLeaveOpen}>
-        <BottomSheet.Portal>
-          <BottomSheet.Overlay />
-          <BottomSheet.Content>
-            <BottomSheet.Title>Leave group?</BottomSheet.Title>
-            <BottomSheet.Description>
-              You will lose access to group savings, loans, and activity. This action cannot be
-              undone.
-            </BottomSheet.Description>
-            <View className="gap-3 mt-6">
-              <Button variant="danger" onPress={handleLeaveGroup}>
-                Leave group
-              </Button>
-              <Button variant="secondary" onPress={() => setLeaveOpen(false)}>
-                Cancel
-              </Button>
             </View>
           </BottomSheet.Content>
         </BottomSheet.Portal>

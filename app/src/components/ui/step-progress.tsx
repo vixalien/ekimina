@@ -11,11 +11,18 @@ export function StepProgress({ totalSteps, currentStep }: StepProgressProps): JS
     <View className="flex-row items-center justify-center gap-2">
       {Array.from({ length: totalSteps }, (_, i) => {
         const step = i + 1;
-        const isActive = step <= currentStep;
+        const isCompleted = step < currentStep;
+        const isCurrent = step === currentStep;
         return (
           <View
             key={step}
-            className={`size-2 rounded-full ${isActive ? "bg-accent" : "bg-border"}`}
+            className={`rounded-full ${
+              isCompleted
+                ? "size-2 bg-accent"
+                : isCurrent
+                  ? "size-3 bg-accent"
+                  : "size-2 border border-border"
+            }`}
           />
         );
       })}

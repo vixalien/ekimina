@@ -7,6 +7,9 @@ export default function ProfileLayout() {
       <Stack.Screen name="group-settings" />
       <Stack.Screen name="committee" />
       <Stack.Screen name="settings-review" />
+      <Stack.Screen name="leave-confirm" />
+      <Stack.Screen name="leave-pin" />
+      <Stack.Screen name="leave-sent" />
     </Stack>
   );
 }

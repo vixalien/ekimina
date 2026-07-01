@@ -26,6 +26,7 @@ import {
 } from "@/stores/active-group";
 import { formatRWF } from "@/lib/strings";
 import { LinearGradient } from "expo-linear-gradient";
+import { nav } from "@/lib/routes";
 
 const StyledIonicons = withUniwind(Ionicons);
 
@@ -134,7 +135,7 @@ export default function HomeTab(): JSX.Element {
               </AppText>
             </Surface>
 
-            <PressableFeedback>
+            <PressableFeedback onPress={nav.home.toReserve}>
               <Card>
                 <Card.Body>
                   <View className="flex-row items-center justify-between mb-1">

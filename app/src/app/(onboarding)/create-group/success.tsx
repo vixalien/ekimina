@@ -1,5 +1,5 @@
 import type { JSX } from "react";
-import { Share } from "react-native";
+import { Share, View } from "react-native";
 import { Button, Surface, useToast } from "heroui-native";
 import { Ionicons } from "@expo/vector-icons";
 import { withUniwind } from "uniwind";
@@ -44,12 +44,22 @@ export default function CreateGroupSuccess(): JSX.Element {
 
   return (
     <OnboardingLayout
-      title="Group created"
-      description={groupName}
+      title=""
+      description=""
       buttonLabel="Go to my group"
       onButtonPress={handleGoToGroup}
       showBack={false}
     >
+      <View className="items-center gap-3 mb-4">
+        <View className="size-16 items-center justify-center rounded-full bg-success/10">
+          <StyledIonicons name="checkmark-circle" size={36} className="text-success" />
+        </View>
+        <View className="items-center gap-1">
+          <AppText className="text-2xl font-semibold text-foreground">Group created</AppText>
+          <AppText className="text-base text-muted">{groupName}</AppText>
+        </View>
+      </View>
+
       <AppText className="text-sm text-muted mb-2">Invite code</AppText>
 
       <Surface className="flex-row items-center px-4 py-3">
