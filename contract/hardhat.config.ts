@@ -41,5 +41,11 @@ export default defineConfig({
       url: "https://forno.celo-sepolia.celo-testnet.org/",
       accounts: [process.env.CELO_SEPOLIA_PRIVATE_KEY!],
     },
+    localhost: {
+      type: "http",
+      chainId: 31337,
+      url: "http://127.0.0.1:8545",
+    },
   },
+  foundry: {},
 });
