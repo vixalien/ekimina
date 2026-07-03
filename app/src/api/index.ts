@@ -1,32 +1,3 @@
-import { createMockAuth } from "./auth";
-import { createMockGroups } from "./groups";
-import type { ApiClient } from "./types";
-
-export const api: ApiClient = {
-  auth: createMockAuth(),
-  groups: createMockGroups(),
-};
-
-export type { ApiClient, AuthApi, GroupsApi } from "./types";
-export type {
-  User,
-  Group,
-  GroupMembership,
-  PublicGroup,
-  JoinRequest,
-  OtpVerificationResult,
-  StatusResult,
-  GroupSettings,
-  CreateGroupPayload,
-  CreateGroupResult,
-  GroupDashboardData,
-  MemberStanding,
-  MemberListItem,
-  MemberDetail,
-  ContributionHistoryEntry,
-  LoanEntry,
-  GroupSettingField,
-  SettingsChangeRequest,
-  UserProfile,
-  CommitteeMember,
-} from "./types";
+export { dataClient } from "./data-client";
+export { backendClient } from "./backend-client";
+export { custody } from "./custody";

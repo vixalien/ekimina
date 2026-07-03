@@ -119,6 +119,8 @@ export type ProposalDraft =
 export interface CustodyApi {
   /** app path: import an EVM account, stored device-side, never sent to backend */
   importAccount(secret: string, pin: string): Promise<{ address: Address }>;
+  /** generate a fresh key */
+  createAccount(): Promise<{ address: Address }>;
   /** phone path: backend-provisioned encrypted key, cached locally, unlocked with PIN */
   unlock(pin: string): Promise<{ address: Address }>;
   currentAddress(): Promise<Address | null>;

@@ -7,5 +7,6 @@
       "@/assets/*": ["./assets/*"]
     }
   },
+  "exclude": ["new-design/**/*"],
   "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts", "uniwind-env.d.ts"]
 }
