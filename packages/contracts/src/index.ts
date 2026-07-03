@@ -1,1 +1,1 @@
-export { ikiminaABI, factoryABI, mockERC20ABI, publicClient, getIkiminaContract } from "./generated";
+export { ikiminaABI, factoryABI, mockERC20ABI, publicClient, getIkiminaContract } from "./generated.js";

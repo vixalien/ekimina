@@ -24,7 +24,7 @@ import type {
   ProposalState,
   LoanState,
   TransactionType,
-} from "./primitives";
+} from "./primitives.js";
 
 // ---- Group: the on-chain group record ----------------------
 // Set at construction, changed only by an executed settings proposal.

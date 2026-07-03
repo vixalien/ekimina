@@ -19,7 +19,7 @@ export type ISODate = string;
 
 export type PayoutPolicy = "none" | "rotating" | "lump_sum_end";
 
-export type ProposalKind = "loan" | "discretionary" | "settings" | "member_exit";
+export type ProposalKind = "loan" | "discretionary" | "settings" | "member_exit" | "dissolve";
 
 export type ProposalState = "pending" | "approved" | "rejected" | "executed";
 

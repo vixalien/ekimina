@@ -16,7 +16,7 @@ import type {
   Bps,
   ISODate,
   ProposalState,
-} from "./primitives";
+} from "./primitives.js";
 import type {
   Group as ChainGroup,
   GroupCycle as ChainCycleState,
@@ -26,14 +26,14 @@ import type {
   Transaction,
   TransactionFilters,
   ReservePoint,
-} from "./chain";
+} from "./chain.js";
 import type {
   AuthApi,
   ProfileApi,
   LookupApi,
   PaymentApi,
   GroupMeta,
-} from "./backend";
+} from "./backend.js";
 
 // ---- Friendly aliases (single-plane, no merge needed) ------
 

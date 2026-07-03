@@ -1,8 +1,8 @@
 import { createPublicClient, createWalletClient, http } from "viem";
 import { foundry } from "viem/chains";
-import IkiminaAbi from "./abi/Ikimina.json";
-import FactoryAbi from "./abi/IkiminaFactory.json";
-import MockERC20Abi from "./abi/MockUSDm.json";
+import IkiminaAbi from "./abi/Ikimina.json" with { type: "json" };
+import FactoryAbi from "./abi/IkiminaFactory.json" with { type: "json" };
+import MockERC20Abi from "./abi/MockUSDm.json" with { type: "json" };
 
 export const ikiminaABI = IkiminaAbi as unknown as readonly any[];
 export const factoryABI = FactoryAbi as unknown as readonly any[];

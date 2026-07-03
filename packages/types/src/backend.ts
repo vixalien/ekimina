@@ -10,7 +10,7 @@
 // happens in client.ts, which composes these interfaces.
 // ============================================================
 
-import type { Address, BaseUnit, ISODate, ProposalState } from "./primitives";
+import type { Address, BaseUnit, ISODate, ProposalState } from "./primitives.js";
 import type {
   Group,
   GroupCycle,
@@ -20,7 +20,7 @@ import type {
   Transaction,
   TransactionFilters,
   ReservePoint,
-} from "./chain";
+} from "./chain.js";
 
 // ---- Global identity ---------------------------------------
 
