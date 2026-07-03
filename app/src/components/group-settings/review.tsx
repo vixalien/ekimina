@@ -2,7 +2,7 @@ import type { JSX } from "react";
 import { View } from "react-native";
 import { ListGroup, PressableFeedback, Separator } from "heroui-native";
 import { AppText } from "../ui/app-text";
-import type { GroupSettings } from "../../api/types";
+import type { GroupSettings } from "@/api";
 
 export type ReviewSection = "basics" | "money" | "rules" | "loans";
 

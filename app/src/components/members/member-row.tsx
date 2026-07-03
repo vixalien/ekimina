@@ -2,7 +2,7 @@ import { Avatar, ListGroup, PressableFeedback, Separator } from "heroui-native";
 import type { JSX } from "react";
 import { View } from "react-native";
 
-import type { MemberListItem } from "../../api/types";
+import type { MemberListItem } from "@/api";
 import { AppText } from "../ui/app-text";
 
 interface MemberRowProps {

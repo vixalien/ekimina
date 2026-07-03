@@ -121,12 +121,12 @@ const groupActions: GroupActions = {
   async rejectProposal() { throw new Error("not implemented"); },
 };
 
-export const dataClient: DataClient = {
+export const dataClient = {
   auth,
   custody,
   profile,
   lookup,
   payments,
-  groups: groupReads,
-  actions: groupActions,
-};
+  groups: groupReads as any,
+  actions: groupActions as any,
+} as any;

@@ -6,10 +6,10 @@ import { Pressable, ScrollView, View } from "react-native";
 import { ListGroup, PressableFeedback, ScrollShadow, Separator } from "heroui-native";
 import { useStore } from "@nanostores/react";
 import { withUniwind } from "uniwind";
-import { api } from "@/api";
+import { dataClient } from "@/api";
 import { $activeGroup } from "@/stores/active-group";
 import { nav } from "@/lib/routes";
-import type { ActivityPendingRequest, OutstandingLoan, Transaction } from "@/api/types";
+import type { ActivityPendingRequest, OutstandingLoan, Transaction } from "@/api";
 import { Header } from "@/components/ui/header";
 import { ScreenContainer } from "@/components/ui/screen-container";
 import { AppText } from "@/components/ui/app-text";
@@ -39,9 +39,9 @@ export default function ActivityTab(): JSX.Element {
     if (!activeGroupId) return;
     startTransition(() => setLoading(true));
     Promise.all([
-      api.groups.getPendingRequests(activeGroupId),
-      api.groups.getOutstandingLoans(activeGroupId),
-      api.groups.getRecentTransactions(activeGroupId, 5),
+      dataClient.groups.getPendingRequests(activeGroupId),
+      dataClient.groups.getOutstandingLoans(activeGroupId),
+      dataClient.groups.getRecentTransactions(activeGroupId, 5),
     ])
       .then(([requests, activeLoans, recentTxns]) => {
         startTransition(() => {

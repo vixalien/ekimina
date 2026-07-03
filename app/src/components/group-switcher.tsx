@@ -3,7 +3,7 @@ import { View } from "react-native";
 import { Avatar, BottomSheet, Button, Radio, RadioGroup } from "heroui-native";
 import { Ionicons } from "@expo/vector-icons";
 import { withUniwind } from "uniwind";
-import type { GroupMembership } from "../api/types";
+import type { GroupMembership } from "@/api";
 import { AppText } from "./ui/app-text";
 
 const StyledIonicons = withUniwind(Ionicons);

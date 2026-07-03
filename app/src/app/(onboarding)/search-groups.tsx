@@ -14,7 +14,7 @@ import {
 } from "heroui-native";
 import { Ionicons } from "@expo/vector-icons";
 import { withUniwind } from "uniwind";
-import { api } from "../../api";
+import { dataClient } from "@/api";
 import type { PublicGroup } from "../../api";
 import { nav } from "../../lib/routes";
 import { AppText } from "../../components/ui/app-text";
@@ -33,7 +33,7 @@ export default function SearchGroupsScreen(): JSX.Element {
   const search = useCallback(async (text: string) => {
     setIsLoading(true);
     try {
-      const results = await api.groups.searchPublicGroups(text);
+      const results = await dataClient.groups.searchPublicGroups(text);
       setGroups(results);
     } catch (error) {
       console.error(error);
@@ -50,7 +50,7 @@ export default function SearchGroupsScreen(): JSX.Element {
 
   useEffect(() => {
     let cancelled = false;
-    api.groups.searchPublicGroups("").then((results) => {
+    dataClient.groups.searchPublicGroups("").then((results) => {
       if (!cancelled) {
         setGroups(results);
         setIsLoading(false);
@@ -71,7 +71,7 @@ export default function SearchGroupsScreen(): JSX.Element {
     if (!selectedId || isJoining) return;
     setIsJoining(true);
     try {
-      const request = await api.groups.requestToJoinGroup("user-new", selectedId);
+      const request = await dataClient.groups.requestToJoinGroup("user-new", selectedId);
       nav.onboarding.toPending({
         requestId: request.id,
         groupName: request.groupName,

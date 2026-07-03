@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Avatar, Chip, ListGroup, Separator } from "heroui-native";
-import type { LoanSignature } from "../../api/types";
+import type { LoanSignature } from "@/api";
 import type { JSX } from "react";
 import { Fragment } from "react";
 import { View } from "react-native";

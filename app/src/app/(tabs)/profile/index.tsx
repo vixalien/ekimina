@@ -16,8 +16,8 @@ import { startTransition, useCallback, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { withUniwind } from "uniwind";
 
-import { api } from "@/api";
-import type { UserProfile } from "@/api/types";
+import { dataClient } from "@/api";
+import type { UserProfile } from "@/api";
 import { MemberAvatar } from "@/components/member-avatar";
 import { AppText } from "@/components/ui/app-text";
 import { Header } from "@/components/ui/header";
@@ -38,10 +38,10 @@ export default function ProfileTab(): JSX.Element {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   useEffect(() => {
-    if (!activeGroupId || !auth?.userId) return;
+    if (!activeGroupId || !auth?.id) return;
     startTransition(() => setLoading(true));
-    api.groups
-      .getUserProfile(activeGroupId, auth.userId)
+    dataClient.groups
+      .getUserProfile(activeGroupId, auth.id)
       .then((p) => {
         startTransition(() => {
           setProfile(p);
@@ -50,13 +50,13 @@ export default function ProfileTab(): JSX.Element {
         });
       })
       .catch(() => startTransition(() => setLoading(false)));
-  }, [activeGroupId, auth?.userId]);
+  }, [activeGroupId, auth?.id]);
 
   const handleNotificationsToggle = useCallback(
     (value: boolean) => {
       setNotificationsEnabled(value);
-      if (auth?.userId) {
-        api.groups.updateNotifications(auth.userId, value).catch(() => {});
+      if (auth?.id) {
+        dataClient.groups.updateNotifications(auth.id, value).catch(() => {});
       }
     },
     [auth]

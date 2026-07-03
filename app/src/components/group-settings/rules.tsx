@@ -11,7 +11,7 @@ import {
   useBottomSheetAwareHandlers,
 } from "heroui-native";
 import { AppText } from "../ui/app-text";
-import type { GroupSettings } from "../../api/types";
+import type { GroupSettings } from "@/api";
 
 const THRESHOLD_OPTIONS = [
   { value: "0.5", label: "1 of 2", num: 0.5 },

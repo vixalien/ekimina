@@ -5,8 +5,8 @@ import type { JSX } from "react";
 import { startTransition, useCallback, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 
-import { api } from "@/api";
-import type { MemberDetail as MemberDetailType } from "@/api/types";
+import { dataClient } from "@/api";
+import type { MemberDetail as MemberDetailType } from "@/api";
 import { AppText } from "@/components/ui/app-text";
 import { Header } from "@/components/ui/header";
 import { ScreenContainer } from "@/components/ui/screen-container";
@@ -31,9 +31,9 @@ export default function MemberDetailScreen(): JSX.Element {
 
   useEffect(() => {
     if (!activeGroup.activeGroupId || !userId) return;
-    const requestingUserId = auth?.userId ?? auth?.phone ?? "";
+    const requestingUserId = auth?.id ?? auth?.phone ?? "";
     startTransition(() => setLoading(true));
-    api.groups
+    dataClient.groups
       .getMemberDetail(activeGroup.activeGroupId, userId, requestingUserId)
       .then(setDetail)
       .catch(() => {})
@@ -42,13 +42,13 @@ export default function MemberDetailScreen(): JSX.Element {
 
   const handleWithdraw = useCallback(
     async (reasonCategory: string) => {
-      if (!activeGroup.activeGroupId || !userId || !auth?.userId) return;
+      if (!activeGroup.activeGroupId || !userId || !auth?.id) return;
       setWithdrawing(true);
       try {
-        await api.groups.initiateWithdrawal(
+        await dataClient.groups.initiateWithdrawal(
           activeGroup.activeGroupId,
           userId,
-          auth.userId,
+          auth.id,
           reasonCategory
         );
         toast.show({

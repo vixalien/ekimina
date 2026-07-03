@@ -16,9 +16,8 @@ import { StatusBar } from "expo-status-bar";
 import { HeroUINativeProvider } from "heroui-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
-import { $authLoading, clearAuth, setAuth } from "../stores/auth";
-import { clearAuthStorage, loadAuth, saveAuth } from "../lib/auth-storage";
-import { api } from "../api";
+import { $authLoading } from "../stores/auth";
+import { loadAuth } from "../lib/auth-storage";
 import { Routes } from "../lib/routes";
 
 import "../global.css";
@@ -49,38 +48,8 @@ export default function RootLayout(): JSX.Element | null {
           router.replace(Routes.welcome);
           return;
         }
-
-        const status = await api.auth.getStatus(stored.token);
-        const user = {
-          phone: status.user.phone,
-          token: stored.token,
-          accountType: "existing" as const,
-          name: status.user.name,
-          userId: status.user.id,
-        };
-        setAuth(user);
-        await saveAuth(user);
-
-        switch (status.groupStatus) {
-          case "one_group":
-          case "multiple_groups":
-            router.replace(Routes.tabs);
-            break;
-          case "invitation_pending":
-            router.replace({
-              pathname: Routes.onboarding.pending,
-              params: status.pendingRequest ?? {},
-            });
-            break;
-          case "no_groups":
-            router.replace(Routes.onboarding.joinOrCreate);
-            break;
-          default:
-            router.replace(Routes.welcome);
-        }
+        router.replace(Routes.tabs);
       } catch {
-        clearAuth();
-        await clearAuthStorage();
         router.replace(Routes.welcome);
       } finally {
         $authLoading.set(false);

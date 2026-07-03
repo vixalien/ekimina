@@ -7,8 +7,8 @@ import type { JSX } from "react";
 import { startTransition, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { withUniwind } from "uniwind";
-import { api } from "@/api";
-import type { MemberListItem, Transaction, TransactionType } from "@/api/types";
+import { dataClient } from "@/api";
+import type { MemberListItem, Transaction, TransactionType } from "@/api";
 import { CycleFilterSheet } from "@/components/activity/cycle-filter-sheet";
 import type { CycleRange } from "@/components/activity/cycle-filter-sheet";
 import { DateFilterSheet, DATE_LABELS } from "@/components/activity/date-filter-sheet";
@@ -58,7 +58,7 @@ export default function TransactionsScreen(): JSX.Element {
     : "All types";
   const memberLabel = hasMemberFilter
     ? memberFilter.length === 1
-      ? (members.find((m) => m.userId === memberFilter[0])?.name.split(" ")[0] ?? "1 member")
+      ? (members.find((m) => m.id === memberFilter[0])?.name.split(" ")[0] ?? "1 member")
       : `${memberFilter.length} members`
     : "All members";
   const cycleLabel = hasCycleFilter
@@ -70,14 +70,14 @@ export default function TransactionsScreen(): JSX.Element {
 
   useEffect(() => {
     if (!activeGroupId) return;
-    api.groups.getGroupMembers(activeGroupId).then((m) => startTransition(() => setMembers(m)));
+    dataClient.groups.getGroupMembers(activeGroupId).then((m) => startTransition(() => setMembers(m)));
   }, [activeGroupId]);
 
   useEffect(() => {
     if (!activeGroupId) return;
     startTransition(() => setLoading(true));
     const types = typeFilter !== "all" ? [typeFilter as TransactionType] : undefined;
-    api.groups
+    dataClient.groups
       .getTransactions(activeGroupId, {
         types,
         memberIds: memberFilter.length > 0 ? memberFilter : undefined,

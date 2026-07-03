@@ -7,8 +7,8 @@ import { Fragment, startTransition, useCallback, useEffect, useState } from "rea
 import { ScrollView, View } from "react-native";
 import { withUniwind } from "uniwind";
 
-import { api } from "@/api";
-import type { GroupSettingField, GroupSettings } from "@/api/types";
+import { dataClient } from "@/api";
+import type { GroupSettingField, GroupSettings } from "@/api";
 import { AppText } from "@/components/ui/app-text";
 import { Header } from "@/components/ui/header";
 import { ScreenContainer } from "@/components/ui/screen-container";
@@ -107,12 +107,12 @@ export default function GroupSettingsScreen(): JSX.Element {
   const [activeField, setActiveField] = useState<SettingsRow | null>(null);
 
   useEffect(() => {
-    if (!activeGroupId || !auth?.userId) return;
+    if (!activeGroupId || !auth?.id) return;
     startTransition(() => setLoading(true));
     Promise.all([
-      api.groups.getGroupSettings(activeGroupId),
-      api.groups.getMemberDetail(activeGroupId, auth.userId, auth.userId),
-      api.groups.getGroupDetails(activeGroupId),
+      dataClient.groups.getGroupSettings(activeGroupId),
+      dataClient.groups.getMemberDetail(activeGroupId, auth.id, auth.id),
+      dataClient.groups.getGroupDetails(activeGroupId),
     ])
       .then(([s, detail, group]) => {
         startTransition(() => {
@@ -128,7 +128,7 @@ export default function GroupSettingsScreen(): JSX.Element {
         });
       })
       .catch(() => startTransition(() => setLoading(false)));
-  }, [activeGroupId, auth?.userId]);
+  }, [activeGroupId, auth?.id]);
 
   const handleRowPress = useCallback(
     (row: SettingsRow) => {
@@ -140,9 +140,9 @@ export default function GroupSettingsScreen(): JSX.Element {
 
   const handleSubmit = useCallback(
     (proposedValue: string) => {
-      if (!activeGroupId || !auth?.userId || !activeField) return;
-      api.groups
-        .submitSettingsChange(activeGroupId, activeField.field, proposedValue, auth.userId)
+      if (!activeGroupId || !auth?.id || !activeField) return;
+      dataClient.groups
+        .submitSettingsChange(activeGroupId, activeField.field, proposedValue, auth.id)
         .then(() => {
           setModalOpen(false);
           toast.show({

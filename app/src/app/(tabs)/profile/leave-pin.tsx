@@ -6,7 +6,7 @@ import { useCallback, useState } from "react";
 import { View, Keyboard } from "react-native";
 import { withUniwind } from "uniwind";
 
-import { api } from "@/api";
+import { dataClient } from "@/api";
 import { AppText } from "@/components/ui/app-text";
 import { ScreenContainer } from "@/components/ui/screen-container";
 import { nav } from "@/lib/routes";
@@ -18,7 +18,7 @@ const StyledIonicons = withUniwind(Ionicons);
 export default function LeaveGroupPin(): JSX.Element {
   const { activeGroupId } = useStore($activeGroup);
   const auth = useStore($auth);
-  const userId = auth?.userId;
+  const userId = auth?.id;
   const [pin, setPin] = useState("");
   const [showError, setShowError] = useState(false);
   const [verifying, setVerifying] = useState(false);
@@ -28,9 +28,9 @@ export default function LeaveGroupPin(): JSX.Element {
     setVerifying(true);
     setShowError(false);
     try {
-      await api.groups.verifyPin(userId, pin);
+      await dataClient.groups.verifyPin(userId, pin);
       if (activeGroupId) {
-        api.groups.leaveGroup(activeGroupId, userId).catch(() => {});
+        dataClient.groups.leaveGroup(activeGroupId, userId).catch(() => {});
       }
       nav.profile.toLeaveGroupSent();
     } catch {

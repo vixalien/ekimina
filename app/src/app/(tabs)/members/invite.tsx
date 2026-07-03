@@ -17,8 +17,8 @@ import { ScrollView, Share, View } from "react-native";
 import { withUniwind } from "uniwind";
 import * as Clipboard from "expo-clipboard";
 
-import { api } from "@/api";
-import type { GroupInviteData } from "@/api/types";
+import { dataClient } from "@/api";
+import type { GroupInviteData } from "@/api";
 import { AppText } from "@/components/ui/app-text";
 import { Header } from "@/components/ui/header";
 import { ScreenContainer } from "@/components/ui/screen-container";
@@ -48,7 +48,7 @@ export default function InviteScreen(): JSX.Element {
 
   useEffect(() => {
     if (!activeGroupId) return;
-    api.groups
+    dataClient.groups
       .getGroupInviteData(activeGroupId)
       .then(setData)
       .catch(() => {})
@@ -76,7 +76,7 @@ export default function InviteScreen(): JSX.Element {
     if (!activeGroupId || !phone.trim() || sending) return;
     setSending(true);
     try {
-      await api.groups.sendPhoneInvite(activeGroupId, phone.trim());
+      await dataClient.groups.sendPhoneInvite(activeGroupId, phone.trim());
       toast.show({
         variant: "success",
         label: "Invite sent",

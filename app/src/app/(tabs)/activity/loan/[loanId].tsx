@@ -16,7 +16,7 @@ import { startTransition, useEffect, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { withUniwind } from "uniwind";
 
-import { api } from "@/api";
+import { dataClient } from "@/api";
 import type {
   ApprovedLoanDetail,
   DefaultedLoanDetail,
@@ -27,7 +27,7 @@ import type {
   RepayingLoanDetail,
   RequestedLoanDetail,
   SigningLoanDetail,
-} from "@/api/types";
+} from "@/api";
 import { AppText } from "@/components/ui/app-text";
 import { Header } from "@/components/ui/header";
 import { ScreenContainer } from "@/components/ui/screen-container";
@@ -327,7 +327,7 @@ export default function LoanDetailScreen(): JSX.Element {
   useEffect(() => {
     if (!activeGroupId || !loanId) return;
     startTransition(() => setLoading(true));
-    api.groups
+    dataClient.groups
       .getLoanDetail(activeGroupId, loanId)
       .then(setDetail)
       .catch(() => {})

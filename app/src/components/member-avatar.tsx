@@ -1,7 +1,7 @@
 import type { JSX } from "react";
 import { View } from "react-native";
 import { Avatar } from "heroui-native";
-import type { MemberStanding } from "../api/types";
+import type { MemberStanding } from "@/api";
 
 interface MemberAvatarProps {
   initials: string;

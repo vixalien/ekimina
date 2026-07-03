@@ -1,7 +1,7 @@
 import { Avatar, ListGroup, PressableFeedback, Separator } from "heroui-native";
 import type { JSX } from "react";
 import { View } from "react-native";
-import type { OutstandingLoan } from "../../api/types";
+import type { OutstandingLoan } from "@/api";
 import { formatRWF } from "../../lib/strings";
 import { AppText } from "../ui/app-text";
 

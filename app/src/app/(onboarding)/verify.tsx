@@ -3,10 +3,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { Button, InputOTP, REGEXP_ONLY_DIGITS, type InputOTPRef, useToast } from "heroui-native";
-import { api } from "../../api";
-import type { OtpVerificationResult } from "../../api";
+import { dataClient } from "@/api";
 import { nav } from "../../lib/routes";
-import { setAuth } from "../../stores/auth";
+import { loginWithOtp } from "../../stores/auth";
 import { saveAuth } from "../../lib/auth-storage";
 import { AppText } from "../../components/ui/app-text";
 import { OnboardingLayout } from "../../components/ui/onboarding-layout";
@@ -34,44 +33,23 @@ export default function VerifyScreen(): JSX.Element {
     return () => clearTimeout(t);
   }, [resendTimer]);
 
-  const handleResult = useCallback(async (result: OtpVerificationResult) => {
-    const authUser = {
-      phone: result.user.phone,
-      token: result.token,
-      accountType: result.status === "new_user" ? ("new" as const) : ("existing" as const),
-      name: result.user.name,
-      userId: result.user.id,
-    };
-    setAuth(authUser);
+  const handleResult = useCallback(async (result: any) => {
+    const authUser = await loginWithOtp(phone ?? "", otp);
     await saveAuth(authUser);
 
-    switch (result.status) {
-      case "new_user":
-        nav.onboarding.signup.toName();
-        break;
-      case "no_groups":
-        nav.onboarding.toJoinOrCreate();
-        break;
-      case "one_group":
-      case "multiple_groups":
-        nav.toTabs();
-        break;
-      case "invitation_pending":
-        nav.onboarding.toPending({
-          requestId: result.request.id,
-          groupName: result.request.groupName,
-          requestedAt: result.request.requestedAt,
-        });
-        break;
+    if (result.status === "created") {
+      nav.onboarding.signup.toName();
+    } else {
+      nav.onboarding.toJoinOrCreate();
     }
-  }, []);
+  }, [phone, otp]);
 
   async function handleVerify(code: string) {
     if (!phone || isVerifying) return;
     setIsVerifying(true);
     setError(null);
     try {
-      const result = await api.auth.verifyOtp(phone, code);
+      const result = await dataClient.auth.verifyOtp(phone, code);
       await handleResult(result);
     } catch (error) {
       console.error(error);
@@ -91,7 +69,7 @@ export default function VerifyScreen(): JSX.Element {
     if (!canResend || !phone) return;
     setResendTimer(RESEND_COOLDOWN);
     try {
-      await api.auth.resendOtp(phone);
+      await dataClient.auth.sendOtp(phone);
     } catch (error) {
       console.error(error);
       toast.show({

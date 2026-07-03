@@ -1,6 +1,6 @@
 import { Chip, ListGroup, PressableFeedback, Separator } from "heroui-native";
 import type { JSX } from "react";
-import type { ActivityPendingRequest, PendingRequestType } from "../../api/types";
+import type { ActivityPendingRequest, PendingRequestType } from "@/api";
 import { View } from "react-native";
 
 const REQUEST_TYPE_LABELS: Record<PendingRequestType, string> = {

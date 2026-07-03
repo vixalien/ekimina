@@ -8,7 +8,7 @@ import {
   TextField,
   useBottomSheetAwareHandlers,
 } from "heroui-native";
-import type { GroupSettings } from "../../api/types";
+import type { GroupSettings } from "@/api";
 
 interface BasicsSettingsProps {
   value: Pick<GroupSettings, "name" | "isPublic">;

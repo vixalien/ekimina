@@ -5,7 +5,7 @@ import { useLocalSearchParams } from "expo-router";
 import { Button, useToast } from "heroui-native";
 import { Ionicons } from "@expo/vector-icons";
 import { withUniwind } from "uniwind";
-import { api } from "../../api";
+import { dataClient } from "@/api";
 import { nav } from "../../lib/routes";
 import { clearAuth } from "../../stores/auth";
 import { clearAuthStorage } from "../../lib/auth-storage";
@@ -48,7 +48,7 @@ export default function PendingScreen(): JSX.Element {
     if (!requestId || isCancelling) return;
     setIsCancelling(true);
     try {
-      await api.groups.cancelJoinRequest(requestId);
+      await dataClient.groups.cancelJoinRequest(requestId);
       nav.onboarding.toJoinOrCreate();
     } catch (error) {
       console.error(error);

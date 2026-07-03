@@ -3,7 +3,7 @@ import { useStore } from "@nanostores/react";
 import { Tabs } from "expo-router";
 import { ComponentProps, startTransition, useEffect } from "react";
 
-import { api } from "../../api";
+import { dataClient } from "@/api";
 import { $auth } from "../../stores/auth";
 import { setMemberships } from "../../stores/active-group";
 
@@ -41,8 +41,8 @@ export default function TabLayout() {
 
   useEffect(() => {
     if (!auth) return;
-    const userId = auth.phone ?? auth.userId ?? "";
-    api.groups
+    const userId = auth.phone ?? auth.id ?? "";
+    dataClient.groups
       .myGroups(userId)
       .then((memberships) => startTransition(() => setMemberships(memberships)))
       .catch(() => {});
@@ -73,7 +73,7 @@ export default function TabLayout() {
 // import { View } from "react-native";
 // import { withUniwind } from "uniwind";
 
-// import { api } from "../../api";
+// import { dataClient } from "@/api";
 // import { $auth } from "../../stores/auth";
 // import { setMemberships } from "../../stores/active-group";
 
@@ -141,8 +141,8 @@ export default function TabLayout() {
 //   // Load memberships whenever auth changes -- shared across all tabs via store
 //   useEffect(() => {
 //     if (!auth) return;
-//     const userId = auth.phone ?? auth.userId ?? "";
-//     api.groups
+//     const userId = auth.phone ?? auth.id ?? "";
+//     dataClient.groups
 //       .myGroups(userId)
 //       .then((memberships) => startTransition(() => setMemberships(memberships)))
 //       .catch(() => {});

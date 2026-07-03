@@ -16,8 +16,8 @@ import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { withUniwind } from "uniwind";
 
-import { api } from "@/api";
-import type { MemberListItem } from "@/api/types";
+import { dataClient } from "@/api";
+import type { MemberListItem } from "@/api";
 import { AppText } from "@/components/ui/app-text";
 import { Header } from "@/components/ui/header";
 import { ScreenContainer } from "@/components/ui/screen-container";
@@ -53,7 +53,7 @@ export default function MembersTab(): JSX.Element {
   useEffect(() => {
     if (!groupId) return;
     startTransition(() => setLoading(true));
-    api.groups
+    dataClient.groups
       .getGroupMembers(groupId)
       .then(setMembers)
       .catch(() => {})
@@ -67,8 +67,8 @@ export default function MembersTab(): JSX.Element {
       if (!groupId) return;
       setIsSearching(true);
       const promise = !text.trim()
-        ? api.groups.getGroupMembers(groupId)
-        : api.groups.searchMembers(groupId, text.trim());
+        ? dataClient.groups.getGroupMembers(groupId)
+        : dataClient.groups.searchMembers(groupId, text.trim());
       promise
         .then(setMembers)
         .catch(() => {})
@@ -165,11 +165,11 @@ export default function MembersTab(): JSX.Element {
             {sorted.length > 0 ? (
               <ListGroup>
                 {sorted.map((member, index) => (
-                  <Fragment key={member.userId}>
+                  <Fragment key={member.id}>
                     {index > 0 && <Separator className="mx-4" />}
                     <PressableFeedback
                       animation={false}
-                      onPress={() => handleMemberPress(member.userId)}
+                      onPress={() => handleMemberPress(member.id)}
                     >
                       <PressableFeedback.Scale>
                         <ListGroup.Item>

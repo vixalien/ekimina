@@ -16,8 +16,8 @@ import { startTransition, useCallback, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { withUniwind } from "uniwind";
 
-import { api } from "@/api";
-import type { GroupSettings, MemberListItem } from "@/api/types";
+import { dataClient } from "@/api";
+import type { GroupSettings, MemberListItem } from "@/api";
 import { AppText } from "@/components/ui/app-text";
 import { Header } from "@/components/ui/header";
 import { ScreenContainer } from "@/components/ui/screen-container";
@@ -73,18 +73,18 @@ export default function CommitteeScreen(): JSX.Element {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!activeGroupId || !auth?.userId) return;
+    if (!activeGroupId || !auth?.id) return;
     startTransition(() => setLoading(true));
     Promise.all([
-      api.groups.getGroupMembers(activeGroupId),
-      api.groups.getCommitteeMembers(activeGroupId),
-      api.groups.getGroupSettings(activeGroupId),
-      api.groups.getMemberDetail(activeGroupId, auth.userId, auth.userId),
+      dataClient.groups.getGroupMembers(activeGroupId),
+      dataClient.groups.getCommitteeMembers(activeGroupId),
+      dataClient.groups.getGroupSettings(activeGroupId),
+      dataClient.groups.getMemberDetail(activeGroupId, auth.id, auth.id),
     ])
       .then(([members, committeeMembers, s, detail]) => {
         startTransition(() => {
           setAllMembers(members);
-          const ids = new Set(committeeMembers.map((m) => m.userId));
+          const ids = new Set(committeeMembers.map((m) => m.id));
           setCommitteeUserIds(ids);
           setOriginalCommittee(ids);
           setSettings(s);
@@ -93,7 +93,7 @@ export default function CommitteeScreen(): JSX.Element {
         });
       })
       .catch(() => startTransition(() => setLoading(false)));
-  }, [activeGroupId, auth?.userId]);
+  }, [activeGroupId, auth?.id]);
 
   const handleToggle = useCallback(
     (userId: string) => (value: boolean) => {
@@ -115,14 +115,14 @@ export default function CommitteeScreen(): JSX.Element {
     [...committeeUserIds].some((id) => !originalCommittee.has(id));
 
   const handleApprove = useCallback(async () => {
-    if (!activeGroupId || !auth?.userId) return;
+    if (!activeGroupId || !auth?.id) return;
     setSubmitting(true);
     try {
-      await api.groups.submitSettingsChange(
+      await dataClient.groups.submitSettingsChange(
         activeGroupId,
         "committee_size",
         String(committeeUserIds.size),
-        auth.userId
+        auth.id
       );
       setOriginalCommittee(new Set(committeeUserIds));
       toast.show({
@@ -179,12 +179,12 @@ export default function CommitteeScreen(): JSX.Element {
                 </AppText>
                 <Surface className="py-4 px-4">
                   {allMembers.map((member, index) => (
-                    <View key={member.userId}>
+                    <View key={member.id}>
                       {index > 0 && <Separator className="my-3" />}
                       <MemberSwitchField
                         member={member}
-                        isSelected={committeeUserIds.has(member.userId)}
-                        onSelectedChange={isCommittee ? handleToggle(member.userId) : () => {}}
+                        isSelected={committeeUserIds.has(member.id)}
+                        onSelectedChange={isCommittee ? handleToggle(member.id) : () => {}}
                         isDisabled={!isCommittee}
                       />
                     </View>

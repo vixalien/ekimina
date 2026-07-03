@@ -6,8 +6,8 @@ import type { JSX } from "react";
 import { startTransition, useCallback, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 
-import { api } from "@/api";
-import type { LoanRequestReview } from "@/api/types";
+import { dataClient } from "@/api";
+import type { LoanRequestReview } from "@/api";
 import { AppText } from "@/components/ui/app-text";
 import { Header } from "@/components/ui/header";
 import { ScreenContainer } from "@/components/ui/screen-container";
@@ -33,7 +33,7 @@ export default function LoanReviewScreen(): JSX.Element {
   useEffect(() => {
     if (!activeGroupId || !loanId) return;
     startTransition(() => setLoading(true));
-    api.groups
+    dataClient.groups
       .getLoanRequestReview(activeGroupId, loanId)
       .then(setReview)
       .catch(() => {})
@@ -41,14 +41,14 @@ export default function LoanReviewScreen(): JSX.Element {
   }, [activeGroupId, loanId]);
 
   const handleApprove = useCallback(async () => {
-    if (!activeGroupId || !loanId || !auth?.userId) return;
+    if (!activeGroupId || !loanId || !auth?.id) return;
     const id = toast.show({
       variant: "default",
       label: "Signing request...",
       duration: "persistent",
     });
     try {
-      const result = await api.groups.signLoanRequest(activeGroupId, loanId, auth.userId);
+      const result = await dataClient.groups.signLoanRequest(activeGroupId, loanId, auth.id);
       toast.hide(id);
       if (result.thresholdMet) {
         toast.show({
@@ -72,10 +72,10 @@ export default function LoanReviewScreen(): JSX.Element {
 
   const handleReject = useCallback(
     async (_reason: string) => {
-      if (!activeGroupId || !loanId || !auth?.userId) return;
+      if (!activeGroupId || !loanId || !auth?.id) return;
       setRejecting(true);
       try {
-        await api.groups.rejectLoanRequest(activeGroupId, loanId, auth.userId);
+        await dataClient.groups.rejectLoanRequest(activeGroupId, loanId, auth.id);
         toast.show({ variant: "default", label: "Loan request rejected" });
         setRejectOpen(false);
         nav.back();

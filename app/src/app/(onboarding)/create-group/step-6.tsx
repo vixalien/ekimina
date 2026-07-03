@@ -4,8 +4,8 @@ import { View } from "react-native";
 import { BottomSheet, Button } from "heroui-native";
 import { useStore } from "@nanostores/react";
 import { nav } from "@/lib/routes";
-import { api } from "@/api";
-import type { GroupSettings } from "@/api/types";
+import { dataClient } from "@/api";
+import type { GroupSettings } from "@/api";
 import { AppText } from "@/components/ui/app-text";
 import { WizardLayout } from "@/components/ui/wizard-layout";
 import { BasicsSettings } from "@/components/group-settings/basics";
@@ -75,9 +75,9 @@ export default function CreateGroupStep6(): JSX.Element {
     $isSubmitting.set(true);
     $submitError.set(null);
     try {
-      const result = await api.groups.createGroup({
+      const result = await dataClient.groups.createGroup({
         settings,
-        founderId: auth?.userId ?? "current-user",
+        founderId: auth?.id ?? "current-user",
       });
       const { $createdGroup } = await import("@/stores/create-group");
       $createdGroup.set({

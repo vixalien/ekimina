@@ -1,5 +1,5 @@
 import { atom, map } from "nanostores";
-import type { GroupMembership } from "../api/types";
+import type { GroupMeta } from "@/api";
 
 export const $openSwitcher = atom(false);
 
@@ -12,7 +12,7 @@ export function clearOpenSwitcher(): void {
 }
 
 export interface ActiveGroupState {
-  memberships: GroupMembership[];
+  memberships: GroupMeta[];
   activeGroupId: string | null;
   showSwitcherOnMount: boolean;
 }
@@ -23,13 +23,13 @@ export const $activeGroup = map<ActiveGroupState>({
   showSwitcherOnMount: false,
 });
 
-export function setMemberships(memberships: GroupMembership[]): void {
+export function setMemberships(memberships: GroupMeta[]): void {
   const state = $activeGroup.get();
   const hasActive =
-    state.activeGroupId && memberships.some((m) => m.group.id === state.activeGroupId);
+    state.activeGroupId && memberships.some((m) => m.address === state.activeGroupId);
   $activeGroup.set({
     memberships,
-    activeGroupId: hasActive ? state.activeGroupId : (memberships[0]?.group.id ?? null),
+    activeGroupId: hasActive ? state.activeGroupId : (memberships[0]?.address ?? null),
     showSwitcherOnMount: !hasActive && memberships.length > 1,
   });
 }
@@ -42,13 +42,13 @@ export function dismissSwitcherOnMount(): void {
   $activeGroup.setKey("showSwitcherOnMount", false);
 }
 
-export function addMembership(membership: GroupMembership): void {
+export function addMembership(membership: GroupMeta): void {
   const state = $activeGroup.get();
-  const exists = state.memberships.some((m) => m.group.id === membership.group.id);
+  const exists = state.memberships.some((m) => m.address === membership.address);
   if (exists) return;
   $activeGroup.set({
     memberships: [...state.memberships, membership],
-    activeGroupId: membership.group.id,
+    activeGroupId: membership.address,
     showSwitcherOnMount: false,
   });
 }

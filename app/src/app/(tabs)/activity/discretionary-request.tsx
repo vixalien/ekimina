@@ -5,8 +5,8 @@ import type { JSX } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 
-import { api } from "@/api";
-import type { GroupSettings } from "@/api/types";
+import { dataClient } from "@/api";
+import type { GroupSettings } from "@/api";
 import { AppText } from "@/components/ui/app-text";
 import { Header } from "@/components/ui/header";
 import { ScreenContainer } from "@/components/ui/screen-container";
@@ -31,14 +31,14 @@ export default function DiscretionaryRequestScreen(): JSX.Element {
 
   useEffect(() => {
     if (!activeGroupId) return;
-    api.groups
+    dataClient.groups
       .getGroupSettings(activeGroupId)
       .then(setSettings)
       .catch(() => {});
   }, [activeGroupId]);
 
   const handleSubmit = useCallback(async () => {
-    if (!activeGroupId || !auth?.userId || !amount) return;
+    if (!activeGroupId || !auth?.id || !amount) return;
     setSubmitting(true);
     const id = toast.show({
       variant: "default",
@@ -46,7 +46,7 @@ export default function DiscretionaryRequestScreen(): JSX.Element {
       duration: "persistent",
     });
     try {
-      await api.groups.submitDiscretionaryRequest(activeGroupId, auth.userId, {
+      await dataClient.groups.submitDiscretionaryRequest(activeGroupId, auth.id, {
         direction,
         amount: parseInt(amount, 10),
         category,

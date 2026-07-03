@@ -2,7 +2,7 @@ import { Fragment, type JSX } from "react";
 import { ListGroup, PressableFeedback, Separator } from "heroui-native";
 import { Pressable, View } from "react-native";
 
-import type { ContributionHistoryEntry } from "../../api/types";
+import type { ContributionHistoryEntry } from "@/api";
 import { AppText } from "../ui/app-text";
 
 interface ContributionHistoryProps {

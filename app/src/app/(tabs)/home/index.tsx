@@ -7,8 +7,8 @@ import { startTransition, useEffect, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { withUniwind } from "uniwind";
 
-import { api } from "@/api";
-import type { GroupDashboardData, GroupMembership } from "@/api/types";
+import { dataClient } from "@/api";
+import type { GroupDashboardData, GroupMembership } from "@/api";
 import { DonutChart } from "@/components/ui/donut-chart";
 import { MemberAvatar } from "@/components/member-avatar";
 import { Sparkline } from "@/components/ui/sparkline";
@@ -45,7 +45,7 @@ export default function HomeTab(): JSX.Element {
   useEffect(() => {
     if (!activeGroup.activeGroupId) return;
     startTransition(() => setLoading(true));
-    api.groups
+    dataClient.groups
       .getGroupDashboard(activeGroup.activeGroupId)
       .then(setDashboard)
       .catch(() => {})
@@ -196,7 +196,7 @@ export default function HomeTab(): JSX.Element {
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <View className="flex-row items-center gap-2">
                   {dashboard.members.slice(0, 15).map((m) => (
-                    <MemberAvatar key={m.userId} initials={m.initials} status={m.status} />
+                    <MemberAvatar key={m.id} initials={m.initials} status={m.status} />
                   ))}
                   {dashboard.members.length > 15 && (
                     <View className="size-9 items-center justify-center">

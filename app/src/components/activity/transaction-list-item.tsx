@@ -3,7 +3,7 @@ import { cn, ListGroup, PressableFeedback, Separator } from "heroui-native";
 import type { JSX } from "react";
 import { View } from "react-native";
 import { withUniwind } from "uniwind";
-import type { Transaction, TransactionDirection } from "../../api/types";
+import type { Transaction, TransactionDirection } from "@/api";
 import {
   STATUS_ICON_BG,
   STATUS_ICON_COLOR,

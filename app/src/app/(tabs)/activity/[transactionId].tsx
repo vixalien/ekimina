@@ -16,7 +16,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { withUniwind } from "uniwind";
-import { api } from "@/api";
+import { dataClient } from "@/api";
 import type {
   ContributionDetail,
   DiscretionaryDetail,
@@ -25,7 +25,7 @@ import type {
   PayoutDetail,
   PenaltyDetail,
   TransactionDetail,
-} from "@/api/types";
+} from "@/api";
 import { Header } from "@/components/ui/header";
 import { ScreenContainer } from "@/components/ui/screen-container";
 import { AppText } from "@/components/ui/app-text";
@@ -142,7 +142,7 @@ export default function TransactionDetailScreen(): JSX.Element {
 
   useEffect(() => {
     if (!activeGroupId || !transactionId) return;
-    api.groups
+    dataClient.groups
       .getTransactionDetail(activeGroupId, transactionId)
       .then((d) => {
         setDetail(d);
@@ -159,7 +159,7 @@ export default function TransactionDetailScreen(): JSX.Element {
       duration: "persistent",
     });
     try {
-      await api.groups.retryTransaction(transactionId);
+      await dataClient.groups.retryTransaction(transactionId);
       toast.hide(id);
       toast.show({
         variant: "success",

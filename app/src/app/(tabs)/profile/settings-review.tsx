@@ -6,8 +6,8 @@ import type { JSX } from "react";
 import { startTransition, useCallback, useEffect, useState } from "react";
 import { View } from "react-native";
 
-import { api } from "@/api";
-import type { SettingsChangeRequest } from "@/api/types";
+import { dataClient } from "@/api";
+import type { SettingsChangeRequest } from "@/api";
 import { AppText } from "@/components/ui/app-text";
 import { Header } from "@/components/ui/header";
 import { ScreenContainer } from "@/components/ui/screen-container";
@@ -31,7 +31,7 @@ export default function SettingsReviewScreen(): JSX.Element {
   useEffect(() => {
     if (!activeGroupId || !requestId) return;
     startTransition(() => setLoading(true));
-    api.groups
+    dataClient.groups
       .getSettingsChangeReview(activeGroupId, requestId)
       .then(setReview)
       .catch(() => {})
@@ -39,17 +39,17 @@ export default function SettingsReviewScreen(): JSX.Element {
   }, [activeGroupId, requestId]);
 
   const handleApprove = useCallback(async () => {
-    if (!activeGroupId || !requestId || !auth?.userId) return;
+    if (!activeGroupId || !requestId || !auth?.id) return;
     const id = toast.show({
       variant: "default",
       label: "Signing request...",
       duration: "persistent",
     });
     try {
-      const result = await api.groups.signSettingsChange(
+      const result = await dataClient.groups.signSettingsChange(
         activeGroupId,
         requestId,
-        auth.userId
+        auth.id
       );
       toast.hide(id);
       if (result.thresholdMet) {
@@ -74,10 +74,10 @@ export default function SettingsReviewScreen(): JSX.Element {
 
   const handleReject = useCallback(
     async (_reason: string) => {
-      if (!activeGroupId || !requestId || !auth?.userId) return;
+      if (!activeGroupId || !requestId || !auth?.id) return;
       setRejecting(true);
       try {
-        await api.groups.rejectSettingsChange(activeGroupId, requestId, auth.userId);
+        await dataClient.groups.rejectSettingsChange(activeGroupId, requestId, auth.id);
         toast.show({ variant: "default", label: "Settings change rejected" });
         setRejectOpen(false);
         nav.back();

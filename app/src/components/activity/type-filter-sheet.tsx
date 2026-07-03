@@ -1,7 +1,7 @@
 import { BottomSheet, Radio, RadioGroup, Separator, Surface } from "heroui-native";
 import { Fragment, type JSX } from "react";
 import { View } from "react-native";
-import type { TransactionType } from "../../api/types";
+import type { TransactionType } from "@/api";
 import { TRANSACTION_TYPE_LABELS } from "../../lib/activity-constants";
 import { AppText } from "../ui/app-text";
 

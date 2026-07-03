@@ -2,9 +2,9 @@ import type { JSX } from "react";
 import { useState } from "react";
 import { useStore } from "@nanostores/react";
 import { InputGroup, Label, TextField, useToast } from "heroui-native";
-import { api } from "../../../api";
+import { dataClient } from "@/api";
 import { nav } from "../../../lib/routes";
-import { $auth, setAuth } from "../../../stores/auth";
+import { $auth } from "../../../stores/auth";
 import { saveAuth } from "../../../lib/auth-storage";
 import { OnboardingLayout } from "../../../components/ui/onboarding-layout";
 
@@ -18,10 +18,7 @@ export default function SignupNameScreen(): JSX.Element {
     if (name.trim().length < 2 || !auth?.token) return;
     setIsLoading(true);
     try {
-      console.log("here");
-      await api.auth.updateProfile(auth.token, name.trim());
       const updated = { ...auth, name: name.trim() };
-      setAuth(updated);
       await saveAuth(updated);
       nav.onboarding.signup.toWallet();
     } catch (error) {

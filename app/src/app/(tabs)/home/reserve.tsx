@@ -8,8 +8,8 @@ import { startTransition, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { withUniwind } from "uniwind";
 
-import { api } from "@/api";
-import type { ReserveCycleSummary, ReserveDetail } from "@/api/types";
+import { dataClient } from "@/api";
+import type { ReserveCycleSummary, ReserveDetail } from "@/api";
 import { AppText } from "@/components/ui/app-text";
 import { Header } from "@/components/ui/header";
 import { LineChart } from "@/components/ui/line-chart";
@@ -62,7 +62,7 @@ export default function ReserveDetailScreen(): JSX.Element {
   useEffect(() => {
     if (!activeGroupId) return;
     startTransition(() => setLoading(true));
-    api.groups
+    dataClient.groups
       .getReserveDetail(activeGroupId)
       .then((d) => startTransition(() => { setData(d); setLoading(false); }))
       .catch(() => startTransition(() => setLoading(false)));

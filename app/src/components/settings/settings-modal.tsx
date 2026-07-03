@@ -16,7 +16,7 @@ import { useCallback, useState } from "react";
 import { Pressable, View } from "react-native";
 import { withUniwind } from "uniwind";
 
-import type { GroupSettingField } from "@/api/types";
+import type { GroupSettingField } from "@/api";
 import { AppText } from "@/components/ui/app-text";
 
 const StyledIonicons = withUniwind(Ionicons);
