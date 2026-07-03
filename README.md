@@ -1,39 +1,43 @@
 # e-Kimina
 
-A decentralized rotating savings platform for Rwanda, built on the Celo blockchain and accessible via USSD. Members contribute monthly using any feature phone (no internet required), funds are held on-chain, and the pool rotates to one member per round - digitalizing the traditional *ikimina* savings group.
-
-**GitHub:** https://github.com/vixalien/ekimina
-**Demo Video:** https://drive.google.com/file/d/1XSszz41XGPqmFxvwDwswy4_iboQAO3xM/view?usp=sharing
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Backend | Hono (TypeScript) on Node.js |
-| Database | PostgreSQL + Drizzle ORM *(planned)* |
-| Blockchain | Solidity on Celo, Viem client |
-| USSD gateway | Africa's Talking SDK *(planned)* |
-| Payments | MTN MoMo API *(planned)* |
-| USSD simulator | Vanilla HTML/JS (local dev tool) |
+A decentralized rotating savings platform for Rwanda. The smart contract is the source of truth for money and rules; a thin Hono backend handles auth, identity, and cached chain reads. The mobile app (Expo + HeroUI Native) lets members create groups, contribute, receive rotating payouts, request and repay loans, and govern through on-chain proposals.
 
 ---
 
 ## Architecture
 
 ```
-Feature phone
-     │ dials *950#
+Mobile App (Expo + HeroUI Native)
+     │ viem WalletClient (non-custodial) / hono/rpc (custodial)
      ▼
-Africa's Talking  ──POST /ussd──►  Hono Backend  ◄──►  PostgreSQL
-                                        │
-                                        ▼
-                                   Celo Blockchain
-                               (Ikimina.sol contract)
+Hono Backend ──► Hardhat node (local) / Celo (testnet)
+     │
+     ├─ Auth (OTP + JWT)
+     ├─ Profile / Lookup
+     ├─ Indexer (cached chain reads)
+     └─ Relay (custodial transaction relay)
 ```
 
-The backend handles USSD session state and member lookups. On-chain contributions and payouts are executed via the smart contract, which holds funds as cUSD (Celo's stablecoin). Payments are initiated through MTN MoMo and bridged to cUSD on Celo.
+The **Ikimina** contract controls contributions, rotating payouts, proposal governance (loans, settings, member exit, dissolve), and loan lifecycle. The backend owns only PII, invite codes, proposal text, and an event indexer. The app signs directly to the chain (non-custodial) or relays through the backend (custodial phone/USSD path).
+
+---
+
+## Project layout
+
+```
+capstone/
+  packages/
+    types/src/        Shared TypeScript types (primitives → chain → backend → client)
+    contracts/src/    Contract ABIs + viem helpers
+  contract/           Solidity contracts + Foundry tests
+    contracts/
+      Ikimina.sol     Per-group contract (governance, loans, rotation)
+      MockUSDm.sol    Test ERC20 for local development
+    contracts/test/
+      Ikimina.t.sol   Solidity unit tests (forge-std)
+  backend/            Hono OpenAPI server with viem chain integration
+  app/                Expo Router mobile app (HeroUI Native + Uniwind)
+```
 
 ---
 
@@ -41,9 +45,8 @@ The backend handles USSD session state and member lookups. On-chain contribution
 
 ### Prerequisites
 
-- Node.js 20+
-- pnpm 9+
-- (Optional) A Celo wallet with Sepolia cUSD for contract interaction
+- Node.js 20+, pnpm 9+
+- A Celo wallet with Sepolia cUSD for live testnet (optional for local dev)
 
 ### Install
 
@@ -53,184 +56,107 @@ cd ekimina
 pnpm install
 ```
 
-### Run the USSD simulator
+---
 
-The simulator lets you walk through all USSD flows in a browser without a phone or Africa's Talking account.
+## Running locally
 
-```bash
-cd test
-pnpm dev
-# opens at http://localhost:8080
-```
+You need four terminals for the full stack.
 
-Enter a member phone number (e.g. `+250788100001`) or the group leader (`+250788666655`) and dial `*950#`.
-
-### Run the backend
-
-```bash
-cd backend
-pnpm dev
-# API at http://localhost:3000
-```
-
-The backend currently uses in-memory mock data. PostgreSQL integration is the next step.
-
-**Available endpoints:**
-
-| Method | Path | Description |
-|---|---|---|
-| `POST` | `/ussd` | Africa's Talking USSD webhook |
-| `GET` | `/members/:phone` | Member lookup by phone |
-| `GET` | `/members/:phone/contributions` | Member contribution history |
-| `GET` | `/groups/:id` | Group details |
-| `GET` | `/groups/:id/members` | Group member list |
-| `GET` | `/groups/:id/rotation` | Payout rotation schedule |
-
-### Smart contract
-
-The contract is already deployed to Celo Sepolia testnet:
-
-```
-IkiminaModule#Ikimina - 0xf19Ac821098228064d81fe3Bd09e30fa132Ea803
-```
-
-View on explorer: https://celo-sepolia.blockscout.com/address/0xf19Ac821098228064d81fe3Bd09e30fa132Ea803
-
-To redeploy:
+### Terminal 1 — Hardhat node
 
 ```bash
 cd contract
-cp .env.example .env   # add your CELO_SEPOLIA_PRIVATE_KEY
-pnpm deploy
+pnpm hardhat node
 ```
 
----
+Runs an EVM node on `localhost:8545` with pre-funded accounts.
 
-## USSD Navigation
+### Terminal 2 — Deploy contracts
 
-The USSD interface is the primary frontend. All flows begin by dialing `*950#`.
-
-```
-*950#
-└── Language (1 English / 2 Kinyarwanda / 3 Français)
-    └── Main Menu
-        ├── 1. Make Contribution
-        │   ├── 1. Pay with MTN MoMo
-        │   │   └── Confirm → Payment result + reputation update
-        │   └── 2. Pay with Airtel Money
-        │       └── Confirm → Payment result + reputation update
-        ├── 2. My Contributions    (contribution history, all rounds)
-        ├── 3. Group Info
-        │   ├── 1. Rotation Schedule   (who gets paid each round)
-        │   └── 2. Current Round       (pool total, paid count)
-        ├── 4. My Reputation
-        │   └── 1. What is reputation?
-        ├── 5. My Balance              (total contributed, payout estimate)
-        └── 6. Manage Group            [group leader only]
-            ├── 1. Add Member          (phone → verify MoMo → confirm)
-            ├── 2. Set Round Recipient (select member from list)
-            ├── 3. Release Payout      (sends pool to recipient on-chain)
-            ├── 4. Record Default      (penalises non-paying member -20 rep)
-            └── 5. Member List         (all members + reputation scores)
+```bash
+cd contract
+pnpm hardhat run scripts/deploy-local.ts --network localhost
 ```
 
-Screenshots of each flow are in [`docs/screenshots/`](docs/screenshots/).
+Prints `FACTORY_ADDRESS=0x...`. Save this value.
 
----
+### Terminal 3 — Backend
 
-## Data Model
-
-Planned schema using Drizzle ORM with PostgreSQL:
-
-```ts
-// groups
-{
-  id:                 uuid (PK)
-  name:               text
-  district:           text
-  sector:             text
-  contribution_amount: numeric        // in cUSD
-  cycle_frequency:    text            // 'monthly' | 'weekly'
-  current_round:      integer
-  total_rounds:       integer
-  round_end_date:     date
-  contract_address:   text            // on-chain address
-  created_at:         timestamp
-}
-
-// members
-{
-  id:            uuid (PK)
-  group_id:      uuid (FK -> groups)
-  name:          text
-  phone:         text (unique)        // E.164 format
-  role:          text                 // 'member' | 'leader'
-  reputation:    integer              // 0-100, starts at 50
-  payout_round:  integer              // which round they receive the pool
-  wallet_address: text               // Celo wallet for on-chain payouts
-  created_at:    timestamp
-}
-
-// contributions
-{
-  id:        uuid (PK)
-  member_id: uuid (FK -> members)
-  round:     integer
-  amount:    numeric
-  paid_at:   timestamp
-  status:    text                    // 'paid' | 'pending' | 'late' | 'defaulted'
-}
-
-// rotation
-{
-  id:        uuid (PK)
-  group_id:  uuid (FK -> groups)
-  round:     integer
-  member_id: uuid (FK -> members)
-  status:    text                    // 'pending' | 'current' | 'paid'
-  paid_at:   timestamp
-}
+```bash
+cd backend
+FACTORY_ADDRESS=0x<address-from-step-2> pnpm dev
 ```
 
-Reputation score is mirrored off-chain from the smart contract for fast reads. The contract is the source of truth for balances and payouts.
+Starts the Hono API server on `http://localhost:3000`. Endpoints:
 
----
-
-## Blockchain
-
-**Contract:** `Ikimina.sol` deployed to Celo Sepolia  
-**Address:** `0xf19Ac821098228064d81fe3Bd09e30fa132Ea803`  
-**Token:** cUSD (Celo Dollar stablecoin, ERC-20)
-
-Key on-chain operations:
-
-| Function | Who | Description |
+| Method | Path | Description |
 |---|---|---|
-| `registerMember(address)` | Admin | Adds a member, sets reputation to 50 |
-| `contribute()` | Member | Transfers cUSD to contract, +5 reputation |
-| `setRoundRecipient(round, address)` | Admin | Assigns payout recipient for a round |
-| `releasePayout()` | Admin | Sends pool to recipient, advances round |
-| `recordDefault(address)` | Admin | Penalises non-paying member, -20 reputation |
+| `POST` | `/auth/otp/send` | Send OTP (mock: `123456`) |
+| `POST` | `/auth/otp/verify` | Verify OTP, returns JWT + user |
+| `POST` | `/auth/pin` | Set custodial PIN |
+| `POST` | `/auth/pin/verify` | Verify PIN |
+| `GET` | `/users/{address}` | Get user by address |
+| `PATCH` | `/users/me` | Update profile |
+| `POST` | `/lookup/names` | Resolve addresses to names |
+| `GET` | `/groups/by-invite/{code}` | Lookup group by invite code |
+| `GET` | `/users/{address}/groups` | User's group memberships |
+| `GET` | `/groups/{group}` | Group config |
+| `GET` | `/groups/{group}/cycle` | Current cycle state |
+| `GET` | `/groups/{group}/members` | Active member list |
+| `POST` | `/relay/groups/{group}/contribute` | Contribute (custodial) |
+| `POST` | `/relay/groups/{group}/join` | Join group (custodial) |
+| `POST` | `/relay/groups/{group}/trigger-payout` | Advance payout (custodial) |
 
-Events emitted: `MemberRegistered`, `ContributionMade`, `PayoutReleased`, `DefaultRecorded`
+### Terminal 4 — Mobile app
+
+```bash
+cd app
+pnpm expo start --web
+```
+
+Opens the Expo dev server. Use mock OTP `123456` to log in.
 
 ---
 
-## Deployment Plan
+## Smart contract
 
-| Component | Platform | Status |
-|---|---|---|
-| Smart contract | Celo Sepolia (testnet) | Deployed |
-| Smart contract | Celo Mainnet | Planned (after audit) |
-| Backend API | Railway (Node.js) | Planned |
-| Database | Railway PostgreSQL | Planned |
-| USSD shortcode | Africa's Taking (`*950#`) | Pending subscription |
-| MoMo integration | MTN MoMo Sandbox | Planned |
+The `Ikimina` contract (per-group) manages contributions, rotating payouts, proposal governance, and loans. The `IkiminaFactory` deploys new group contracts.
 
-**Steps to production:**
-1. Replace in-memory data with Drizzle + PostgreSQL
-2. Integrate Africa's Talking USSD SDK for live shortcode
-3. Integrate MTN MoMo API for mobile money contributions
-4. Deploy backend to Railway, connect to managed PostgreSQL
-5. Audit and deploy contract to Celo Mainnet
-6. Register USSD shortcode with Rwanda Utilities Regulatory Authority (RURA)
+**Key governance flows (all via on-chain proposals):**
+
+| Proposal kind | What happens |
+|---|---|
+| `loan` | Disburses tokens to borrower, creates a loan |
+| `discretionary` | Disburses tokens to a recipient |
+| `settings` | Updates group config (contribution, penalties, etc.) |
+| `member_exit` | Removes member, pays settlement |
+| `dissolve` | Shares out reserve equally, closes group |
+
+Proposals auto-execute at threshold and auto-reject when approval becomes impossible. No manual execution needed.
+
+### Tests
+
+```bash
+cd contract
+pnpm hardhat test
+```
+
+11 Solidity unit tests covering factory deploy, join, contribute, trigger payout, penalties, proposal lifecycle (create → approve → auto-execute), auto-reject, loan repay, and dissolve.
+
+---
+
+## State of migration
+
+The app has been partially migrated from mock data to the on-chain design. The core API layer, contract, and backend are complete. Tab screens still have ~33 TypeScript errors from accessing old mock type properties (`direction`, `status`, `memberName`, etc.) on the new `Transaction` type. They compile with fallback stubs — screens render but some data may not display correctly until each screen is updated to `@ekimina/types` shapes.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Mobile app | Expo 57, HeroUI Native, Uniwind (Tailwind v4) |
+| Backend | Hono + `@hono/zod-openapi` + viem |
+| Smart contract | Solidity 0.8.28, Hardhat 3, forge-std |
+| Key management | viem WalletClient + Expo AsyncStorage |
+| State | Nanostores |
