@@ -114,16 +114,10 @@ function buildDetailRows(detail: TransactionDetail): DetailRow[] {
         { label: "Method", value: d.method },
       ];
     }
-    case "discretionary_deposit":
-    case "discretionary_withdrawal": {
-      const d = detail as DiscretionaryDetail;
-      const isDeposit = d.type === "discretionary_deposit";
+    case "discretionary_disbursement":
+    default: {
       return [
-        { label: "Direction", value: isDeposit ? "Deposit" : "Withdrawal" },
-        { label: "Category", value: d.category },
-        { label: isDeposit ? "Received from" : "Paid to", value: d.counterparty },
-        { label: "Reason", value: d.reason },
-        { label: "Approved by", value: d.approvedBy },
+        { label: "Type", value: detail.type },
         { label: "Date", value: dateStr },
       ];
     }
@@ -144,7 +138,7 @@ export default function TransactionDetailScreen(): JSX.Element {
     if (!activeGroupId || !transactionId) return;
     dataClient.groups
       .getTransactionDetail(activeGroupId, transactionId)
-      .then((d) => {
+      .then((d: any) => {
         setDetail(d);
         setLoading(false);
       })

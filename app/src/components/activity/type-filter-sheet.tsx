@@ -1,11 +1,10 @@
 import { BottomSheet, Radio, RadioGroup, Separator, Surface } from "heroui-native";
 import { Fragment, type JSX } from "react";
 import { View } from "react-native";
-import type { TransactionType } from "@/api";
 import { TRANSACTION_TYPE_LABELS } from "../../lib/activity-constants";
 import { AppText } from "../ui/app-text";
 
-type TypeFilterValue = "all" | TransactionType;
+type TypeFilterValue = string;
 
 const TYPE_OPTIONS: { value: TypeFilterValue; label: string }[] = [
   { value: "all", label: "All types" },
@@ -14,8 +13,7 @@ const TYPE_OPTIONS: { value: TypeFilterValue; label: string }[] = [
   { value: "penalty", label: TRANSACTION_TYPE_LABELS.penalty },
   { value: "loan_repayment", label: TRANSACTION_TYPE_LABELS.loan_repayment },
   { value: "loan_disbursement", label: TRANSACTION_TYPE_LABELS.loan_disbursement },
-  { value: "discretionary_deposit", label: TRANSACTION_TYPE_LABELS.discretionary_deposit },
-  { value: "discretionary_withdrawal", label: TRANSACTION_TYPE_LABELS.discretionary_withdrawal },
+  { value: "discretionary_disbursement", label: TRANSACTION_TYPE_LABELS.discretionary_disbursement },
 ];
 
 interface TypeFilterSheetProps {

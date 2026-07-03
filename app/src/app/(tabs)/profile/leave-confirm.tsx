@@ -35,7 +35,7 @@ export default function LeaveGroupConfirm(): JSX.Element {
     startTransition(() => setLoading(true));
     dataClient.groups
       .getLeaveGroupInfo(activeGroupId, auth.id)
-      .then((i) =>
+      .then((i: any) =>
         startTransition(() => {
           setInfo(i);
           setLoading(false);

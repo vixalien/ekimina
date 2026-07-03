@@ -70,7 +70,7 @@ export default function TransactionsScreen(): JSX.Element {
 
   useEffect(() => {
     if (!activeGroupId) return;
-    dataClient.groups.getGroupMembers(activeGroupId).then((m) => startTransition(() => setMembers(m)));
+    dataClient.groups.getGroupMembers(activeGroupId).then((m: any) => startTransition(() => setMembers(m)));
   }, [activeGroupId]);
 
   useEffect(() => {
@@ -84,7 +84,7 @@ export default function TransactionsScreen(): JSX.Element {
         cycleRange: cycleFilter ?? undefined,
         datePreset: dateFilter !== "all" ? dateFilter : undefined,
       })
-      .then((txns) =>
+      .then((txns: any) =>
         startTransition(() => {
           setTransactions(txns);
           setLoading(false);

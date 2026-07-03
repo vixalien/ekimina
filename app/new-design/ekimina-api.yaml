@@ -1,0 +1,932 @@
+openapi: 3.1.0
+info:
+  title: e-Kimina backend
+  version: 0.1.0
+  description: >
+    Thin off-chain backend for e-Kimina. It owns only PII, phone-path key
+    custody, invite resolution, proposal text, payment intents, and an indexer
+    that mirrors chain events into a fast read cache. It is NOT the source of
+    truth for money or rules; the per-group Ikimina contract is.
+
+    Read routes serve cached chain data (chain types verbatim; proposals are
+    merged with off-chain text into ProposalView). Write routes exist only for
+    custodial USSD/phone users, whose key the backend holds; app users sign and
+    submit to chain themselves and never call the relay.
+
+    Money is always a base-unit string (uint256 of USDm). Never a JSON number.
+servers:
+  - url: https://api.ekimina.example/v1
+
+tags:
+  - name: auth
+  - name: profile
+  - name: lookup
+  - name: indexer
+  - name: proposal-text
+  - name: payments
+  - name: relay
+
+paths:
+  # ---- Auth (phone / USSD path) --------------------------------
+  /auth/otp/send:
+    post:
+      tags: [auth]
+      summary: Send an OTP to a phone number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone]
+              properties:
+                phone: { type: string, example: "+250788123456" }
+      responses:
+        "200":
+          description: OTP dispatched
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sent: { type: boolean }
+
+  /auth/otp/verify:
+    post:
+      tags: [auth]
+      summary: Verify OTP; creates the user and provisions an encrypted key if new
+      description: >
+        On a new phone the backend generates an EVM key, encrypts it at rest
+        (PIN-derived), and returns the user. Existing phones return their user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone, code]
+              properties:
+                phone: { type: string }
+                code: { type: string, example: "482913" }
+      responses:
+        "200":
+          description: Verified
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuthResult" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /auth/pin:
+    post:
+      tags: [auth]
+      summary: Set or change the PIN that guards the custodial key
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [pin]
+              properties:
+                pin: { type: string, example: "1234" }
+      responses:
+        "200": { $ref: "#/components/responses/Ok" }
+
+  /auth/pin/verify:
+    post:
+      tags: [auth]
+      summary: Verify the PIN (unlocks relay actions for this session)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [pin]
+              properties:
+                pin: { type: string }
+      responses:
+        "200": { $ref: "#/components/responses/Ok" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  # ---- Profile -------------------------------------------------
+  /users/{address}:
+    get:
+      tags: [profile]
+      summary: Get a user by address
+      parameters: [{ $ref: "#/components/parameters/Address" }]
+      responses:
+        "200":
+          description: User
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /users/me:
+    patch:
+      tags: [profile]
+      summary: Update the caller's name or notification preference
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                notificationsEnabled: { type: boolean }
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+
+  # ---- Lookup --------------------------------------------------
+  /lookup/names:
+    post:
+      tags: [lookup]
+      summary: Resolve addresses to display names
+      description: The only path by which names enter the client.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [addresses]
+              properties:
+                addresses:
+                  type: array
+                  items: { $ref: "#/components/schemas/Address" }
+      responses:
+        "200":
+          description: address to name map
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: { type: string }
+                example: { "0x1234...abcd": "Aline U." }
+
+  /groups/by-invite/{code}:
+    get:
+      tags: [lookup]
+      summary: Resolve an invite code to group metadata
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema: { type: string, example: "K7QP2" }
+      responses:
+        "200":
+          description: Group metadata
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GroupMeta" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  # ---- Indexer reads (cached chain data) -----------------------
+  /users/{address}/groups:
+    get:
+      tags: [indexer]
+      summary: Groups the address belongs to
+      parameters: [{ $ref: "#/components/parameters/Address" }]
+      responses:
+        "200":
+          description: Group metadata list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/GroupMeta" }
+
+  /groups/{group}:
+    get:
+      tags: [indexer]
+      summary: On-chain group config
+      parameters: [{ $ref: "#/components/parameters/Group" }]
+      responses:
+        "200":
+          description: Group config
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Group" }
+
+  /groups/{group}/cycle:
+    get:
+      tags: [indexer]
+      summary: Live cycle state
+      parameters: [{ $ref: "#/components/parameters/Group" }]
+      responses:
+        "200":
+          description: Cycle state
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GroupCycle" }
+
+  /groups/{group}/members:
+    get:
+      tags: [indexer]
+      summary: Members (active and tombstoned)
+      parameters: [{ $ref: "#/components/parameters/Group" }]
+      responses:
+        "200":
+          description: Members
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/GroupMember" }
+
+  /groups/{group}/transactions:
+    get:
+      tags: [indexer]
+      summary: Transaction log (decoded events), filterable
+      parameters:
+        - { $ref: "#/components/parameters/Group" }
+        - name: types
+          in: query
+          schema:
+            type: array
+            items: { $ref: "#/components/schemas/TransactionType" }
+          style: form
+          explode: false
+        - name: actors
+          in: query
+          schema:
+            type: array
+            items: { $ref: "#/components/schemas/Address" }
+          style: form
+          explode: false
+        - name: cycleFrom
+          in: query
+          schema: { type: integer }
+        - name: cycleTo
+          in: query
+          schema: { type: integer }
+        - name: datePreset
+          in: query
+          schema:
+            type: string
+            enum: [all, this_week, this_month, last_30]
+      responses:
+        "200":
+          description: Transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Transaction" }
+
+  /groups/{group}/transactions/{txId}:
+    get:
+      tags: [indexer]
+      summary: One transaction
+      parameters:
+        - { $ref: "#/components/parameters/Group" }
+        - name: txId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Transaction
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Transaction" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /groups/{group}/proposals:
+    get:
+      tags: [indexer]
+      summary: Proposals as views (chain envelope + threshold + backend text)
+      parameters:
+        - { $ref: "#/components/parameters/Group" }
+        - name: state
+          in: query
+          schema: { $ref: "#/components/schemas/ProposalState" }
+      responses:
+        "200":
+          description: Proposal views
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/ProposalView" }
+
+  /groups/{group}/proposals/{id}:
+    get:
+      tags: [indexer]
+      summary: One proposal view
+      parameters:
+        - { $ref: "#/components/parameters/Group" }
+        - { $ref: "#/components/parameters/ProposalId" }
+      responses:
+        "200":
+          description: Proposal view
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ProposalView" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /groups/{group}/loans:
+    get:
+      tags: [indexer]
+      summary: Active and closed loans
+      parameters:
+        - { $ref: "#/components/parameters/Group" }
+        - name: borrower
+          in: query
+          schema: { $ref: "#/components/schemas/Address" }
+      responses:
+        "200":
+          description: Loans
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/GroupLoan" }
+
+  /groups/{group}/loans/{id}:
+    get:
+      tags: [indexer]
+      summary: One loan
+      parameters:
+        - { $ref: "#/components/parameters/Group" }
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Loan
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GroupLoan" }
+
+  /groups/{group}/reserve/history:
+    get:
+      tags: [indexer]
+      summary: Per-cycle reserve balances (projections are computed client-side)
+      parameters: [{ $ref: "#/components/parameters/Group" }]
+      responses:
+        "200":
+          description: Reserve points
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/ReservePoint" }
+
+  # ---- Proposal text (off-chain half) --------------------------
+  /proposals/text:
+    get:
+      tags: [proposal-text]
+      summary: Fetch text for a set of proposals
+      parameters:
+        - name: ids
+          in: query
+          required: true
+          schema:
+            type: array
+            items: { type: string }
+          style: form
+          explode: false
+      responses:
+        "200":
+          description: proposalId to text map
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: { $ref: "#/components/schemas/ProposalText" }
+    post:
+      tags: [proposal-text]
+      summary: Save text alongside a created proposal
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ProposalText" }
+      responses:
+        "200": { $ref: "#/components/responses/Ok" }
+
+  # ---- Payment intents (MoMo / bridge, off-chain lifecycle) ----
+  /payments/intents:
+    post:
+      tags: [payments]
+      summary: Open a payment intent (mocked RWF to USDm bridge for the pilot)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userAddress, groupAddress, purpose, amount]
+              properties:
+                userAddress: { $ref: "#/components/schemas/Address" }
+                groupAddress: { $ref: "#/components/schemas/Address" }
+                purpose: { type: string, enum: [contribution, loan_repayment] }
+                amount: { $ref: "#/components/schemas/BaseUnit" }
+      responses:
+        "201":
+          description: Intent created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaymentIntent" }
+
+  /payments/intents/{id}:
+    get:
+      tags: [payments]
+      summary: Poll an intent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Intent
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaymentIntent" }
+
+  /payments/intents/{id}/retry:
+    post:
+      tags: [payments]
+      summary: Retry a failed, retryable intent
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: New intent state
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaymentIntent" }
+
+  # ---- Relay writes (custodial USSD users only) ----------------
+  # The backend signs with the user's custodied key after PIN verification.
+  # App users do NOT use these; they sign and submit to chain themselves.
+  /relay/groups/{group}/contribute:
+    post:
+      tags: [relay]
+      summary: Relay a contribute() call
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/Group" }]
+      responses:
+        "202": { $ref: "#/components/responses/Relayed" }
+
+  /relay/groups/{group}/join:
+    post:
+      tags: [relay]
+      summary: Relay a join(code) call
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/Group" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code: { type: string }
+      responses:
+        "202": { $ref: "#/components/responses/Relayed" }
+
+  /relay/groups/{group}/trigger-payout:
+    post:
+      tags: [relay]
+      summary: Relay a triggerPayout() call
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/Group" }]
+      responses:
+        "202": { $ref: "#/components/responses/Relayed" }
+
+  /relay/groups/{group}/repay:
+    post:
+      tags: [relay]
+      summary: Relay a repayLoan(loanId) call
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/Group" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [loanId]
+              properties:
+                loanId: { type: string }
+      responses:
+        "202": { $ref: "#/components/responses/Relayed" }
+
+  /relay/groups/{group}/proposals:
+    post:
+      tags: [relay]
+      summary: Relay a typed propose* call and store its text
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/Group" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ProposalDraft" }
+      responses:
+        "202": { $ref: "#/components/responses/Relayed" }
+
+  /relay/groups/{group}/proposals/{id}/approve:
+    post:
+      tags: [relay]
+      summary: Relay an approveProposal(id) call
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { $ref: "#/components/parameters/Group" }
+        - { $ref: "#/components/parameters/ProposalId" }
+      responses:
+        "202": { $ref: "#/components/responses/Relayed" }
+
+  /relay/groups/{group}/proposals/{id}/reject:
+    post:
+      tags: [relay]
+      summary: Relay a rejectProposal(id) call
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { $ref: "#/components/parameters/Group" }
+        - { $ref: "#/components/parameters/ProposalId" }
+      responses:
+        "202": { $ref: "#/components/responses/Relayed" }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+  parameters:
+    Address:
+      name: address
+      in: path
+      required: true
+      schema: { $ref: "#/components/schemas/Address" }
+    Group:
+      name: group
+      in: path
+      required: true
+      description: Group contract address
+      schema: { $ref: "#/components/schemas/Address" }
+    ProposalId:
+      name: id
+      in: path
+      required: true
+      schema: { type: string }
+
+  responses:
+    Ok:
+      description: Success flag
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              ok: { type: boolean }
+    Relayed:
+      description: Accepted for relay; returns the submitted tx id
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              txId: { type: string }
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+
+    Address:
+      type: string
+      pattern: "^0x[a-fA-F0-9]{40}$"
+      example: "0x1234567890abcdef1234567890abcdef12345678"
+
+    BaseUnit:
+      type: string
+      description: uint256 token amount in base units (USDm). String, never a number.
+      pattern: "^[0-9]+$"
+      example: "5000000000000000000"
+
+    Bps:
+      type: integer
+      minimum: 0
+      maximum: 10000
+
+    ISODate:
+      type: string
+      format: date-time
+
+    PayoutPolicy:
+      type: string
+      enum: [none, rotating, lump_sum_end]
+
+    ProposalKind:
+      type: string
+      enum: [loan, discretionary, settings, member_exit, dissolve]
+
+    ProposalState:
+      type: string
+      enum: [pending, approved, rejected, executed]
+
+    LoanState:
+      type: string
+      enum: [disbursed, repaying, repaid, defaulted]
+
+    TransactionType:
+      type: string
+      enum:
+        - contribution
+        - payout
+        - penalty
+        - loan_disbursement
+        - loan_repayment
+        - discretionary_disbursement
+        - share_out
+        - member_joined
+        - member_exited
+
+    User:
+      type: object
+      required: [id, address, name, phone, custodial, notificationsEnabled]
+      properties:
+        id: { type: string }
+        address: { $ref: "#/components/schemas/Address" }
+        name: { type: string, nullable: true }
+        phone: { type: string, nullable: true }
+        custodial: { type: boolean }
+        notificationsEnabled: { type: boolean }
+
+    AuthResult:
+      type: object
+      required: [status, token, user]
+      properties:
+        status: { type: string, enum: [existing, created] }
+        token: { type: string }
+        user: { $ref: "#/components/schemas/User" }
+
+    GroupMeta:
+      type: object
+      required: [address, name, inviteCode, createdAt, creator]
+      properties:
+        address: { $ref: "#/components/schemas/Address" }
+        name: { type: string }
+        inviteCode: { type: string, nullable: true }
+        createdAt: { $ref: "#/components/schemas/ISODate" }
+        creator: { $ref: "#/components/schemas/Address" }
+
+    Group:
+      type: object
+      required:
+        - contributionAmount
+        - cycleLength
+        - payoutAmount
+        - payoutPolicy
+        - penaltyRateBps
+        - approvalThresholdBps
+        - loansEnabled
+        - discretionaryEnabled
+        - allMembersCommittee
+      properties:
+        contributionAmount: { $ref: "#/components/schemas/BaseUnit" }
+        cycleLength: { type: integer, description: seconds }
+        payoutAmount: { $ref: "#/components/schemas/BaseUnit" }
+        payoutPolicy: { $ref: "#/components/schemas/PayoutPolicy" }
+        penaltyRateBps: { $ref: "#/components/schemas/Bps" }
+        approvalThresholdBps: { $ref: "#/components/schemas/Bps" }
+        loansEnabled: { type: boolean }
+        discretionaryEnabled: { type: boolean }
+        allMembersCommittee: { type: boolean }
+
+    GroupCycle:
+      type: object
+      required:
+        - currentCycle
+        - rotationLength
+        - cycleStart
+        - reserveBalance
+        - paidCount
+        - memberCount
+      properties:
+        currentCycle: { type: integer, description: monotonic round counter }
+        rotationLength: { type: integer, description: turns per rotation = active member count }
+        cycleStart: { $ref: "#/components/schemas/ISODate" }
+        reserveBalance: { $ref: "#/components/schemas/BaseUnit" }
+        paidCount: { type: integer }
+        memberCount: { type: integer }
+
+    GroupMember:
+      type: object
+      required: [address, isCommitteeMember, joinedCycle, active]
+      properties:
+        address: { $ref: "#/components/schemas/Address" }
+        isCommitteeMember: { type: boolean }
+        joinedCycle: { type: integer }
+        active: { type: boolean }
+
+    Approval:
+      type: object
+      required: [approver, at]
+      properties:
+        approver: { $ref: "#/components/schemas/Address" }
+        at: { $ref: "#/components/schemas/ISODate" }
+
+    ReservePoint:
+      type: object
+      required: [cycle, balance]
+      properties:
+        cycle: { type: integer }
+        balance: { $ref: "#/components/schemas/BaseUnit" }
+
+    GroupLoan:
+      type: object
+      required:
+        - id
+        - groupAddress
+        - sourceProposalId
+        - borrower
+        - principal
+        - interestBps
+        - totalOwed
+        - amountPaid
+        - dueCycle
+        - state
+      properties:
+        id: { type: string }
+        groupAddress: { $ref: "#/components/schemas/Address" }
+        sourceProposalId: { type: string }
+        borrower: { $ref: "#/components/schemas/Address" }
+        principal: { $ref: "#/components/schemas/BaseUnit" }
+        interestBps: { $ref: "#/components/schemas/Bps" }
+        totalOwed: { $ref: "#/components/schemas/BaseUnit" }
+        amountPaid: { $ref: "#/components/schemas/BaseUnit" }
+        dueCycle: { type: integer }
+        state: { $ref: "#/components/schemas/LoanState" }
+
+    ProposalText:
+      type: object
+      required: [proposalId]
+      properties:
+        proposalId: { type: string }
+        purpose: { type: string }
+        category: { type: string }
+        reason: { type: string }
+        reasonCategory: { type: string }
+
+    PaymentIntent:
+      type: object
+      required:
+        - id
+        - userAddress
+        - groupAddress
+        - purpose
+        - amount
+        - status
+        - failureReason
+        - retryable
+        - createdAt
+        - resultingTxId
+      properties:
+        id: { type: string }
+        userAddress: { $ref: "#/components/schemas/Address" }
+        groupAddress: { $ref: "#/components/schemas/Address" }
+        purpose: { type: string, enum: [contribution, loan_repayment] }
+        amount: { $ref: "#/components/schemas/BaseUnit" }
+        status: { type: string, enum: [pending, confirmed, failed] }
+        failureReason: { type: string, nullable: true }
+        retryable: { type: boolean }
+        createdAt: { $ref: "#/components/schemas/ISODate" }
+        resultingTxId: { type: string, nullable: true }
+
+    # ---- Transaction (discriminated by type) -------------------
+    TransactionBase:
+      type: object
+      required: [id, groupAddress, type, actor, amount, cycle, timestamp, sourceProposalId]
+      properties:
+        id: { type: string }
+        groupAddress: { $ref: "#/components/schemas/Address" }
+        type: { $ref: "#/components/schemas/TransactionType" }
+        actor: { $ref: "#/components/schemas/Address" }
+        amount: { oneOf: [{ $ref: "#/components/schemas/BaseUnit" }, { type: "null" }] }
+        cycle: { type: integer }
+        timestamp: { $ref: "#/components/schemas/ISODate" }
+        sourceProposalId: { type: string, nullable: true }
+    Transaction:
+      allOf:
+        - $ref: "#/components/schemas/TransactionBase"
+        - type: object
+          properties:
+            recipient: { $ref: "#/components/schemas/Address" }
+            member: { $ref: "#/components/schemas/Address" }
+            loanId: { type: string }
+      discriminator:
+        propertyName: type
+
+    # ---- ProposalView (discriminated by kind) ------------------
+    ProposalViewBase:
+      type: object
+      required: [id, groupAddress, kind, proposer, approvals, rejections, threshold, state, createdAt, resultingTxId]
+      properties:
+        id: { type: string }
+        groupAddress: { $ref: "#/components/schemas/Address" }
+        kind: { $ref: "#/components/schemas/ProposalKind" }
+        proposer: { $ref: "#/components/schemas/Address" }
+        approvals:
+          type: array
+          items: { $ref: "#/components/schemas/Approval" }
+        rejections:
+          type: array
+          items: { $ref: "#/components/schemas/Approval" }
+        threshold: { type: integer }
+        state: { $ref: "#/components/schemas/ProposalState" }
+        createdAt: { $ref: "#/components/schemas/ISODate" }
+        resultingTxId: { type: string, nullable: true }
+    ProposalView:
+      allOf:
+        - $ref: "#/components/schemas/ProposalViewBase"
+        - type: object
+          properties:
+            borrower: { $ref: "#/components/schemas/Address" }
+            amount: { $ref: "#/components/schemas/BaseUnit" }
+            interestBps: { $ref: "#/components/schemas/Bps" }
+            dueCycle: { type: integer }
+            purpose: { type: string }
+            recipient: { $ref: "#/components/schemas/Address" }
+            category: { type: string }
+            reason: { type: string }
+            field: { type: string }
+            currentValue: { type: string }
+            proposedValue: { type: string }
+            member: { $ref: "#/components/schemas/Address" }
+            settlementAmount: { $ref: "#/components/schemas/BaseUnit" }
+            reasonCategory: { type: string }
+      discriminator:
+        propertyName: kind
+
+    # ---- ProposalDraft (relay create payload) ------------------
+    ProposalDraft:
+      oneOf:
+        - type: object
+          required: [kind, borrower, amount, interestBps, dueCycle, purpose]
+          properties:
+            kind: { type: string, enum: [loan] }
+            borrower: { $ref: "#/components/schemas/Address" }
+            amount: { $ref: "#/components/schemas/BaseUnit" }
+            interestBps: { $ref: "#/components/schemas/Bps" }
+            dueCycle: { type: integer }
+            purpose: { type: string }
+        - type: object
+          required: [kind, recipient, amount, category, reason]
+          properties:
+            kind: { type: string, enum: [discretionary] }
+            recipient: { $ref: "#/components/schemas/Address" }
+            amount: { $ref: "#/components/schemas/BaseUnit" }
+            category: { type: string }
+            reason: { type: string }
+        - type: object
+          required: [kind, field, proposedValue]
+          properties:
+            kind: { type: string, enum: [settings] }
+            field: { type: string }
+            proposedValue: { type: string }
+        - type: object
+          required: [kind, member, settlementAmount, reasonCategory]
+          properties:
+            kind: { type: string, enum: [member_exit] }
+            member: { $ref: "#/components/schemas/Address" }
+            settlementAmount: { $ref: "#/components/schemas/BaseUnit" }
+            reasonCategory: { type: string }
+        - type: object
+          required: [kind]
+          properties:
+            kind: { type: string, enum: [dissolve] }

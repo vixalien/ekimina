@@ -1,4 +1,4 @@
-import type { GroupSettings } from "../api/types";
+import type { GroupSettings } from "@/api";
 
 export interface GroupTemplate {
   id: string;

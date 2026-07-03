@@ -38,9 +38,9 @@ export default function HomeTab(): JSX.Element {
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
 
   const activeMembership = activeGroup.memberships.find(
-    (m) => m.group.id === activeGroup.activeGroupId
+    (m) => m.address === activeGroup.activeGroupId
   );
-  const groupName = activeMembership?.group.name ?? "";
+  const groupName = activeMembership?.name ?? "";
 
   useEffect(() => {
     if (!activeGroup.activeGroupId) return;
@@ -68,8 +68,8 @@ export default function HomeTab(): JSX.Element {
     }
   }, [openSwitcherFlag]);
 
-  function handleSelectGroup(membership: GroupMembership) {
-    switchGroup(membership.group.id);
+  function handleSelectGroup(membership: any) {
+    switchGroup(membership.address);
     setIsSwitcherOpen(false);
   }
 
@@ -195,7 +195,7 @@ export default function HomeTab(): JSX.Element {
               </AppText>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <View className="flex-row items-center gap-2">
-                  {dashboard.members.slice(0, 15).map((m) => (
+                  {dashboard.members.slice(0, 15).map((m: any) => (
                     <MemberAvatar key={m.id} initials={m.initials} status={m.status} />
                   ))}
                   {dashboard.members.length > 15 && (

@@ -52,10 +52,7 @@ function formatDate(iso: string): string {
 
 // ── Status states info bottom sheet ────────────────────────────────────
 
-const ALL_STATES: { state: LoanState; description: string }[] = [
-  { state: "requested", description: "Loan request submitted, awaiting committee signatures" },
-  { state: "signing", description: "Collecting committee signatures for approval" },
-  { state: "approved", description: "All signatures collected, pending disbursement" },
+const ALL_STATES: { state: string; description: string }[] = [
   { state: "disbursed", description: "Funds sent to borrower, repayment pending" },
   { state: "repaying", description: "Borrower is repaying the loan" },
   { state: "repaid", description: "Loan fully repaid, interest added to group reserve" },

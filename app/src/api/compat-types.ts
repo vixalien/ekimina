@@ -34,6 +34,7 @@ export type LoanDisbursementDetail = any;
 export type LoanRepaymentDetail = any;
 export type PayoutDetail = any;
 export type PenaltyDetail = any;
+export type Transaction = any;
 export type TransactionDetail = any;
 export type TransactionStatus = any;
 export type ApprovedLoanDetail = any;

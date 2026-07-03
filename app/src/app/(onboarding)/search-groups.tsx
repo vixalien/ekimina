@@ -50,7 +50,7 @@ export default function SearchGroupsScreen(): JSX.Element {
 
   useEffect(() => {
     let cancelled = false;
-    dataClient.groups.searchPublicGroups("").then((results) => {
+    dataClient.groups.searchPublicGroups("").then((results: any) => {
       if (!cancelled) {
         setGroups(results);
         setIsLoading(false);

@@ -42,7 +42,7 @@ export default function ProfileTab(): JSX.Element {
     startTransition(() => setLoading(true));
     dataClient.groups
       .getUserProfile(activeGroupId, auth.id)
-      .then((p) => {
+      .then((p: any) => {
         startTransition(() => {
           setProfile(p);
           setNotificationsEnabled(p.notificationsEnabled);

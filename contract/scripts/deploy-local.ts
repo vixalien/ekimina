@@ -1,17 +1,20 @@
 import hre from "hardhat";
 
 async function main() {
-  const [deployer] = await hre.viem.getWalletClients();
+  const client = await hre.network.connect();
+  const [deployer] = await client.viem.getWalletClients();
   console.log("Deploying from:", deployer.account.address);
 
-  const mockUsdm = await hre.viem.deployContract("MockUSDm", []);
-  console.log("MockUSDm deployed to:", mockUsdm.address);
+  const mockContract = await client.viem.deployContract("MockUSDm", []);
+  const mockAddress = mockContract.address;
+  console.log("MockUSDm deployed to:", mockAddress);
 
-  const factory = await hre.viem.deployContract("IkiminaFactory", [mockUsdm.address]);
-  console.log("IkiminaFactory deployed to:", factory.address);
+  const factoryContract = await client.viem.deployContract("IkiminaFactory", [mockAddress]);
+  const factoryAddress = factoryContract.address;
+  console.log("IkiminaFactory deployed to:", factoryAddress);
 
   console.log("\nSet this env var when starting the backend:");
-  console.log(`FACTORY_ADDRESS=${factory.address}`);
+  console.log(`FACTORY_ADDRESS=${factoryAddress}`);
 }
 
 main().catch(console.error);

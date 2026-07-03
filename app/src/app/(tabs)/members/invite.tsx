@@ -167,7 +167,7 @@ export default function InviteScreen(): JSX.Element {
                   Sent invites
                 </AppText>
                 <ListGroup>
-                  {data.sentInvites.map((invite, index) => (
+                  {data.sentInvites.map((invite: any, index: number) => (
                     <View key={invite.phone}>
                       {index > 0 && <Separator className="mx-4" />}
                       <ListGroup.Item disabled>

@@ -84,7 +84,7 @@ export default function CommitteeScreen(): JSX.Element {
       .then(([members, committeeMembers, s, detail]) => {
         startTransition(() => {
           setAllMembers(members);
-          const ids = new Set(committeeMembers.map((m) => m.id));
+          const ids = new Set<string>(committeeMembers.map((m: any) => m.id as string));
           setCommitteeUserIds(ids);
           setOriginalCommittee(ids);
           setSettings(s);

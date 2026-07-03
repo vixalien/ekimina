@@ -64,7 +64,7 @@ export default function ReserveDetailScreen(): JSX.Element {
     startTransition(() => setLoading(true));
     dataClient.groups
       .getReserveDetail(activeGroupId)
-      .then((d) => startTransition(() => { setData(d); setLoading(false); }))
+      .then((d: any) => startTransition(() => { setData(d); setLoading(false); }))
       .catch(() => startTransition(() => setLoading(false)));
   }, [activeGroupId]);
 
@@ -118,8 +118,8 @@ export default function ReserveDetailScreen(): JSX.Element {
 
             {/* Chart */}
             <LineChart
-              history={data.history.map((d) => d.balance)}
-              projection={projection.map((d) => d.balance)}
+              history={data.history.map((d: any) => d.balance)}
+              projection={projection.map((d: any) => d.balance)}
             />
 
             {/* Breakdown */}

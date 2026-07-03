@@ -1,5 +1,5 @@
 import { map } from "nanostores";
-import type { GroupSettings } from "../api/types";
+import type { GroupSettings } from "@/api";
 import { GROUP_TEMPLATES } from "../constants/group-templates";
 
 export type TemplateId = "student" | "vacation" | "farmers" | "employee" | "scratch";
