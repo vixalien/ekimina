@@ -6,4 +6,6 @@ packages:
   - test
   - backend
   - app
+  - packages/*
 nodeLinker: hoisted
+minimumReleaseAge: 0
