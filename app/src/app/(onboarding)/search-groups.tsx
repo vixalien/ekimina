@@ -14,8 +14,9 @@ import {
   TextField,
   useToast,
 } from "heroui-native";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { View } from "react-native";
+import useSWR from "swr";
 import { withUniwind } from "uniwind";
 
 import { api } from "@/api";
@@ -33,6 +34,17 @@ export default function SearchGroupsScreen(): JSX.Element {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isJoining, setIsJoining] = useState(false);
   const { toast } = useToast();
+  const initialLoadDone = useRef(false);
+
+  const { data: initialGroups } = useSWR("public-groups", () => api.groups.searchPublicGroups(""));
+
+  useEffect(() => {
+    if (initialGroups && !initialLoadDone.current) {
+      setGroups(initialGroups);
+      setIsLoading(false);
+      initialLoadDone.current = true;
+    }
+  }, [initialGroups]);
 
   const search = useCallback(
     async (text: string) => {
@@ -54,23 +66,6 @@ export default function SearchGroupsScreen(): JSX.Element {
     },
     [toast],
   );
-
-  useEffect(() => {
-    let cancelled = false;
-    api.groups
-      .searchPublicGroups("")
-      .then((results: PublicGroup[]) => {
-        if (!cancelled) {
-          setGroups(results);
-          setIsLoading(false);
-        }
-        return;
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   function handleQueryChange(text: string) {
     setQuery(text);

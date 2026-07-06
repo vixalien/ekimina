@@ -20,9 +20,10 @@ import { useEffect, useRef } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 
+import { SwrProvider } from "../api/swr-provider";
 import { loadAuth } from "../lib/auth-storage";
 import { Routes } from "../lib/routes";
-import { $authLoading } from "../stores/auth";
+import { $auth, $authLoading } from "../stores/auth";
 
 SplashScreen.setOptions({ duration: 300, fade: true });
 
@@ -50,6 +51,7 @@ export default function RootLayout(): JSX.Element | null {
           router.replace(Routes.welcome);
           return;
         }
+        $auth.set(stored);
         router.replace(Routes.tabs);
       } catch {
         router.replace(Routes.welcome);
@@ -70,14 +72,16 @@ export default function RootLayout(): JSX.Element | null {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <KeyboardProvider>
         <HeroUINativeProvider>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="index" />
-            <Stack.Screen name="welcome" />
-            <Stack.Screen name="(onboarding)" />
-            <Stack.Screen name="(tabs)" />
-          </Stack>
-          {/* oxlint-disable-next-line react/style-prop-object — expo-status-bar accepts string style */}
-          <StatusBar style="auto" />
+          <SwrProvider>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="index" />
+              <Stack.Screen name="welcome" />
+              <Stack.Screen name="(onboarding)" />
+              <Stack.Screen name="(tabs)" />
+            </Stack>
+            {/* oxlint-disable-next-line react/style-prop-object — expo-status-bar accepts string style */}
+            <StatusBar style="auto" />
+          </SwrProvider>
         </HeroUINativeProvider>
       </KeyboardProvider>
     </GestureHandlerRootView>

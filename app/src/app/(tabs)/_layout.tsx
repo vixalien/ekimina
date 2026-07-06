@@ -1,7 +1,7 @@
 import type { ComponentProps, JSX } from "react";
 import type { ColorValue } from "react-native";
 
-import type { Address, GroupMeta } from "@/api";
+import type { GroupMeta } from "@/api";
 
 import { Ionicons } from "@expo/vector-icons";
 import { useStore } from "@nanostores/react";
@@ -51,11 +51,11 @@ export default function TabLayout() {
 
   useEffect(() => {
     if (!auth) return;
-    const userId = auth.phone ?? auth.id ?? "";
+    const userId = auth.address ?? auth.id ?? "";
     api.groups
-      .myGroups(userId as Address)
+      .myGroups(userId)
       .then((memberships: GroupMeta[]) => startTransition(() => setMemberships(memberships)))
-      .catch(() => {});
+      .catch(() => startTransition(() => setMemberships([])));
   }, [auth]);
 
   return (

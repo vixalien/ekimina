@@ -1,13 +1,11 @@
 import type { JSX } from "react";
 
-import type { ActivityPendingRequest, OutstandingLoan, Transaction } from "@/api";
-
 import { Ionicons } from "@expo/vector-icons";
 import { useStore } from "@nanostores/react";
 import { LinearGradient } from "expo-linear-gradient";
 import { ListGroup, PressableFeedback, ScrollShadow, Separator } from "heroui-native";
-import { startTransition, useEffect, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
+import useSWR from "swr";
 import { withUniwind } from "uniwind";
 
 import { api } from "@/api";
@@ -33,30 +31,17 @@ function SectionLabel({ label, showBadge }: { label: string; showBadge?: boolean
 
 export default function ActivityTab(): JSX.Element {
   const { activeGroupId } = useStore($activeGroup);
-  const [pendingRequests, setPendingRequests] = useState<ActivityPendingRequest[]>([]);
-  const [loans, setLoans] = useState<OutstandingLoan[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!activeGroupId) return;
-    startTransition(() => setLoading(true));
+  const { data, isLoading } = useSWR(activeGroupId ? `activity:${activeGroupId}` : null, () =>
     Promise.all([
-      api.groups.getPendingRequests(activeGroupId),
-      api.groups.getOutstandingLoans(activeGroupId),
-      api.groups.getRecentTransactions(activeGroupId, 5),
-    ])
-      .then(([requests, activeLoans, recentTxns]) => {
-        startTransition(() => {
-          setPendingRequests(requests);
-          setLoans(activeLoans);
-          setTransactions(recentTxns);
-          setLoading(false);
-        });
-        return;
-      })
-      .catch(() => setLoading(false));
-  }, [activeGroupId]);
+      api.groups.getPendingRequests(activeGroupId!),
+      api.groups.getOutstandingLoans(activeGroupId!),
+      api.groups.getRecentTransactions(activeGroupId!, 5),
+    ]),
+  );
+
+  const pendingRequests = data?.[0] ?? [];
+  const loans = data?.[1] ?? [];
+  const transactions = data?.[2] ?? [];
 
   return (
     <ScreenContainer>
@@ -69,7 +54,7 @@ export default function ActivityTab(): JSX.Element {
           </Pressable>
         }
       />
-      {loading ? (
+      {isLoading ? (
         <View className="flex-1 items-center justify-center">
           <AppText className="text-muted text-base">Loading...</AppText>
         </View>

@@ -16,9 +16,9 @@ import {
   Separator,
   useToast,
 } from "heroui-native";
-import { Fragment, type JSX } from "react";
-import { useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, type JSX } from "react";
 import { ScrollView, View } from "react-native";
+import useSWR from "swr";
 import { withUniwind } from "uniwind";
 
 import { api } from "@/api";
@@ -128,20 +128,10 @@ export default function TransactionDetailScreen(): JSX.Element {
   const { activeGroupId } = useStore($activeGroup);
   const { toast } = useToast();
 
-  const [detail, setDetail] = useState<TransactionDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!activeGroupId || !transactionId) return;
-    api.groups
-      .getTransactionDetail(activeGroupId, transactionId)
-      .then((d: TransactionDetail) => {
-        setDetail(d);
-        setLoading(false);
-        return;
-      })
-      .catch(() => setLoading(false));
-  }, [activeGroupId, transactionId]);
+  const { data: detail, isLoading } = useSWR(
+    activeGroupId && transactionId ? `tx:${activeGroupId}:${transactionId}` : null,
+    () => api.groups.getTransactionDetail(activeGroupId!, transactionId),
+  );
 
   const handleRetry = useCallback(async () => {
     if (!transactionId) return;
@@ -168,7 +158,7 @@ export default function TransactionDetailScreen(): JSX.Element {
     }
   }, [transactionId, toast]);
 
-  if (loading || !detail) {
+  if (isLoading || !detail) {
     return (
       <ScreenContainer>
         <Header canGoBack />

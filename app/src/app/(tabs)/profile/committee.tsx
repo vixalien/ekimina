@@ -1,6 +1,6 @@
 import type { JSX } from "react";
 
-import type { CommitteeMember, GroupSettings, MemberListItem } from "@/api";
+import type { MemberListItem } from "@/api";
 
 import { Ionicons } from "@expo/vector-icons";
 import { useStore } from "@nanostores/react";
@@ -15,8 +15,9 @@ import {
   Surface,
   useToast,
 } from "heroui-native";
-import { startTransition, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
+import useSWR from "swr";
 import { withUniwind } from "uniwind";
 
 import { api } from "@/api";
@@ -66,37 +67,35 @@ export default function CommitteeScreen(): JSX.Element {
   const auth = useStore($auth);
   const { toast } = useToast();
 
-  const [allMembers, setAllMembers] = useState<MemberListItem[]>([]);
   const [committeeUserIds, setCommitteeUserIds] = useState<Set<string>>(new Set());
   const [originalCommittee, setOriginalCommittee] = useState<Set<string>>(new Set());
-  const [settings, setSettings] = useState<GroupSettings | null>(null);
-  const [isCommittee, setIsCommittee] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
+  const { data: committeeData, isLoading } = useSWR(
+    activeGroupId && auth?.id ? `committee:${activeGroupId}` : null,
+    () =>
+      Promise.all([
+        api.groups.getGroupMembers(activeGroupId!),
+        api.groups.getCommitteeMembers(activeGroupId!),
+        api.groups.getGroupSettings(activeGroupId!),
+        api.groups.getMemberDetail(activeGroupId!, auth!.id, auth!.id),
+      ]),
+  );
+
+  const allMembers = committeeData?.[0] ?? [];
+  const committeeMembers = committeeData?.[1] ?? [];
+  const settings = committeeData?.[2] ?? null;
+  const memberDetail = committeeData?.[3] ?? null;
+
+  const isCommittee = memberDetail?.isCommitteeMember ?? false;
+
   useEffect(() => {
-    if (!activeGroupId || !auth?.id) return;
-    startTransition(() => setLoading(true));
-    Promise.all([
-      api.groups.getGroupMembers(activeGroupId),
-      api.groups.getCommitteeMembers(activeGroupId),
-      api.groups.getGroupSettings(activeGroupId),
-      api.groups.getMemberDetail(activeGroupId, auth.id, auth.id),
-    ])
-      .then(([members, committeeMembers, s, detail]) => {
-        startTransition(() => {
-          setAllMembers(members);
-          const ids = new Set<string>(committeeMembers.map((m: CommitteeMember) => m.userId));
-          setCommitteeUserIds(ids);
-          setOriginalCommittee(ids);
-          setSettings(s);
-          setIsCommittee(detail.isCommitteeMember);
-          setLoading(false);
-        });
-        return;
-      })
-      .catch(() => startTransition(() => setLoading(false)));
-  }, [activeGroupId, auth?.id]);
+    if (committeeMembers.length > 0) {
+      const ids = new Set<string>(committeeMembers.map((m) => m.userId));
+      setCommitteeUserIds(ids);
+      setOriginalCommittee(ids);
+    }
+  }, [committeeMembers]);
 
   const handleToggle = useCallback(
     (userId: string) => (value: boolean) => {
@@ -140,7 +139,7 @@ export default function CommitteeScreen(): JSX.Element {
     }
   }, [activeGroupId, auth, committeeUserIds, toast]);
 
-  if (loading || !settings) {
+  if (isLoading || !settings) {
     return (
       <ScreenContainer>
         <Header title="Committee members" canGoBack />

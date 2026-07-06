@@ -1,13 +1,12 @@
 import type { JSX } from "react";
 
-import type { LoanRequestReview } from "@/api";
-
 import { useStore } from "@nanostores/react";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams } from "expo-router";
 import { Button, ScrollShadow, useToast } from "heroui-native";
-import { startTransition, useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { ScrollView, View } from "react-native";
+import useSWR from "swr";
 
 import { api } from "@/api";
 import { BorrowerInfo } from "@/components/loan/borrower-info";
@@ -27,20 +26,12 @@ export default function LoanReviewScreen(): JSX.Element {
   const auth = useStore($auth);
   const { toast } = useToast();
 
-  const [review, setReview] = useState<LoanRequestReview | null>(null);
-  const [loading, setLoading] = useState(true);
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejecting, setRejecting] = useState(false);
-
-  useEffect(() => {
-    if (!activeGroupId || !loanId) return;
-    startTransition(() => setLoading(true));
-    api.groups
-      .getLoanRequestReview(activeGroupId, loanId)
-      .then(setReview)
-      .catch(() => {})
-      .finally(() => startTransition(() => setLoading(false)));
-  }, [activeGroupId, loanId]);
+  const { data: review, isLoading } = useSWR(
+    activeGroupId && loanId ? `loan-review:${activeGroupId}:${loanId}` : null,
+    () => api.groups.getLoanRequestReview(activeGroupId!, loanId),
+  );
 
   const handleApprove = useCallback(async () => {
     if (!activeGroupId || !loanId || !auth?.id) return;
@@ -90,7 +81,7 @@ export default function LoanReviewScreen(): JSX.Element {
     [activeGroupId, loanId, auth, toast],
   );
 
-  if (loading || !review) {
+  if (isLoading || !review) {
     return (
       <ScreenContainer>
         <Header canGoBack />

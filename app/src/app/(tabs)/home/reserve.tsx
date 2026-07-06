@@ -1,4 +1,4 @@
-import type { ReserveCycleSummary, ReserveDetail } from "@/api";
+import type { ReserveCycleSummary } from "@/api";
 
 import { Ionicons } from "@expo/vector-icons";
 import { useStore } from "@nanostores/react";
@@ -6,8 +6,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { ListGroup, PressableFeedback, ScrollShadow, Separator, Surface } from "heroui-native";
 import { Fragment, type JSX } from "react";
-import { startTransition, useEffect, useState } from "react";
+import { useState } from "react";
 import { ScrollView, View } from "react-native";
+import useSWR from "swr";
 import { withUniwind } from "uniwind";
 
 import { api } from "@/api";
@@ -105,25 +106,13 @@ function handleRowPress(type: string) {
 
 export default function ReserveDetailScreen(): JSX.Element {
   const { activeGroupId } = useStore($activeGroup);
-  const [data, setData] = useState<ReserveDetail | null>(null);
-  const [loading, setLoading] = useState(true);
   const [horizon, setHorizon] = useState<Horizon>("6");
 
-  useEffect(() => {
-    if (!activeGroupId) return;
-    startTransition(() => setLoading(true));
-    api.groups
-      .getReserveDetail(activeGroupId)
-      .then((d: ReserveDetail) =>
-        startTransition(() => {
-          setData(d);
-          setLoading(false);
-        }),
-      )
-      .catch(() => startTransition(() => setLoading(false)));
-  }, [activeGroupId]);
+  const { data, isLoading } = useSWR(activeGroupId ? `reserve:${activeGroupId}` : null, () =>
+    api.groups.getReserveDetail(activeGroupId!),
+  );
 
-  if (loading || !data) {
+  if (isLoading || !data) {
     return (
       <ScreenContainer className="items-center justify-center">
         <AppText className="text-muted text-base">Loading...</AppText>

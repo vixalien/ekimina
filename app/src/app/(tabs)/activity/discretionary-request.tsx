@@ -1,12 +1,11 @@
 import type { JSX } from "react";
 
-import type { GroupSettings } from "@/api";
-
 import { useStore } from "@nanostores/react";
 import { LinearGradient } from "expo-linear-gradient";
 import { Button, Chip, InputGroup, ScrollShadow, TextField, useToast } from "heroui-native";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
+import useSWR from "swr";
 
 import { api } from "@/api";
 import { AppText } from "@/components/ui/app-text";
@@ -28,16 +27,12 @@ export default function DiscretionaryRequestScreen(): JSX.Element {
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [paidTo, setPaidTo] = useState("");
   const [reason, setReason] = useState("");
-  const [settings, setSettings] = useState<GroupSettings | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (!activeGroupId) return;
-    api.groups
-      .getGroupSettings(activeGroupId)
-      .then(setSettings)
-      .catch(() => {});
-  }, [activeGroupId]);
+  const { data: settings = null } = useSWR(
+    activeGroupId ? `disc-settings:${activeGroupId}` : null,
+    () => api.groups.getGroupSettings(activeGroupId!),
+  );
 
   const handleSubmit = useCallback(async () => {
     if (!activeGroupId || !auth?.id || !amount) return;

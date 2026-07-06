@@ -1,7 +1,5 @@
 import type { JSX } from "react";
 
-import type { LeaveGroupInfo } from "@/api";
-
 import { Ionicons } from "@expo/vector-icons";
 import { useStore } from "@nanostores/react";
 import { LinearGradient } from "expo-linear-gradient";
@@ -13,8 +11,8 @@ import {
   Separator,
   Surface,
 } from "heroui-native";
-import { startTransition, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
+import useSWR from "swr";
 import { withUniwind } from "uniwind";
 
 import { api } from "@/api";
@@ -33,24 +31,12 @@ function goBack() {
 export default function LeaveGroupConfirm(): JSX.Element {
   const { activeGroupId } = useStore($activeGroup);
   const auth = useStore($auth);
-  const [info, setInfo] = useState<LeaveGroupInfo | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: info, isLoading } = useSWR(
+    activeGroupId && auth?.id ? `leave-info:${activeGroupId}:${auth.id}` : null,
+    () => api.groups.getLeaveGroupInfo(activeGroupId!, auth!.id),
+  );
 
-  useEffect(() => {
-    if (!activeGroupId || !auth?.id) return;
-    startTransition(() => setLoading(true));
-    api.groups
-      .getLeaveGroupInfo(activeGroupId, auth.id)
-      .then((i: LeaveGroupInfo) =>
-        startTransition(() => {
-          setInfo(i);
-          setLoading(false);
-        }),
-      )
-      .catch(() => startTransition(() => setLoading(false)));
-  }, [activeGroupId, auth?.id]);
-
-  if (loading || !info) {
+  if (isLoading || !info) {
     return (
       <ScreenContainer className="items-center justify-center">
         <AppText className="text-muted text-base">Loading...</AppText>

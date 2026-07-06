@@ -1,14 +1,23 @@
 import type { JSX } from "react";
 
-import type { GroupDashboardData, GroupMeta, MemberStanding } from "@/api";
+import type { GroupMeta, MemberStanding } from "@/api";
 
 import { Ionicons } from "@expo/vector-icons";
 import { useStore } from "@nanostores/react";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { Avatar, Card, Chip, PressableFeedback, ScrollShadow, Surface } from "heroui-native";
-import { startTransition, useEffect, useState } from "react";
+import {
+  Avatar,
+  Button,
+  Card,
+  Chip,
+  PressableFeedback,
+  ScrollShadow,
+  Surface,
+} from "heroui-native";
+import { useEffect, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
+import useSWR from "swr";
 import { withUniwind } from "uniwind";
 
 import { api } from "@/api";
@@ -35,8 +44,6 @@ const StyledIonicons = withUniwind(Ionicons);
 export default function HomeTab(): JSX.Element {
   const activeGroup = useStore($activeGroup);
   const openSwitcherFlag = useStore($openSwitcher);
-  const [dashboard, setDashboard] = useState<GroupDashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
 
   const activeMembership = activeGroup.memberships.find(
@@ -44,29 +51,25 @@ export default function HomeTab(): JSX.Element {
   );
   const groupName = activeMembership?.name ?? "";
 
-  useEffect(() => {
-    if (!activeGroup.activeGroupId) return;
-    startTransition(() => setLoading(true));
-    api.groups
-      .getGroupDashboard(activeGroup.activeGroupId)
-      .then(setDashboard)
-      .catch(() => {})
-      .finally(() => startTransition(() => setLoading(false)));
-  }, [activeGroup.activeGroupId]);
+  const {
+    data: dashboard,
+    error,
+    isLoading,
+  } = useSWR(activeGroup.activeGroupId ? `dashboard:${activeGroup.activeGroupId}` : null, () =>
+    api.groups.getGroupDashboard(activeGroup.activeGroupId!),
+  );
 
   useEffect(() => {
     if (activeGroup.showSwitcherOnMount) {
       dismissSwitcherOnMount();
-      startTransition(() => setIsSwitcherOpen(true));
+      setIsSwitcherOpen(true);
     }
   }, [activeGroup.showSwitcherOnMount]);
 
   useEffect(() => {
     if (openSwitcherFlag) {
-      startTransition(() => {
-        setIsSwitcherOpen(true);
-        clearOpenSwitcher();
-      });
+      setIsSwitcherOpen(true);
+      clearOpenSwitcher();
     }
   }, [openSwitcherFlag]);
 
@@ -80,7 +83,37 @@ export default function HomeTab(): JSX.Element {
     router.push("/(onboarding)/join-or-create");
   }
 
-  if (loading || !dashboard) {
+  if (isLoading) {
+    return (
+      <ScreenContainer className="items-center justify-center">
+        <AppText className="text-muted text-base">Loading...</AppText>
+      </ScreenContainer>
+    );
+  }
+
+  if (error) {
+    return (
+      <ScreenContainer className="items-center justify-center px-6">
+        <AppText className="text-muted text-base">Failed to load dashboard</AppText>
+      </ScreenContainer>
+    );
+  }
+
+  if (!activeGroup.activeGroupId) {
+    return (
+      <ScreenContainer className="items-center justify-center px-6 gap-4">
+        <StyledIonicons name="people-outline" size={48} className="text-muted" />
+        <AppText className="text-muted text-base text-center">
+          You're not part of any savings group yet
+        </AppText>
+        <Button variant="primary" onPress={handleJoinOrCreate}>
+          <Button.Label>Join or create a group</Button.Label>
+        </Button>
+      </ScreenContainer>
+    );
+  }
+
+  if (!dashboard) {
     return (
       <ScreenContainer className="items-center justify-center">
         <AppText className="text-muted text-base">Loading...</AppText>

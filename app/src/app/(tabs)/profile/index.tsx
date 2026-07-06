@@ -1,7 +1,5 @@
 import type { JSX } from "react";
 
-import type { UserProfile } from "@/api";
-
 import { Ionicons } from "@expo/vector-icons";
 import { useStore } from "@nanostores/react";
 import { LinearGradient } from "expo-linear-gradient";
@@ -15,8 +13,9 @@ import {
   ScrollShadow,
   Separator,
 } from "heroui-native";
-import { startTransition, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
+import useSWR from "swr";
 import { withUniwind } from "uniwind";
 
 import { api } from "@/api";
@@ -34,26 +33,20 @@ export default function ProfileTab(): JSX.Element {
   const auth = useStore($auth);
   const { activeGroupId } = useStore($activeGroup);
 
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
+  const {
+    data: profile,
+    isLoading,
+    error,
+  } = useSWR(activeGroupId && auth?.id ? `profile:${activeGroupId}:${auth.id}` : null, () =>
+    api.groups.getUserProfile(activeGroupId!, auth!.id),
+  );
+
   useEffect(() => {
-    if (!activeGroupId || !auth?.id) return;
-    startTransition(() => setLoading(true));
-    api.groups
-      .getUserProfile(activeGroupId, auth.id)
-      .then((p: UserProfile) => {
-        startTransition(() => {
-          setProfile(p);
-          setNotificationsEnabled(p.notificationsEnabled);
-          setLoading(false);
-        });
-        return;
-      })
-      .catch(() => startTransition(() => setLoading(false)));
-  }, [activeGroupId, auth?.id]);
+    if (profile) setNotificationsEnabled(profile.notificationsEnabled);
+  }, [profile]);
 
   const handleNotificationsToggle = useCallback(
     (value: boolean) => {
@@ -65,12 +58,23 @@ export default function ProfileTab(): JSX.Element {
     [auth],
   );
 
-  if (loading || !profile) {
+  if (isLoading) {
     return (
       <ScreenContainer>
         <Header title="Profile" canGoBack={false} />
         <View className="flex-1 items-center justify-center">
           <AppText className="text-muted text-base">Loading...</AppText>
+        </View>
+      </ScreenContainer>
+    );
+  }
+
+  if (error || !profile) {
+    return (
+      <ScreenContainer>
+        <Header title="Profile" canGoBack={false} />
+        <View className="flex-1 items-center justify-center">
+          <AppText className="text-muted text-base">Failed to load profile: {error}</AppText>
         </View>
       </ScreenContainer>
     );

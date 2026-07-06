@@ -27,7 +27,13 @@ test/                 Static HTML test page (live-server)
 
 ```sh
 pnpm -w lint                       # Lint AND Typecheck (tsc --noEmit not necessary)
+pnpm -w lint [path/to/file-or-dir] # Specific file(s)
 pnpm -w fmt                        # Format
+pnpm test                          # Vitest (all projects)
+pnpm test --project backend        # Single project
+pnpm test [path/to/file-or-dir]    # Specific file(s)
+pnpm test:coverage                 # Vitest with coverage
+cd packages/contracts && pnpm test # Forge Solidity tests
 ```
 
 ## Dev commands
@@ -86,7 +92,17 @@ Everything lives in `@ekimina/types` (re-exported from `src/api/screen-types.ts`
 
 ---
 
-## HeroUI Native Patterns
+## Testing conventions
+
+- **Vitest** (root) with `test.projects` for each workspace package. Configs use `defineProject()` per package. Root `vitest.config.ts` orchestrates all projects.
+- **Colocate tests** alongside source: `{source}.test.ts` next to `{source}.ts`. Only exception is setup utilities (`__tests__/setup.ts`).
+- **Backend:** Use Hono's `app.request()` for in-process route tests (no supertest, no HTTP server). Mock blockchain layer (`contract-data.ts`) via `vi.mock()` to avoid hardhat dependency. For `null` return values, cast mock via `(mock as unknown as Mock).mockResolvedValue(null)`.
+- **App stores:** Pure nanostores — test with `environment: "node"`, no React runtime needed. Reset store state in `beforeEach`.
+- **Contracts (Solidity):** Forge tests in `contracts/test/*.t.sol`, run with `hardhat test`.
+- **Contracts (TS):** Integration tests use a `globalSetup` that starts a hardhat node on port `18545`, deploys contracts, then runs viem-based tests.
+- **Clean stores between tests:** `backend/src/__tests__/setup.ts` clears all in-memory Maps in `beforeEach`.
+- **Use `body` type annotation:** `const body = (await res.json()) as ExpectedType` when the response body shape is known.
+- **No `as any` in tests (lint error).** Prefer `as unknown as ExpectedType` or `as ExpectedType` casts instead.
 
 ### Fonts
 

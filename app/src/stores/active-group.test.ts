@@ -103,4 +103,19 @@ describe("active group state", () => {
     addMembership(MOCK_GROUPS[0]);
     expect($activeGroup.get().memberships).toHaveLength(1);
   });
+
+  it("setMemberships with empty array keeps activeGroupId null", () => {
+    setMemberships([]);
+    const state = $activeGroup.get();
+    expect(state.memberships).toEqual([]);
+    expect(state.activeGroupId).toBeNull();
+  });
+
+  it("setMemberships with empty array resets activeGroupId when membership removed", () => {
+    setMemberships(MOCK_GROUPS);
+    expect($activeGroup.get().activeGroupId).toBe("0xaaa");
+
+    setMemberships([]);
+    expect($activeGroup.get().activeGroupId).toBeNull();
+  });
 });

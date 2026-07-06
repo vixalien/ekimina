@@ -4,7 +4,6 @@ import type {
   ApprovedLoanDetail,
   DefaultedLoanDetail,
   DisbursedLoanDetail,
-  LoanDetail,
   RepaidLoanDetail,
   RepayingLoanDetail,
   RequestedLoanDetail,
@@ -24,8 +23,9 @@ import {
   ScrollShadow,
   Separator,
 } from "heroui-native";
-import { startTransition, useEffect, useState } from "react";
+import { useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
+import useSWR from "swr";
 import { withUniwind } from "uniwind";
 
 import { api } from "@/api";
@@ -318,21 +318,13 @@ function DefaultedSection({ detail }: { detail: DefaultedLoanDetail }): JSX.Elem
 export default function LoanDetailScreen(): JSX.Element {
   const { loanId } = useLocalSearchParams<{ loanId: string }>();
   const { activeGroupId } = useStore($activeGroup);
-  const [detail, setDetail] = useState<LoanDetail | null>(null);
-  const [loading, setLoading] = useState(true);
   const [infoOpen, setInfoOpen] = useState(false);
+  const { data: detail, isLoading } = useSWR(
+    activeGroupId && loanId ? `loan:${activeGroupId}:${loanId}` : null,
+    () => api.groups.getLoanDetail(activeGroupId!, loanId),
+  );
 
-  useEffect(() => {
-    if (!activeGroupId || !loanId) return;
-    startTransition(() => setLoading(true));
-    api.groups
-      .getLoanDetail(activeGroupId, loanId)
-      .then(setDetail)
-      .catch(() => {})
-      .finally(() => startTransition(() => setLoading(false)));
-  }, [activeGroupId, loanId]);
-
-  if (loading || !detail) {
+  if (isLoading || !detail) {
     return (
       <ScreenContainer>
         <Header canGoBack />

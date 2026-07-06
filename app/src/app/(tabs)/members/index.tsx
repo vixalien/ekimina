@@ -15,8 +15,9 @@ import {
   Spinner,
 } from "heroui-native";
 import { Fragment, type JSX } from "react";
-import { startTransition, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
+import useSWR from "swr";
 import { withUniwind } from "uniwind";
 
 import { api } from "@/api";
@@ -48,8 +49,6 @@ function handleMemberPress(userId: string) {
 
 export default function MembersTab(): JSX.Element {
   const activeGroup = useStore($activeGroup);
-  const [members, setMembers] = useState<MemberListItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterKey>("all");
   const [isSearching, setIsSearching] = useState(false);
@@ -58,15 +57,14 @@ export default function MembersTab(): JSX.Element {
 
   const groupId = activeGroup.activeGroupId;
 
+  const { data: fetchedMembers, isLoading } = useSWR(groupId ? `members:${groupId}` : null, () =>
+    api.groups.getGroupMembers(groupId!),
+  );
+  const [members, setMembers] = useState<MemberListItem[]>([]);
+
   useEffect(() => {
-    if (!groupId) return;
-    startTransition(() => setLoading(true));
-    api.groups
-      .getGroupMembers(groupId)
-      .then(setMembers)
-      .catch(() => {})
-      .finally(() => startTransition(() => setLoading(false)));
-  }, [groupId]);
+    if (fetchedMembers) setMembers(fetchedMembers);
+  }, [fetchedMembers]);
 
   function handleSearch(text: string) {
     setSearchQuery(text);
@@ -152,7 +150,7 @@ export default function MembersTab(): JSX.Element {
         </View>
       </View>
 
-      {loading ? (
+      {isLoading ? (
         <View className="flex-1 items-center justify-center">
           <AppText className="text-muted text-base">Loading...</AppText>
         </View>

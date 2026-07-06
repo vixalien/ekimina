@@ -1,13 +1,12 @@
 import type { JSX } from "react";
 
-import type { JoinRequestReview } from "@/api";
-
 import { useStore } from "@nanostores/react";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams } from "expo-router";
 import { Button, ListGroup, ScrollShadow, useToast } from "heroui-native";
-import { startTransition, useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { ScrollView, View } from "react-native";
+import useSWR from "swr";
 
 import { api } from "@/api";
 import { LoanSignatureList } from "@/components/loan/loan-signature-row";
@@ -25,20 +24,12 @@ export default function JoinReviewScreen(): JSX.Element {
   const auth = useStore($auth);
   const { toast } = useToast();
 
-  const [review, setReview] = useState<JoinRequestReview | null>(null);
-  const [loading, setLoading] = useState(true);
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejecting, setRejecting] = useState(false);
-
-  useEffect(() => {
-    if (!activeGroupId || !requestId) return;
-    startTransition(() => setLoading(true));
-    api.groups
-      .getJoinRequestReview(activeGroupId, requestId)
-      .then(setReview)
-      .catch(() => {})
-      .finally(() => startTransition(() => setLoading(false)));
-  }, [activeGroupId, requestId]);
+  const { data: review, isLoading } = useSWR(
+    activeGroupId && requestId ? `join-review:${activeGroupId}:${requestId}` : null,
+    () => api.groups.getJoinRequestReview(activeGroupId!, requestId),
+  );
 
   const handleApprove = useCallback(async () => {
     if (!activeGroupId || !requestId || !auth?.id) return;
@@ -88,7 +79,7 @@ export default function JoinReviewScreen(): JSX.Element {
     [activeGroupId, requestId, auth, toast],
   );
 
-  if (loading || !review) {
+  if (isLoading || !review) {
     return (
       <ScreenContainer>
         <Header canGoBack />

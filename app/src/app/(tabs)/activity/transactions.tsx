@@ -1,6 +1,6 @@
 import type { JSX } from "react";
 
-import type { MemberListItem, Transaction, TransactionType } from "@/api";
+import type { TransactionType } from "@/api";
 import type { CycleRange } from "@/components/activity/cycle-filter-sheet";
 import type { DatePreset } from "@/components/activity/date-filter-sheet";
 import type { TypeFilterValue } from "@/components/activity/type-filter-sheet";
@@ -10,8 +10,9 @@ import { useStore } from "@nanostores/react";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams } from "expo-router";
 import { Chip, ListGroup, PressableFeedback, ScrollShadow } from "heroui-native";
-import { startTransition, useEffect, useState } from "react";
+import { useState } from "react";
 import { ScrollView, View } from "react-native";
+import useSWR from "swr";
 import { withUniwind } from "uniwind";
 
 import { api } from "@/api";
@@ -35,9 +36,6 @@ export default function TransactionsScreen(): JSX.Element {
   const { activeGroupId } = useStore($activeGroup);
   const params = useLocalSearchParams<{ type?: string; memberId?: string }>();
 
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [members, setMembers] = useState<MemberListItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [openSheet, setOpenSheet] = useState<OpenSheet>(null);
 
   // Filter state - initialize from route params if present
@@ -49,6 +47,25 @@ export default function TransactionsScreen(): JSX.Element {
   );
   const [cycleFilter, setCycleFilter] = useState<CycleRange | null>(null);
   const [dateFilter, setDateFilter] = useState<DatePreset>("all");
+
+  const { data: members = [] } = useSWR(activeGroupId ? `members:${activeGroupId}` : null, () =>
+    api.groups.getGroupMembers(activeGroupId!),
+  );
+
+  const { data: transactions = [], isLoading } = useSWR(
+    activeGroupId
+      ? `transactions:${activeGroupId}:${typeFilter}:${memberFilter.join(",")}:${cycleFilter?.from}-${cycleFilter?.to}:${dateFilter}`
+      : null,
+    () => {
+      const types = typeFilter !== "all" ? [typeFilter as TransactionType] : undefined;
+      return api.groups.getTransactions(activeGroupId!, {
+        types,
+        memberIds: memberFilter.length > 0 ? memberFilter : undefined,
+        cycleRange: cycleFilter ?? undefined,
+        datePreset: dateFilter !== "all" ? dateFilter : undefined,
+      });
+    },
+  );
 
   const hasTypeFilter = typeFilter !== "all";
   const hasMemberFilter = memberFilter.length > 0;
@@ -70,34 +87,6 @@ export default function TransactionsScreen(): JSX.Element {
       : `Cycle ${cycleFilter.from}\u2013${cycleFilter.to}`
     : "Cycle";
   const dateLabel = DATE_LABELS[dateFilter];
-
-  useEffect(() => {
-    if (!activeGroupId) return;
-    api.groups
-      .getGroupMembers(activeGroupId)
-      .then((m: MemberListItem[]) => startTransition(() => setMembers(m)))
-      .catch(() => {});
-  }, [activeGroupId]);
-
-  useEffect(() => {
-    if (!activeGroupId) return;
-    startTransition(() => setLoading(true));
-    const types = typeFilter !== "all" ? [typeFilter as TransactionType] : undefined;
-    api.groups
-      .getTransactions(activeGroupId, {
-        types,
-        memberIds: memberFilter.length > 0 ? memberFilter : undefined,
-        cycleRange: cycleFilter ?? undefined,
-        datePreset: dateFilter !== "all" ? dateFilter : undefined,
-      })
-      .then((txns: Transaction[]) =>
-        startTransition(() => {
-          setTransactions(txns);
-          setLoading(false);
-        }),
-      )
-      .catch(() => setLoading(false));
-  }, [activeGroupId, typeFilter, memberFilter, cycleFilter, dateFilter]);
 
   function clearAllFilters() {
     setTypeFilter("all");
@@ -175,7 +164,7 @@ export default function TransactionsScreen(): JSX.Element {
       {/* Transaction list */}
       <ScrollShadow LinearGradientComponent={LinearGradient} className="flex-1">
         <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="p-4 pt-1">
-          {loading ? (
+          {isLoading ? (
             <View className="flex-1 items-center justify-center py-16">
               <AppText className="text-muted text-base">Loading...</AppText>
             </View>

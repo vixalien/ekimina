@@ -13,8 +13,9 @@ import {
   Separator,
   useToast,
 } from "heroui-native";
-import { Fragment, startTransition, useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useState } from "react";
 import { ScrollView, View } from "react-native";
+import useSWR from "swr";
 import { withUniwind } from "uniwind";
 
 import { api } from "@/api";
@@ -104,41 +105,30 @@ export default function GroupSettingsScreen(): JSX.Element {
   const auth = useStore($auth);
   const { toast } = useToast();
 
-  const [settings, setSettings] = useState<GroupSettings | null>(null);
-  const [groupName, setGroupName] = useState("");
-  const [groupInitials, setGroupInitials] = useState("");
-  const [groupCreatedAt, setGroupCreatedAt] = useState("");
-  const [isCommittee, setIsCommittee] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [activeField, setActiveField] = useState<SettingsRow | null>(null);
 
-  useEffect(() => {
-    if (!activeGroupId || !auth?.id) return;
-    startTransition(() => setLoading(true));
-    Promise.all([
-      api.groups.getGroupSettings(activeGroupId),
-      api.groups.getMemberDetail(activeGroupId, auth.id, auth.id),
-      api.groups.getGroupDetails(activeGroupId),
-    ])
-      .then(([s, detail, group]) => {
-        startTransition(() => {
-          setSettings(s);
-          setGroupName(group.name as string);
-          setGroupInitials(group.avatarInitials as string);
-          setGroupCreatedAt(
-            new Date().toLocaleDateString("en-RW", {
-              year: "numeric",
-              month: "long",
-            }),
-          );
-          setIsCommittee(detail.isCommitteeMember);
-          setLoading(false);
-        });
-        return;
-      })
-      .catch(() => startTransition(() => setLoading(false)));
-  }, [activeGroupId, auth?.id]);
+  const { data: settingsData, isLoading } = useSWR(
+    activeGroupId && auth?.id ? `group-settings:${activeGroupId}` : null,
+    () =>
+      Promise.all([
+        api.groups.getGroupSettings(activeGroupId!),
+        api.groups.getMemberDetail(activeGroupId!, auth!.id, auth!.id),
+        api.groups.getGroupDetails(activeGroupId!),
+      ]),
+  );
+
+  const settings = settingsData?.[0] ?? null;
+  const memberDetail = settingsData?.[1] ?? null;
+  const group = settingsData?.[2] ?? null;
+
+  const groupName = (group?.name as string) ?? "";
+  const groupInitials = (group?.avatarInitials as string) ?? "";
+  const groupCreatedAt = new Date().toLocaleDateString("en-RW", {
+    year: "numeric",
+    month: "long",
+  });
+  const isCommittee = memberDetail?.isCommitteeMember ?? false;
 
   const handleRowPress = useCallback((row: SettingsRow) => {
     setActiveField(row);
@@ -166,7 +156,7 @@ export default function GroupSettingsScreen(): JSX.Element {
     [activeGroupId, auth, activeField, toast],
   );
 
-  if (loading || !settings) {
+  if (isLoading || !settings) {
     return (
       <ScreenContainer>
         <Header title="Group settings" canGoBack />

@@ -1,6 +1,6 @@
 import type { JSX } from "react";
 
-import type { GroupInviteData, SentInvite } from "@/api";
+import type { SentInvite } from "@/api";
 
 import { Ionicons } from "@expo/vector-icons";
 import { useStore } from "@nanostores/react";
@@ -16,8 +16,9 @@ import {
   TextField,
   useToast,
 } from "heroui-native";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { ScrollView, Share, View } from "react-native";
+import useSWR from "swr";
 import { withUniwind } from "uniwind";
 
 import { api } from "@/api";
@@ -43,19 +44,11 @@ export default function InviteScreen(): JSX.Element {
   const { activeGroupId } = useStore($activeGroup);
   const { toast } = useToast();
 
-  const [data, setData] = useState<GroupInviteData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading } = useSWR(activeGroupId ? `invite:${activeGroupId}` : null, () =>
+    api.groups.getGroupInviteData(activeGroupId!),
+  );
   const [phone, setPhone] = useState("");
   const [sending, setSending] = useState(false);
-
-  useEffect(() => {
-    if (!activeGroupId) return;
-    api.groups
-      .getGroupInviteData(activeGroupId)
-      .then(setData)
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [activeGroupId]);
 
   const handleCopy = useCallback(() => {
     if (!data) return;
@@ -92,7 +85,7 @@ export default function InviteScreen(): JSX.Element {
     }
   }, [activeGroupId, phone, sending, toast]);
 
-  if (loading || !data) {
+  if (isLoading || !data) {
     return (
       <ScreenContainer>
         <Header canGoBack />

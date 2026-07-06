@@ -10,7 +10,6 @@ export default defineProject({
     },
   },
   test: {
-    name: "app-stores",
     environment: "node",
     include: ["src/stores/**/*.test.ts"],
   },

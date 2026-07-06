@@ -3,6 +3,8 @@ import type { ChainGroup as Group, GroupCycle, Address } from "@ekimina/types";
 import { getFactoryContract, getIkiminaContract } from "@ekimina/contracts";
 
 import { publicClient } from "./chain.js";
+import { GROUP_META } from "./deployed-state.js";
+import { groupMeta } from "./store.js";
 
 const groupCache = new Map<Address, Group>();
 const cycleCache = new Map<Address, GroupCycle>();
@@ -36,7 +38,7 @@ async function poll() {
   setTimeout(poll, 10000);
 }
 
-async function refreshGroup(address: Address) {
+export async function refreshGroup(address: Address) {
   try {
     const contract = getIkiminaContract(address, { public: publicClient });
     const [
@@ -77,6 +79,17 @@ async function refreshGroup(address: Address) {
       paidCount: Number(paid),
       memberCount: Number(activeCount),
     });
+
+    const meta = GROUP_META[address.toLowerCase()];
+    if (meta) {
+      groupMeta.set(address, {
+        address,
+        name: meta.name,
+        inviteCode: meta.inviteCode,
+        createdAt: new Date(Number(cycleStart) * 1000).toISOString(),
+        creator: address,
+      });
+    }
   } catch (e) {
     console.error(`[indexer] refresh error for ${address}:`, e);
   }
