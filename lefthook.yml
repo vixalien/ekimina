@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/evilmartians/lefthook/master/schema.json
+
+skip_lfs: true
+pre-commit:
+  parallel: true
+  commands:
+    fmt:
+      glob: "*.{ts,tsx,js,jsx,mjs,cjs,json,yaml,yml,toml,md}"
+      run: pnpm fmt --no-error-on-unmatched-pattern {staged_files}
+      stage_fixed: true
+
+    lint:
+      glob: "*.{ts,tsx,js,jsx}"
+      run: pnpm lint:fix --no-error-on-unmatched-pattern {staged_files}
+      stage_fixed: true
+
+# pre-push:
+#   commands:
+#     lint:
+#       run: pnpm lint

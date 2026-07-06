@@ -1,0 +1,51 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "eslint",
+    "typescript",
+    "unicorn",
+    "react",
+    "react-perf",
+    "oxc",
+    "jsdoc",
+    "node",
+    "promise",
+    "vitest"
+  ],
+  "rules": {
+    "vitest/require-to-throw-message": "warn",
+    // "typescript/explicit-function-return-type": "error",
+    "no-console": ["error", { "allow": ["warn", "error"] }],
+    "no-underscore-dangle": ["error", { "allow": ["_default", "_id", "__dirname"] }],
+    "rules-of-hooks": "error",
+    "typescript/ban-ts-comment": [
+      "error",
+      {
+        "ts-check": true,
+        "ts-ignore": false,
+        "ts-expect-error": "allow-with-description",
+        "ts-nocheck": "allow-with-description"
+      }
+    ],
+    "typescript/no-restricted-types": "error",
+    "typescript/no-empty-object-type": "error",
+    "typescript/no-unsafe-function-type": "error",
+    "typescript/no-wrapper-object-types": "error",
+    "react/react-in-jsx-scope": "off",
+    // these should probably be turned on in the future
+    "typescript/no-unsafe-type-assertion": "allow",
+    "jest/no-conditional-expect": "allow",
+    "typescript/unbound-method": "allow",
+    // "eslint/func-style": ["error", "declaration"],
+    "typescript/consistent-type-imports": ["error", { "fixStyle": "separate-type-imports" }]
+  },
+  "categories": {
+    "suspicious": "error"
+    // "style": "warn"
+  },
+  "options": {
+    "typeAware": true,
+    "typeCheck": true
+  },
+  "ignorePatterns": [".agents/**", "node_modules/**", ".expo/**", "dist/**", "build/**", ".next/**"]
+}

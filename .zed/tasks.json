@@ -1,0 +1,14 @@
+[
+  {
+    "label": "app dev",
+    "command": "pnpm --filter app start"
+  },
+  {
+    "label": "backend dev",
+    "command": "pnpm --filter backend dev"
+  },
+  {
+    "label": "contracts dev",
+    "command": "pnpm --filter @ekimina/contracts dev"
+  }
+]

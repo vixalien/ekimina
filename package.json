@@ -1,20 +1,23 @@
 {
   "name": "capstone",
-  "private": true,
   "version": "1.0.0",
+  "private": true,
   "description": "",
-  "scripts": {
-    "dev": "pnpm run --parallel dev"
-  },
   "keywords": [],
-  "author": "",
   "license": "ISC",
-  "devEngines": {
-    "packageManager": {
-      "name": "pnpm",
-      "version": "^11.5.1",
-      "onFail": "download"
-    }
+  "author": "",
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm run --parallel dev",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "lint:github": "pnpm run lint --format=github"
   },
-  "type": "module"
+  "devDependencies": {
+    "lefthook": "^2.1.9",
+    "oxfmt": "^0.57.0",
+    "oxlint": "^1.72.0"
+  }
 }

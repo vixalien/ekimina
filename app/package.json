@@ -7,10 +7,6 @@
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -56,9 +52,6 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.15",
-    "eslint": "^9.39.4",
-    "eslint-config-expo": "^57.0.0",
-    "prettier": "^3.8.3",
     "typescript": "~6.0.3"
   }
 }
