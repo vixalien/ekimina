@@ -1,3 +1,6 @@
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import { serve } from "@hono/node-server";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { logger } from "hono/logger";
@@ -8,12 +11,15 @@ import indexerRoutes from "./routes/indexer.js";
 import relayRoutes from "./routes/relay.js";
 import ussdRoutes from "./routes/ussd.js";
 import { setFactoryAddress, startIndexer } from "./lib/indexer.js";
+import type { Address } from "@ekimina/types";
 
 const app = new OpenAPIHono();
 
 app.use("*", logger());
 
-app.get("/", (c) => c.json({ service: "e-Kimina API", version: "0.2.0", status: "running" }));
+app.get("/", (c) =>
+  c.json({ service: "e-Kimina API", version: "0.2.0", status: "running" }),
+);
 
 app.route("/", authRoutes);
 app.route("/", profileRoutes);
@@ -25,9 +31,7 @@ app.route("/ussd", ussdRoutes);
 app.doc("/openapi.json", {
   openapi: "3.0.0",
   info: { title: "e-Kimina API", version: "0.2.0" },
-  servers: [
-    { url: "http://localhost:3000", description: "Development" },
-  ],
+  servers: [{ url: "http://localhost:3000", description: "Development" }],
 });
 
 app.get("/scalar", (c) => {
@@ -43,11 +47,40 @@ app.get("/scalar", (c) => {
     <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
     <script>
       Scalar.createApiReference("#app", {
-        url: "/openapi.json",
-        theme: "purple",
+        agent: {
+          disabled: true,
+        },
+        mcp: {
+          disabled: true,
+        },
+        url: "./openapi.json",
+        persistAuth: true,
+        withDefaultFonts: false,
+        servers: [
+          {
+            url: "http://localhost:{port}",
+            description: "Development",
+            variables: {
+              port: {
+                default: "3000",
+              },
+            },
+          },
+          {
+            url: "{customUrl}",
+            description: "Custom",
+            variables: {
+              customUrl: {
+                default: "http://localhost:3000",
+              },
+            },
+          },
+        ],
         hideClientButton: true,
+        expandAllModelSections: true,
         telemetry: false,
         showDeveloperTools: "never",
+        // defaultOpenAllTags: true,
       });
     </script>
   </body>
@@ -56,16 +89,36 @@ app.get("/scalar", (c) => {
 
 export type AppType = typeof app;
 
-serve({ fetch: app.fetch, port: 3000 }, () => {
+serve({ fetch: app.fetch, port: 3000 }, async () => {
   console.log("e-Kimina backend running on http://localhost:3000");
+  console.log("API Reference available at http://localhost:3000/scalar");
 
-  const factoryAddress = process.env.FACTORY_ADDRESS;
-  if (factoryAddress) {
-    setFactoryAddress(factoryAddress as `0x${string}`);
+  let FACTORY_ADDRESS: Address = process.env.FACTORY_ADDRESS as Address;
+  if (FACTORY_ADDRESS) {
+    setFactoryAddress(FACTORY_ADDRESS as `0x${string}`);
     startIndexer().catch(console.error);
   } else {
-    console.log("[bootstrap] No FACTORY_ADDRESS set. Indexer not started.");
-    console.log("  Deploy the contract first:");
-    console.log("    cd packages/contracts && pnpm hardhat run scripts/deploy-local.ts --network localhost");
+    console.log("[bootstrap] No FACTORY_ADDRESS env var. Using local.json.");
+
+    const mod = await import("../../local.json");
+    FACTORY_ADDRESS = mod.default.FACTORY_ADDRESS as Address;
+
+    const tryRead = () => {
+      try {
+        setFactoryAddress(FACTORY_ADDRESS);
+        startIndexer().catch(console.error);
+        console.log(`[bootstrap] Indexer started with factory: ${FACTORY_ADDRESS}`);
+        return true;
+      } catch (error) {
+        console.error("here", error);
+        return false;
+      }
+    };
+
+    if (!tryRead()) {
+      const interval = setInterval(() => {
+        if (tryRead()) clearInterval(interval);
+      }, 2000);
+    }
   }
 });

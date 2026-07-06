@@ -1,6 +1,5 @@
 import { publicClient } from "./chain.js";
 import { getFactoryContract, getIkiminaContract } from "@ekimina/contracts";
-import { groupMeta } from "./store.js";
 import type { ChainGroup as Group, GroupCycle, Address } from "@ekimina/types";
 
 const groupCache = new Map<Address, Group>();

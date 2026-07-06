@@ -1,4 +1,8 @@
+import fs from "fs";
+import path from "path";
 import hre from "hardhat";
+
+const localJSON = path.join("..", "..", "local.json");
 
 async function main() {
   const client = await hre.network.connect();
@@ -13,8 +17,8 @@ async function main() {
   const factoryAddress = factoryContract.address;
   console.log("IkiminaFactory deployed to:", factoryAddress);
 
-  console.log("\nSet this env var when starting the backend:");
-  console.log(`FACTORY_ADDRESS=${factoryAddress}`);
+  fs.writeFileSync(localJSON, `{"FACTORY_ADDRESS":"${factoryAddress}"}`, "utf-8");
+  console.log(`\nFACTORY_ADDRESS written to ${path.resolve(localJSON)}`);
 }
 
 main().catch(console.error);

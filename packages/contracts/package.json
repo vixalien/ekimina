@@ -13,11 +13,12 @@
     "hardhat": "hardhat",
     "compile": "hardhat compile && pnpm extract-abis",
     "extract-abis": "tsx scripts/extract-abis.ts",
-    "deploy": "pnpm hardhat ignition deploy ignition/modules/Ikimina.ts --network celoSepolia",
-    "read-state": "pnpm hardhat run scripts/read-state.ts --network celoSepolia",
-    "dev:deploy": "pnpm hardhat run scripts/deploy-local.ts --network localhost",
-    "dev:node": "pnpm hardhat node",
-    "dev": "pnpm run --parallel dev:deploy dev:node"
+    "deploy": "hardhat ignition deploy ignition/modules/Ikimina.ts --network celoSepolia",
+    "read-state": "hardhat run scripts/read-state.ts --network celoSepolia",
+    "dev:deploy": "hardhat run scripts/deploy-local.ts --network localhost",
+    "dev:node": "hardhat node",
+    "predev": "pnpm compile",
+    "dev": "concurrently \"pnpm dev:node\" \"wait-on tcp:8545 && pnpm dev:deploy\""
   },
   "dependencies": {
     "@nomicfoundation/hardhat-ignition": "^3.1.6",
@@ -30,6 +31,8 @@
   },
   "devDependencies": {
     "@types/node": "^22.19.19",
-    "tsx": "^4.22.4"
+    "concurrently": "^10.0.3",
+    "tsx": "^4.22.4",
+    "wait-on": "^9.0.10"
   }
 }
