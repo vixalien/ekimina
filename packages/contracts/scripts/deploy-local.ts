@@ -1,11 +1,12 @@
 import fs from "fs";
 import path from "path";
+
 import hre from "hardhat";
 
 const localJSON = path.join("..", "..", "local.json");
 
 async function main() {
-  const client = await hre.network.connect();
+  const client = await (hre.network.connect() as any);
   const [deployer] = await client.viem.getWalletClients();
   console.log("Deploying from:", deployer.account.address);
 

@@ -1,7 +1,8 @@
-import { Ionicons } from "@expo/vector-icons";
-import { FieldError, InputOTP, PressableFeedback } from "heroui-native";
-import { useStore } from "@nanostores/react";
 import type { JSX } from "react";
+
+import { Ionicons } from "@expo/vector-icons";
+import { useStore } from "@nanostores/react";
+import { FieldError, InputOTP, PressableFeedback } from "heroui-native";
 import { useCallback, useState } from "react";
 import { View, Keyboard } from "react-native";
 import { withUniwind } from "uniwind";
@@ -14,6 +15,10 @@ import { $activeGroup } from "@/stores/active-group";
 import { $auth } from "@/stores/auth";
 
 const StyledIonicons = withUniwind(Ionicons);
+
+function goBack() {
+  nav.back();
+}
 
 export default function LeaveGroupPin(): JSX.Element {
   const { activeGroupId } = useStore($activeGroup);
@@ -41,10 +46,6 @@ export default function LeaveGroupPin(): JSX.Element {
       setVerifying(false);
     }
   }, [pin, userId, activeGroupId, verifying]);
-
-  function goBack() {
-    nav.back();
-  }
 
   return (
     <ScreenContainer>

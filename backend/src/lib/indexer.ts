@@ -1,6 +1,8 @@
-import { publicClient } from "./chain.js";
-import { getFactoryContract, getIkiminaContract } from "@ekimina/contracts";
 import type { ChainGroup as Group, GroupCycle, Address } from "@ekimina/types";
+
+import { getFactoryContract, getIkiminaContract } from "@ekimina/contracts";
+
+import { publicClient } from "./chain.js";
 
 const groupCache = new Map<Address, Group>();
 const cycleCache = new Map<Address, GroupCycle>();
@@ -25,7 +27,7 @@ async function poll() {
     const length = await factory.read.allGroupsLength();
 
     for (let i = 0; i < Number(length); i++) {
-      const addr = await factory.read.allGroups([BigInt(i)]) as Address;
+      const addr = await factory.read.allGroups([BigInt(i)]);
       await refreshGroup(addr);
     }
   } catch (e) {
@@ -43,7 +45,9 @@ async function refreshGroup(address: Address) {
       contributionAmount: config.contributionAmount.toString() as Group["contributionAmount"],
       cycleLength: Number(config.cycleLength),
       payoutAmount: config.payoutAmount.toString() as Group["payoutAmount"],
-      payoutPolicy: ["none", "rotating", "lump_sum_end"][Number(config.payoutPolicy)] as Group["payoutPolicy"],
+      payoutPolicy: ["none", "rotating", "lump_sum_end"][
+        Number(config.payoutPolicy)
+      ] as Group["payoutPolicy"],
       penaltyRateBps: Number(config.penaltyRateBps),
       approvalThresholdBps: Number(config.approvalThresholdBps),
       loansEnabled: config.loansEnabled,
@@ -51,11 +55,11 @@ async function refreshGroup(address: Address) {
       allMembersCommittee: config.allMembersCommittee,
     });
 
-    const currentCycle = await contract.read.currentCycle() as bigint;
-    const cycleStart = await contract.read.cycleStart() as bigint;
-    const reserve = await contract.read.reserve() as bigint;
-    const activeCount = await contract.read.activeCount() as bigint;
-    const paid = await contract.read.paidCount([currentCycle]) as bigint;
+    const currentCycle = await contract.read.currentCycle();
+    const cycleStart = await contract.read.cycleStart();
+    const reserve = await contract.read.reserve();
+    const activeCount = await contract.read.activeCount();
+    const paid = await contract.read.paidCount([currentCycle]);
 
     cycleCache.set(address, {
       currentCycle: Number(currentCycle),

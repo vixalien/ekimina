@@ -1,22 +1,5 @@
-import { Ionicons } from "@expo/vector-icons";
-import {
-  BottomSheet,
-  Button,
-  Chip,
-  ListGroup,
-  PressableFeedback,
-  ScrollShadow,
-  Separator,
-} from "heroui-native";
-import { useStore } from "@nanostores/react";
-import { useLocalSearchParams } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
 import type { JSX } from "react";
-import { startTransition, useEffect, useState } from "react";
-import { Pressable, ScrollView, View } from "react-native";
-import { withUniwind } from "uniwind";
 
-import { dataClient } from "@/api";
 import type {
   ApprovedLoanDetail,
   DefaultedLoanDetail,
@@ -28,16 +11,35 @@ import type {
   RequestedLoanDetail,
   SigningLoanDetail,
 } from "@/api";
-import { AppText } from "@/components/ui/app-text";
-import { Header } from "@/components/ui/header";
-import { ScreenContainer } from "@/components/ui/screen-container";
+
+import { Ionicons } from "@expo/vector-icons";
+import { useStore } from "@nanostores/react";
+import { LinearGradient } from "expo-linear-gradient";
+import { useLocalSearchParams } from "expo-router";
+import {
+  BottomSheet,
+  Button,
+  Chip,
+  ListGroup,
+  PressableFeedback,
+  ScrollShadow,
+  Separator,
+} from "heroui-native";
+import { startTransition, useEffect, useState } from "react";
+import { Pressable, ScrollView, View } from "react-native";
+import { withUniwind } from "uniwind";
+
+import { dataClient } from "@/api";
 import { BorrowerInfo } from "@/components/loan/borrower-info";
 import { LoanSignatureList } from "@/components/loan/loan-signature-row";
 import { LoanTermsCard } from "@/components/loan/loan-terms-card";
 import { RepaymentInfo } from "@/components/loan/repayment-info";
+import { AppText } from "@/components/ui/app-text";
+import { Header } from "@/components/ui/header";
+import { ScreenContainer } from "@/components/ui/screen-container";
 import { LOAN_STATE_CHIP_COLOR, LOAN_STATE_LABELS } from "@/lib/activity-constants";
-import { formatRWF } from "@/lib/strings";
 import { nav } from "@/lib/routes";
+import { formatRWF } from "@/lib/strings";
 import { $activeGroup } from "@/stores/active-group";
 
 const StyledIonicons = withUniwind(Ionicons);

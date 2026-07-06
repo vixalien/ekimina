@@ -1,7 +1,9 @@
-import { ListGroup, PressableFeedback, Separator } from "heroui-native";
 import type { JSX } from "react";
-import { AppText } from "../ui/app-text";
+
+import { ListGroup, PressableFeedback, Separator } from "heroui-native";
+
 import { formatRWF } from "../../lib/strings";
+import { AppText } from "../ui/app-text";
 
 interface RepaymentInfoProps {
   amountPaid: number;

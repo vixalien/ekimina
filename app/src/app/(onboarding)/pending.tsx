@@ -1,16 +1,19 @@
 import type { JSX } from "react";
-import { useEffect, useState } from "react";
-import { View } from "react-native";
+
+import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
 import { Button, useToast } from "heroui-native";
-import { Ionicons } from "@expo/vector-icons";
+import { useEffect, useState } from "react";
+import { View } from "react-native";
 import { withUniwind } from "uniwind";
+
 import { dataClient } from "@/api";
-import { nav } from "../../lib/routes";
-import { clearAuth } from "../../stores/auth";
-import { clearAuthStorage } from "../../lib/auth-storage";
+
 import { AppText } from "../../components/ui/app-text";
 import { ScreenContainer } from "../../components/ui/screen-container";
+import { clearAuthStorage } from "../../lib/auth-storage";
+import { nav } from "../../lib/routes";
+import { clearAuth } from "../../stores/auth";
 
 const StyledIonicons = withUniwind(Ionicons);
 
@@ -23,6 +26,12 @@ function timeAgo(iso: string): string {
   if (hours < 24) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
   const days = Math.floor(hours / 24);
   return `${days} day${days > 1 ? "s" : ""} ago`;
+}
+
+async function handleLogout() {
+  clearAuth();
+  await clearAuthStorage();
+  nav.toWelcome();
 }
 
 export default function PendingScreen(): JSX.Element {
@@ -60,12 +69,6 @@ export default function PendingScreen(): JSX.Element {
     } finally {
       setIsCancelling(false);
     }
-  }
-
-  async function handleLogout() {
-    clearAuth();
-    await clearAuthStorage();
-    nav.toWelcome();
   }
 
   return (

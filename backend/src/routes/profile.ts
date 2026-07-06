@@ -1,7 +1,9 @@
-import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import { usersByAddress } from "../lib/store.js";
-import { addressSchema, userSchema } from "../lib/schemas.js";
 import type { Address } from "@ekimina/types";
+
+import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
+
+import { addressSchema, userSchema } from "../lib/schemas.js";
+import { usersByAddress } from "../lib/store.js";
 
 const profile = new OpenAPIHono();
 
@@ -27,8 +29,8 @@ const getUserRoute = createRoute({
 profile.openapi(getUserRoute, async (c) => {
   const { address } = c.req.valid("param");
   const user = usersByAddress.get(address as Address);
-  if (!user) return c.json({ error: "not found" }, 404) as any;
-  return c.json(user, 200) as any;
+  if (!user) return c.json({ error: "not found" }, 404);
+  return c.json(user, 200);
 });
 
 const updateMeRoute = createRoute({
@@ -62,7 +64,7 @@ const updateMeRoute = createRoute({
 
 profile.openapi(updateMeRoute, async (c) => {
   const userId = c.req.header("x-user-id");
-  if (!userId) return c.json({ error: "unauthorized" }, 401) as any;
+  if (!userId) return c.json({ error: "unauthorized" }, 401);
   return c.json({ ok: true }) as any;
 });
 

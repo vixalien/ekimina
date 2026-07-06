@@ -1,11 +1,17 @@
+import type { ComponentProps, JSX } from "react";
+import type { ColorValue } from "react-native";
+
+import type { Address } from "@/api";
+
 import { Ionicons } from "@expo/vector-icons";
 import { useStore } from "@nanostores/react";
 import { Tabs } from "expo-router";
-import { ComponentProps, startTransition, useEffect } from "react";
+import { startTransition, useEffect } from "react";
 
-import { Address, dataClient } from "@/api";
-import { $auth } from "../../stores/auth";
+import { dataClient } from "@/api";
+
 import { setMemberships } from "../../stores/active-group";
+import { $auth } from "../../stores/auth";
 
 type IoniconName = ComponentProps<typeof Ionicons>["name"];
 
@@ -36,6 +42,10 @@ const TABS: {
   },
 ];
 
+function TabBarIcon({ color, icon }: { color: ColorValue; icon: IoniconName }): JSX.Element {
+  return <Ionicons size={28} name={icon} color={color} />;
+}
+
 export default function TabLayout() {
   const auth = useStore($auth);
 
@@ -56,7 +66,7 @@ export default function TabLayout() {
           name={tab.name}
           options={{
             title: tab.label,
-            tabBarIcon: ({ color }) => <Ionicons size={28} name={tab.icon} color={color} />,
+            tabBarIcon: ({ color }) => <TabBarIcon color={color} icon={tab.icon} />, // oxlint-disable-line react/no-unstable-nested-components
           }}
         />
       ))}

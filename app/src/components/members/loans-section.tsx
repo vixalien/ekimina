@@ -1,10 +1,11 @@
+import type { LoanEntry } from "@/api";
+
 import { Ionicons } from "@expo/vector-icons";
 import { ListGroup, PressableFeedback, Separator } from "heroui-native";
 import { Fragment, type JSX } from "react";
 import { View } from "react-native";
 import { withUniwind } from "uniwind";
 
-import type { LoanEntry } from "@/api";
 import { AppText } from "../ui/app-text";
 
 const StyledIonicons = withUniwind(Ionicons);

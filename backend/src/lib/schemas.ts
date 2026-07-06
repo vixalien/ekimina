@@ -169,8 +169,13 @@ const outstandingLoanSchema = z.object({
 const transactionStatusSchema = z.enum(["confirmed", "pending", "failed"]);
 const transactionDirectionSchema = z.enum(["inflow", "outflow", "neutral"]);
 const transactionTypeSchema = z.enum([
-  "contribution", "payout", "penalty", "loan_repayment",
-  "loan_disbursement", "discretionary_deposit", "discretionary_withdrawal",
+  "contribution",
+  "payout",
+  "penalty",
+  "loan_repayment",
+  "loan_disbursement",
+  "discretionary_deposit",
+  "discretionary_withdrawal",
 ]);
 
 const transactionSchema = z.object({
@@ -196,8 +201,13 @@ const loanSignatureSchema = z.object({
 });
 
 const loanStateSchema = z.enum([
-  "requested", "signing", "approved", "disbursed",
-  "repaying", "repaid", "defaulted",
+  "requested",
+  "signing",
+  "approved",
+  "disbursed",
+  "repaying",
+  "repaid",
+  "defaulted",
 ]);
 
 const loanDetailBaseSchema = z.object({
@@ -269,9 +279,15 @@ const userProfileSchema = z.object({
 });
 
 const settingsFieldSchema = z.enum([
-  "contribution_amount", "cycle_length", "penalty_rate", "payout_amount",
-  "approval_threshold", "committee_size", "loan_interest_rate",
-  "discretionary_fund", "group_policy",
+  "contribution_amount",
+  "cycle_length",
+  "penalty_rate",
+  "payout_amount",
+  "approval_threshold",
+  "committee_size",
+  "loan_interest_rate",
+  "discretionary_fund",
+  "group_policy",
 ]);
 
 const settingsChangeSchema = z.object({
@@ -394,10 +410,12 @@ const proposalViewSchema = z.object({
   id: z.string(),
   groupAddress: addressSchema,
   proposer: addressSchema,
-  approvals: z.array(z.object({
-    member: addressSchema,
-    approved: z.boolean(),
-  })),
+  approvals: z.array(
+    z.object({
+      member: addressSchema,
+      approved: z.boolean(),
+    }),
+  ),
   threshold: z.number(),
   state: z.enum(["pending", "active", "approved", "executed", "rejected"]),
   createdAt: isoDateSchema,
@@ -426,9 +444,11 @@ const joinResultSchema = z.object({
   group: addressSchema,
 });
 
-const proposalDraftSchema = z.object({
-  kind: z.enum(["loan", "discretionary", "settings", "member_exit"]),
-}).passthrough();
+const proposalDraftSchema = z
+  .object({
+    kind: z.enum(["loan", "discretionary", "settings", "member_exit"]),
+  })
+  .passthrough();
 
 export {
   successOnlySchema,

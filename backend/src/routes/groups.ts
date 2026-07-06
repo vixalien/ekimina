@@ -333,8 +333,8 @@ const publicGroupsRoute = createRoute({
 });
 
 groups.openapi(publicGroupsRoute, async (c) => {
-  const groups = await contract.getPublicGroups();
-  return c.json(groups);
+  const publicGroups = await contract.getPublicGroups();
+  return c.json(publicGroups);
 });
 
 export default groups;

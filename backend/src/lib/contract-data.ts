@@ -64,8 +64,8 @@ export async function getDashboard(groupAddr: Address) {
     contributionAmount: toAmount(contribution),
     payoutAmount: toAmount(payout),
     nextPayoutRecipient:
-      (activeMembers[Number(current) % activeMembers.length] ?? activeMembers[0])
-        ? nameOf(activeMembers[Number(current) % activeMembers.length] ?? activeMembers[0])
+      (activeMembers[current % activeMembers.length] ?? activeMembers[0])
+        ? nameOf(activeMembers[current % activeMembers.length] ?? activeMembers[0])
         : { name: "—", initials: "—" },
     daysUntilPayout: 3,
     members: standings,
@@ -234,8 +234,8 @@ export async function getSettings(groupAddr: Address) {
     contributionAmount: toAmount(contribution),
     cycleLength: Number(cycleLength) / 86400,
     payoutAmount: toAmount(payout),
-    penaltyRate: Number(penaltyRateBps) / 100,
-    approvalThreshold: Number(approvalThresholdBps) / 10000,
+    penaltyRate: Number(penaltyRateBps) / 100, // oxlint-disable-line typescript/no-unnecessary-type-conversion
+    approvalThreshold: Number(approvalThresholdBps) / 10000, // oxlint-disable-line typescript/no-unnecessary-type-conversion
     allMembersAreCommittee: allMembersCommittee,
     committeeSize: 1,
     loansEnabled,
@@ -386,9 +386,9 @@ export async function getGroupConfig(groupAddr: Address) {
     contributionAmount: contribution.toString(),
     cycleLength: Number(cycleLength),
     payoutAmount: payout.toString(),
-    payoutPolicy: ["none", "rotating", "lump_sum_end"][Number(payoutPolicy)] ?? "none",
-    penaltyRateBps: Number(penaltyRateBps),
-    approvalThresholdBps: Number(approvalThresholdBps),
+    payoutPolicy: ["none", "rotating", "lump_sum_end"][Number(payoutPolicy)] ?? "none", // oxlint-disable-line typescript/no-unnecessary-type-conversion
+    penaltyRateBps: Number(penaltyRateBps), // oxlint-disable-line typescript/no-unnecessary-type-conversion
+    approvalThresholdBps: Number(approvalThresholdBps), // oxlint-disable-line typescript/no-unnecessary-type-conversion
     loansEnabled,
     discretionaryEnabled,
     allMembersCommittee,

@@ -1,4 +1,10 @@
+import type { JSX } from "react";
+
+import type { LeaveGroupInfo } from "@/api";
+
 import { Ionicons } from "@expo/vector-icons";
+import { useStore } from "@nanostores/react";
+import { LinearGradient } from "expo-linear-gradient";
 import {
   Button,
   ListGroup,
@@ -7,15 +13,11 @@ import {
   Separator,
   Surface,
 } from "heroui-native";
-import { useStore } from "@nanostores/react";
-import { LinearGradient } from "expo-linear-gradient";
-import type { JSX } from "react";
 import { startTransition, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { withUniwind } from "uniwind";
 
 import { dataClient } from "@/api";
-import type { LeaveGroupInfo } from "@/api";
 import { AppText } from "@/components/ui/app-text";
 import { ScreenContainer } from "@/components/ui/screen-container";
 import { nav } from "@/lib/routes";
@@ -23,6 +25,10 @@ import { $activeGroup } from "@/stores/active-group";
 import { $auth } from "@/stores/auth";
 
 const StyledIonicons = withUniwind(Ionicons);
+
+function goBack() {
+  nav.back();
+}
 
 export default function LeaveGroupConfirm(): JSX.Element {
   const { activeGroupId } = useStore($activeGroup);
@@ -39,14 +45,10 @@ export default function LeaveGroupConfirm(): JSX.Element {
         startTransition(() => {
           setInfo(i);
           setLoading(false);
-        })
+        }),
       )
       .catch(() => startTransition(() => setLoading(false)));
   }, [activeGroupId, auth?.id]);
-
-  function goBack() {
-    nav.back();
-  }
 
   if (loading || !info) {
     return (

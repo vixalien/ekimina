@@ -1,4 +1,10 @@
+import type { JSX } from "react";
+
+import type { UserProfile } from "@/api";
+
 import { Ionicons } from "@expo/vector-icons";
+import { useStore } from "@nanostores/react";
+import { LinearGradient } from "expo-linear-gradient";
 import {
   BottomSheet,
   ControlField,
@@ -9,15 +15,11 @@ import {
   ScrollShadow,
   Separator,
 } from "heroui-native";
-import { useStore } from "@nanostores/react";
-import { LinearGradient } from "expo-linear-gradient";
-import type { JSX } from "react";
 import { startTransition, useCallback, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { withUniwind } from "uniwind";
 
 import { dataClient } from "@/api";
-import type { UserProfile } from "@/api";
 import { MemberAvatar } from "@/components/member-avatar";
 import { AppText } from "@/components/ui/app-text";
 import { Header } from "@/components/ui/header";
@@ -48,6 +50,7 @@ export default function ProfileTab(): JSX.Element {
           setNotificationsEnabled(p.notificationsEnabled);
           setLoading(false);
         });
+        return;
       })
       .catch(() => startTransition(() => setLoading(false)));
   }, [activeGroupId, auth?.id]);
@@ -59,7 +62,7 @@ export default function ProfileTab(): JSX.Element {
         dataClient.groups.updateNotifications(auth.id, value).catch(() => {});
       }
     },
-    [auth]
+    [auth],
   );
 
   if (loading || !profile) {

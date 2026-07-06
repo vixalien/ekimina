@@ -1,6 +1,7 @@
+import "dotenv/config";
+
 import hardhatToolboxViemPlugin from "@nomicfoundation/hardhat-toolbox-viem";
 import { configVariable, defineConfig } from "hardhat/config";
-import "dotenv/config";
 
 export default defineConfig({
   plugins: [hardhatToolboxViemPlugin],
@@ -40,5 +41,4 @@ export default defineConfig({
       url: "http://127.0.0.1:8545",
     },
   },
-  foundry: {},
 });

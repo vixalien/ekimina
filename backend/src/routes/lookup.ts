@@ -1,11 +1,9 @@
-import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import { usersByAddress, groupMeta } from "../lib/store.js";
-import {
-  addressSchema,
-  groupMetaSchema,
-  lookupNamesResultSchema,
-} from "../lib/schemas.js";
 import type { Address } from "@ekimina/types";
+
+import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
+
+import { addressSchema, groupMetaSchema, lookupNamesResultSchema } from "../lib/schemas.js";
+import { usersByAddress, groupMeta } from "../lib/store.js";
 
 const lookup = new OpenAPIHono();
 
@@ -61,11 +59,9 @@ const groupByInviteRoute = createRoute({
 
 lookup.openapi(groupByInviteRoute, async (c) => {
   const { code } = c.req.valid("param");
-  const meta = Array.from(groupMeta.values()).find(
-    (g) => g.inviteCode === code,
-  );
-  if (!meta) return c.json({ error: "not found" }, 404) as any;
-  return c.json(meta, 200) as any;
+  const meta = Array.from(groupMeta.values()).find((g) => g.inviteCode === code);
+  if (!meta) return c.json({ error: "not found" }, 404);
+  return c.json(meta, 200);
 });
 
 export default lookup;

@@ -1,5 +1,6 @@
-import { useThemeColor } from "heroui-native";
 import type { JSX } from "react";
+
+import { useThemeColor } from "heroui-native";
 import { View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 

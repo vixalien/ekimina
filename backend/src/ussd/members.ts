@@ -35,12 +35,54 @@ export interface USSDRotation {
 }
 
 export const members: USSDMember[] = [
-  { id: "m1", name: "Mukamana Alice", phone: "+250788111222", role: "leader", reputation: 85, payoutRound: 3 },
-  { id: "m2", name: "Niyonzima David", phone: "+250788333444", role: "member", reputation: 70, payoutRound: 4 },
-  { id: "m3", name: "Uwase Eve", phone: "+250788555666", role: "member", reputation: 60, payoutRound: 5 },
-  { id: "m4", name: "Habarurema Jean", phone: "+250788777888", role: "member", reputation: 75, payoutRound: 1 },
-  { id: "m5", name: "Mukamana Bob", phone: "+250788999000", role: "member", reputation: 45, payoutRound: 2 },
-  { id: "m6", name: "Uwimana Grace", phone: "+250788000111", role: "member", reputation: 90, payoutRound: 6 },
+  {
+    id: "m1",
+    name: "Mukamana Alice",
+    phone: "+250788111222",
+    role: "leader",
+    reputation: 85,
+    payoutRound: 3,
+  },
+  {
+    id: "m2",
+    name: "Niyonzima David",
+    phone: "+250788333444",
+    role: "member",
+    reputation: 70,
+    payoutRound: 4,
+  },
+  {
+    id: "m3",
+    name: "Uwase Eve",
+    phone: "+250788555666",
+    role: "member",
+    reputation: 60,
+    payoutRound: 5,
+  },
+  {
+    id: "m4",
+    name: "Habarurema Jean",
+    phone: "+250788777888",
+    role: "member",
+    reputation: 75,
+    payoutRound: 1,
+  },
+  {
+    id: "m5",
+    name: "Mukamana Bob",
+    phone: "+250788999000",
+    role: "member",
+    reputation: 45,
+    payoutRound: 2,
+  },
+  {
+    id: "m6",
+    name: "Uwimana Grace",
+    phone: "+250788000111",
+    role: "member",
+    reputation: 90,
+    payoutRound: 6,
+  },
 ];
 
 export const contributions: USSDContribution[] = [

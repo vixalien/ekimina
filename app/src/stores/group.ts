@@ -1,5 +1,7 @@
-import { map } from "nanostores";
 import type { GroupSettings } from "@/api";
+
+import { map } from "nanostores";
+
 import { GROUP_TEMPLATES } from "../constants/group-templates";
 
 export type TemplateId = "student" | "vacation" | "farmers" | "employee" | "scratch";
@@ -17,7 +19,7 @@ export const $group = map<GroupState>({
 export function applyTemplate(id: TemplateId): void {
   const template = GROUP_TEMPLATES.find((t) => t.id === id);
   $group.setKey("templateId", id);
-  $group.setKey("settings", { ...(template?.defaults ?? {}) });
+  $group.setKey("settings", { ...template?.defaults });
 }
 
 export function updateSettings(partial: Partial<GroupSettings>): void {

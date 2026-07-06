@@ -11,13 +11,13 @@ interface DeployedState {
 
 const statePath = path.join(__dirname, "deployed-state.json");
 
-let _state: DeployedState = { accounts: {}, groups: {} };
+let state: DeployedState = { accounts: {}, groups: {} };
 
 try {
-  _state = JSON.parse(fs.readFileSync(statePath, "utf-8"));
+  state = JSON.parse(fs.readFileSync(statePath, "utf-8"));
 } catch {
   console.warn("[deployed-state] no deployed-state.json found at", statePath);
 }
 
-export const ACCOUNT_NAMES: Record<string, string> = _state.accounts;
-export const GROUP_META: Record<string, { name: string; inviteCode: string }> = _state.groups;
+export const ACCOUNT_NAMES: Record<string, string> = state.accounts;
+export const GROUP_META: Record<string, { name: string; inviteCode: string }> = state.groups;

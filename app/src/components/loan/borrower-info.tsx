@@ -1,6 +1,7 @@
-import { Avatar, ListGroup, PressableFeedback } from "heroui-native";
 import type { JSX } from "react";
+
 import { router } from "expo-router";
+import { Avatar, ListGroup, PressableFeedback } from "heroui-native";
 
 interface BorrowerInfoProps {
   borrowerUserId: string;

@@ -1,5 +1,8 @@
+import "../global.css";
+
 import type { JSX } from "react";
-import { useEffect, useRef } from "react";
+
+import { JetBrainsMono_400Regular } from "@expo-google-fonts/jetbrains-mono";
 import {
   Sora_400Regular,
   Sora_500Medium,
@@ -8,19 +11,18 @@ import {
   Sora_800ExtraBold,
   useFonts,
 } from "@expo-google-fonts/sora";
-import { JetBrainsMono_400Regular } from "@expo-google-fonts/jetbrains-mono";
 import { SpaceGrotesk_700Bold } from "@expo-google-fonts/space-grotesk";
 import { Stack, router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { HeroUINativeProvider } from "heroui-native";
+import { useEffect, useRef } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
-import { $authLoading } from "../stores/auth";
+
 import { loadAuth } from "../lib/auth-storage";
 import { Routes } from "../lib/routes";
-
-import "../global.css";
+import { $authLoading } from "../stores/auth";
 
 SplashScreen.setOptions({ duration: 300, fade: true });
 
@@ -74,6 +76,7 @@ export default function RootLayout(): JSX.Element | null {
             <Stack.Screen name="(onboarding)" />
             <Stack.Screen name="(tabs)" />
           </Stack>
+          {/* oxlint-disable-next-line react/style-prop-object — expo-status-bar accepts string style */}
           <StatusBar style="auto" />
         </HeroUINativeProvider>
       </KeyboardProvider>

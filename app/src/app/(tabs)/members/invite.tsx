@@ -1,3 +1,11 @@
+import type { JSX } from "react";
+
+import type { GroupInviteData } from "@/api";
+
+import { Ionicons } from "@expo/vector-icons";
+import { useStore } from "@nanostores/react";
+import * as Clipboard from "expo-clipboard";
+import { LinearGradient } from "expo-linear-gradient";
 import {
   Button,
   InputGroup,
@@ -8,17 +16,11 @@ import {
   TextField,
   useToast,
 } from "heroui-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useStore } from "@nanostores/react";
-import { LinearGradient } from "expo-linear-gradient";
-import type { JSX } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { ScrollView, Share, View } from "react-native";
 import { withUniwind } from "uniwind";
-import * as Clipboard from "expo-clipboard";
 
 import { dataClient } from "@/api";
-import type { GroupInviteData } from "@/api";
 import { AppText } from "@/components/ui/app-text";
 import { Header } from "@/components/ui/header";
 import { ScreenContainer } from "@/components/ui/screen-container";

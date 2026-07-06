@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+
 import { View } from "react-native";
 
 interface StepProgressProps {

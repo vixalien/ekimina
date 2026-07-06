@@ -1,3 +1,5 @@
+import type { MemberListItem } from "@/api";
+
 import { Ionicons } from "@expo/vector-icons";
 import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { LinearGradient } from "expo-linear-gradient";
@@ -17,7 +19,6 @@ import {
 import { Fragment, type JSX, useMemo, useState } from "react";
 import { Keyboard, Pressable, View } from "react-native";
 import { withUniwind } from "uniwind";
-import type { MemberListItem } from "@/api";
 
 const StyledIonicons = withUniwind(Ionicons);
 
@@ -86,7 +87,7 @@ export function MemberFilterSheet({
 
   function toggleMember(userId: string) {
     setLocalSelected((prev) =>
-      prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
+      prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId],
     );
   }
 

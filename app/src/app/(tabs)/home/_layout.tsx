@@ -1,5 +1,6 @@
-import { Stack } from "expo-router";
 import type { JSX } from "react";
+
+import { Stack } from "expo-router";
 
 export default function HomeLayout(): JSX.Element {
   return (

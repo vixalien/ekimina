@@ -2,15 +2,15 @@
   "name": "test",
   "version": "1.0.0",
   "description": "",
+  "keywords": [],
+  "license": "ISC",
+  "author": "",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "start": "live-server --no-browser --verbose src",
     "dev": "pnpm run start"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "module",
   "devDependencies": {
     "live-server": "^1.2.2"
   }

@@ -1,6 +1,7 @@
 import { BottomSheet, Radio, RadioGroup, Separator, Surface } from "heroui-native";
 import { Fragment, type JSX } from "react";
 import { View } from "react-native";
+
 import { TRANSACTION_TYPE_LABELS } from "../../lib/activity-constants";
 import { AppText } from "../ui/app-text";
 
@@ -13,7 +14,10 @@ const TYPE_OPTIONS: { value: TypeFilterValue; label: string }[] = [
   { value: "penalty", label: TRANSACTION_TYPE_LABELS.penalty },
   { value: "loan_repayment", label: TRANSACTION_TYPE_LABELS.loan_repayment },
   { value: "loan_disbursement", label: TRANSACTION_TYPE_LABELS.loan_disbursement },
-  { value: "discretionary_disbursement", label: TRANSACTION_TYPE_LABELS.discretionary_disbursement },
+  {
+    value: "discretionary_disbursement",
+    label: TRANSACTION_TYPE_LABELS.discretionary_disbursement,
+  },
 ];
 
 interface TypeFilterSheetProps {
@@ -30,7 +34,7 @@ export function TypeFilterSheet({
   onValueChange,
 }: TypeFilterSheetProps): JSX.Element {
   function handleSelect(val: string) {
-    onValueChange(val as TypeFilterValue);
+    onValueChange(val);
     onOpenChange(false);
   }
 

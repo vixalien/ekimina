@@ -1,5 +1,7 @@
 import type { JSX } from "react";
-import { View } from "react-native";
+
+import type { GroupSettings } from "@/api";
+
 import {
   ControlField,
   Description,
@@ -8,8 +10,9 @@ import {
   TextField,
   useBottomSheetAwareHandlers,
 } from "heroui-native";
+import { View } from "react-native";
+
 import { AppText } from "../ui/app-text";
-import type { GroupSettings } from "@/api";
 
 interface LoansSettingsProps {
   value: Pick<GroupSettings, "loansEnabled" | "loanInterestRate" | "discretionaryFundEnabled">;

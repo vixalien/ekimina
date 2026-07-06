@@ -1,12 +1,14 @@
-import { Button, Chip, InputGroup, ScrollShadow, TextField, useToast } from "heroui-native";
+import type { JSX } from "react";
+
+import type { GroupSettings } from "@/api";
+
 import { useStore } from "@nanostores/react";
 import { LinearGradient } from "expo-linear-gradient";
-import type { JSX } from "react";
+import { Button, Chip, InputGroup, ScrollShadow, TextField, useToast } from "heroui-native";
 import { useCallback, useEffect, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 
 import { dataClient } from "@/api";
-import type { GroupSettings } from "@/api";
 import { AppText } from "@/components/ui/app-text";
 import { Header } from "@/components/ui/header";
 import { ScreenContainer } from "@/components/ui/screen-container";
@@ -23,7 +25,7 @@ export default function DiscretionaryRequestScreen(): JSX.Element {
 
   const [direction, setDirection] = useState<"deposit" | "withdrawal">("deposit");
   const [amount, setAmount] = useState("");
-  const [category, setCategory] = useState(CATEGORIES[0]!);
+  const [category, setCategory] = useState(CATEGORIES[0]);
   const [paidTo, setPaidTo] = useState("");
   const [reason, setReason] = useState("");
   const [settings, setSettings] = useState<GroupSettings | null>(null);

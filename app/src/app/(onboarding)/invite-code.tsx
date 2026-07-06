@@ -1,11 +1,14 @@
 import type { JSX } from "react";
-import { useState } from "react";
-import { FieldError, InputGroup, Label, TextField, useToast } from "heroui-native";
+
 import { Ionicons } from "@expo/vector-icons";
+import { FieldError, InputGroup, Label, TextField, useToast } from "heroui-native";
+import { useState } from "react";
 import { withUniwind } from "uniwind";
+
 import { dataClient } from "@/api";
-import { nav } from "../../lib/routes";
+
 import { OnboardingLayout } from "../../components/ui/onboarding-layout";
+import { nav } from "../../lib/routes";
 
 const StyledIonicons = withUniwind(Ionicons);
 
@@ -26,8 +29,8 @@ export default function InviteCodeScreen(): JSX.Element {
         groupName: request.groupName,
         requestedAt: request.requestedAt,
       });
-    } catch (error) {
-      console.error(error);
+    } catch (e) {
+      console.error(e);
       setError("Invalid invite code. Check with your group admin.");
       toast.show({
         variant: "danger",

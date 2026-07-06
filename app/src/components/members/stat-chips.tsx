@@ -1,5 +1,6 @@
-import { Card } from "heroui-native";
 import type { JSX } from "react";
+
+import { Card } from "heroui-native";
 import { View } from "react-native";
 
 import { AppText } from "../ui/app-text";

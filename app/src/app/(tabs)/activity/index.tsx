@@ -1,21 +1,24 @@
-import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import type { JSX } from "react";
+
+import type { ActivityPendingRequest, OutstandingLoan, Transaction } from "@/api";
+
+import { Ionicons } from "@expo/vector-icons";
+import { useStore } from "@nanostores/react";
+import { LinearGradient } from "expo-linear-gradient";
+import { ListGroup, PressableFeedback, ScrollShadow, Separator } from "heroui-native";
 import { startTransition, useEffect, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
-import { ListGroup, PressableFeedback, ScrollShadow, Separator } from "heroui-native";
-import { useStore } from "@nanostores/react";
 import { withUniwind } from "uniwind";
+
 import { dataClient } from "@/api";
-import { $activeGroup } from "@/stores/active-group";
-import { nav } from "@/lib/routes";
-import type { ActivityPendingRequest, OutstandingLoan, Transaction } from "@/api";
+import { LoanListItem } from "@/components/activity/loan-list-item";
+import { PendingRequestCard } from "@/components/activity/pending-request-card";
+import { TransactionListItem } from "@/components/activity/transaction-list-item";
+import { AppText } from "@/components/ui/app-text";
 import { Header } from "@/components/ui/header";
 import { ScreenContainer } from "@/components/ui/screen-container";
-import { AppText } from "@/components/ui/app-text";
-import { PendingRequestCard } from "@/components/activity/pending-request-card";
-import { LoanListItem } from "@/components/activity/loan-list-item";
-import { TransactionListItem } from "@/components/activity/transaction-list-item";
+import { nav } from "@/lib/routes";
+import { $activeGroup } from "@/stores/active-group";
 
 const StyledIonicons = withUniwind(Ionicons);
 
@@ -50,6 +53,7 @@ export default function ActivityTab(): JSX.Element {
           setTransactions(recentTxns);
           setLoading(false);
         });
+        return;
       })
       .catch(() => setLoading(false));
   }, [activeGroupId]);

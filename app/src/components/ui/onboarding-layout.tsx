@@ -1,8 +1,10 @@
 import type { JSX, ReactNode } from "react";
-import { View, ScrollView } from "react-native";
-import { Button, ScrollShadow } from "heroui-native";
+
 import { LinearGradient } from "expo-linear-gradient";
+import { Button, ScrollShadow } from "heroui-native";
+import { View, ScrollView } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
+
 import { AppText } from "./app-text";
 import { Header } from "./header";
 import { ScreenContainer } from "./screen-container";

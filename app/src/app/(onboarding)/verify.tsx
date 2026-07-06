@@ -1,16 +1,39 @@
 import type { JSX } from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { View } from "react-native";
+
+import type { Address } from "@/api";
+
 import { useLocalSearchParams } from "expo-router";
 import { Button, InputOTP, REGEXP_ONLY_DIGITS, type InputOTPRef, useToast } from "heroui-native";
-import { Address, dataClient } from "@/api";
-import { nav } from "../../lib/routes";
-import { loginWithOtp } from "../../stores/auth";
-import { saveAuth } from "../../lib/auth-storage";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { View } from "react-native";
+
+import { dataClient } from "@/api";
+
 import { AppText } from "../../components/ui/app-text";
 import { OnboardingLayout } from "../../components/ui/onboarding-layout";
+import { saveAuth } from "../../lib/auth-storage";
+import { nav } from "../../lib/routes";
+import { loginWithOtp } from "../../stores/auth";
 
 const RESEND_COOLDOWN = 30;
+
+async function navigateAfterAuth(result: { status: string; user: { address: string } }) {
+  if (result.status === "created") {
+    nav.onboarding.signup.toName();
+    return;
+  }
+
+  const address = result.user.address as Address;
+  const memberships = await dataClient.groups.myGroups(address);
+
+  if (memberships.length === 0) {
+    nav.onboarding.toJoinOrCreate();
+  } else if (memberships.length === 1) {
+    nav.toTabs();
+  } else {
+    nav.onboarding.toJoinOrCreate();
+  }
+}
 
 export default function VerifyScreen(): JSX.Element {
   const { phone } = useLocalSearchParams<{ phone: string }>();
@@ -28,28 +51,12 @@ export default function VerifyScreen(): JSX.Element {
   }, []);
 
   useEffect(() => {
-    if (resendTimer <= 0) return;
+    if (resendTimer <= 0) {
+      return () => {};
+    }
     const t = setTimeout(() => setResendTimer((s) => s - 1), 1000);
     return () => clearTimeout(t);
   }, [resendTimer]);
-
-  async function navigateAfterAuth(result: { status: string; user: { address: string } }) {
-    if (result.status === "created") {
-      nav.onboarding.signup.toName();
-      return;
-    }
-
-    const address = result.user.address as Address;
-    const memberships = await dataClient.groups.myGroups(address);
-
-    if (memberships.length === 0) {
-      nav.onboarding.toJoinOrCreate();
-    } else if (memberships.length === 1) {
-      nav.toTabs();
-    } else {
-      nav.onboarding.toJoinOrCreate();
-    }
-  }
 
   async function handleVerify(code: string) {
     if (!phone || isVerifying) return;
@@ -60,8 +67,8 @@ export default function VerifyScreen(): JSX.Element {
       const authUser = await loginWithOtp(phone, result);
       await saveAuth(authUser);
       await navigateAfterAuth(result);
-    } catch (error) {
-      console.error(error);
+    } catch (e) {
+      console.error(e);
       setError("Invalid code. Please try again.");
       setOtp("");
       toast.show({
@@ -79,8 +86,8 @@ export default function VerifyScreen(): JSX.Element {
     setResendTimer(RESEND_COOLDOWN);
     try {
       await dataClient.auth.sendOtp(phone);
-    } catch (error) {
-      console.error(error);
+    } catch (e) {
+      console.error(e);
       toast.show({
         variant: "danger",
         label: "Could not resend code",

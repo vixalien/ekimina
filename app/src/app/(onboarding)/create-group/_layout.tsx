@@ -1,8 +1,10 @@
 import type { JSX } from "react";
-import { useEffect } from "react";
+
 import { Stack } from "expo-router";
-import { resetGroup } from "../../../stores/group";
+import { useEffect } from "react";
+
 import { resetWizard } from "../../../stores/create-group";
+import { resetGroup } from "../../../stores/group";
 
 export default function CreateGroupLayout(): JSX.Element {
   useEffect(() => {

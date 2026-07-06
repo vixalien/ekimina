@@ -15,7 +15,7 @@
   "rules": {
     "vitest/require-to-throw-message": "warn",
     // "typescript/explicit-function-return-type": "error",
-    "no-console": ["error", { "allow": ["warn", "error"] }],
+    // "no-console": ["error", { "allow": ["warn", "error"] }],
     "no-underscore-dangle": ["error", { "allow": ["_default", "_id", "__dirname"] }],
     "rules-of-hooks": "error",
     "typescript/ban-ts-comment": [

@@ -1,4 +1,5 @@
 import type { JSX, ReactNode } from "react";
+
 import { OnboardingLayout } from "./onboarding-layout";
 
 interface WizardLayoutProps {

@@ -1,18 +1,20 @@
-import { Button, ListGroup, ScrollShadow, useToast } from "heroui-native";
-import { useStore } from "@nanostores/react";
-import { useLocalSearchParams } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
 import type { JSX } from "react";
+
+import type { JoinRequestReview } from "@/api";
+
+import { useStore } from "@nanostores/react";
+import { LinearGradient } from "expo-linear-gradient";
+import { useLocalSearchParams } from "expo-router";
+import { Button, ListGroup, ScrollShadow, useToast } from "heroui-native";
 import { startTransition, useCallback, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 
 import { dataClient } from "@/api";
-import type { JoinRequestReview } from "@/api";
+import { LoanSignatureList } from "@/components/loan/loan-signature-row";
+import { RejectReasonSheet } from "@/components/loan/reject-reason-sheet";
 import { AppText } from "@/components/ui/app-text";
 import { Header } from "@/components/ui/header";
 import { ScreenContainer } from "@/components/ui/screen-container";
-import { LoanSignatureList } from "@/components/loan/loan-signature-row";
-import { RejectReasonSheet } from "@/components/loan/reject-reason-sheet";
 import { nav } from "@/lib/routes";
 import { $activeGroup } from "@/stores/active-group";
 import { $auth } from "@/stores/auth";
@@ -83,7 +85,7 @@ export default function JoinReviewScreen(): JSX.Element {
         setRejecting(false);
       }
     },
-    [activeGroupId, requestId, auth, toast]
+    [activeGroupId, requestId, auth, toast],
   );
 
   if (loading || !review) {

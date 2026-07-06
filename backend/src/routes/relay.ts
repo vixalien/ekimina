@@ -1,8 +1,10 @@
-import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import { walletClient, publicClient } from "../lib/chain.js";
-import { getIkiminaContract } from "@ekimina/contracts";
-import { addressSchema, errorResponses } from "../lib/schemas.js";
 import type { Address } from "@ekimina/types";
+
+import { getIkiminaContract } from "@ekimina/contracts";
+import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
+
+import { walletClient, publicClient } from "../lib/chain.js";
+import { addressSchema, errorResponses } from "../lib/schemas.js";
 
 const relay = new OpenAPIHono();
 

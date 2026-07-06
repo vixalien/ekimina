@@ -1,5 +1,7 @@
 import type { JSX } from "react";
-import { View } from "react-native";
+
+import type { GroupSettings } from "@/api";
+
 import {
   Description,
   InputGroup,
@@ -8,7 +10,7 @@ import {
   TextField,
   useBottomSheetAwareHandlers,
 } from "heroui-native";
-import type { GroupSettings } from "@/api";
+import { View } from "react-native";
 
 interface BasicsSettingsProps {
   value: Pick<GroupSettings, "name" | "isPublic">;

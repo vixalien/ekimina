@@ -1,10 +1,17 @@
 import type { JSX } from "react";
+
 import { useStore } from "@nanostores/react";
-import { nav } from "@/lib/routes";
-import { WizardLayout } from "@/components/ui/wizard-layout";
+
 import { MoneySettings } from "@/components/group-settings/money";
-import { $group, updateSettings } from "@/stores/group";
+import { WizardLayout } from "@/components/ui/wizard-layout";
+import { nav } from "@/lib/routes";
 import { setStep } from "@/stores/create-group";
+import { $group, updateSettings } from "@/stores/group";
+
+function handleNext() {
+  setStep(4);
+  nav.onboarding.createGroup.toStep(4);
+}
 
 export default function CreateGroupStep3(): JSX.Element {
   const group = useStore($group);
@@ -15,11 +22,6 @@ export default function CreateGroupStep3(): JSX.Element {
   const payoutAmount = settings.payoutAmount ?? 0;
 
   const isValid = contributionAmount > 0 && cycleLength > 0 && payoutAmount > 0;
-
-  function handleNext() {
-    setStep(4);
-    nav.onboarding.createGroup.toStep(4);
-  }
 
   return (
     <WizardLayout

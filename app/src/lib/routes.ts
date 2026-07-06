@@ -76,8 +76,7 @@ export const nav = {
     },
 
     createGroup: {
-      toStep: (n: 1 | 2 | 3 | 4 | 5 | 6 = 1) =>
-        router.push(Routes.onboarding.createGroup.step(n)),
+      toStep: (n: 1 | 2 | 3 | 4 | 5 | 6 = 1) => router.push(Routes.onboarding.createGroup.step(n)),
       toSuccess: () => router.replace(Routes.onboarding.createGroup.success),
     },
   },

@@ -1,9 +1,9 @@
 import { network } from "hardhat";
 
-const { viem } = await network.create({
+const { viem } = await (network.create({
   network: "hardhatOp",
   chainType: "op",
-});
+}) as any);
 
 console.log("Sending transaction using the OP chain type");
 

@@ -1,8 +1,11 @@
 import type { JSX } from "react";
-import { View } from "react-native";
-import { Description, Label, Radio, RadioGroup, Separator, Surface } from "heroui-native";
-import { GROUP_TEMPLATES } from "../../constants/group-templates";
+
 import type { TemplateId } from "../../stores/group";
+
+import { Description, Label, Radio, RadioGroup, Separator, Surface } from "heroui-native";
+import { View } from "react-native";
+
+import { GROUP_TEMPLATES } from "../../constants/group-templates";
 
 interface TemplateSelectorProps {
   selectedId: TemplateId | null;

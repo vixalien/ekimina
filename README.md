@@ -89,23 +89,23 @@ FACTORY_ADDRESS=0x<address-from-step-2> pnpm dev
 
 Starts the Hono API server on `http://localhost:3000`. Endpoints:
 
-| Method | Path | Description |
-|---|---|---|
-| `POST` | `/auth/otp/send` | Send OTP (mock: `123456`) |
-| `POST` | `/auth/otp/verify` | Verify OTP, returns JWT + user |
-| `POST` | `/auth/pin` | Set custodial PIN |
-| `POST` | `/auth/pin/verify` | Verify PIN |
-| `GET` | `/users/{address}` | Get user by address |
-| `PATCH` | `/users/me` | Update profile |
-| `POST` | `/lookup/names` | Resolve addresses to names |
-| `GET` | `/groups/by-invite/{code}` | Lookup group by invite code |
-| `GET` | `/users/{address}/groups` | User's group memberships |
-| `GET` | `/groups/{group}` | Group config |
-| `GET` | `/groups/{group}/cycle` | Current cycle state |
-| `GET` | `/groups/{group}/members` | Active member list |
-| `POST` | `/relay/groups/{group}/contribute` | Contribute (custodial) |
-| `POST` | `/relay/groups/{group}/join` | Join group (custodial) |
-| `POST` | `/relay/groups/{group}/trigger-payout` | Advance payout (custodial) |
+| Method  | Path                                   | Description                    |
+| ------- | -------------------------------------- | ------------------------------ |
+| `POST`  | `/auth/otp/send`                       | Send OTP (mock: `123456`)      |
+| `POST`  | `/auth/otp/verify`                     | Verify OTP, returns JWT + user |
+| `POST`  | `/auth/pin`                            | Set custodial PIN              |
+| `POST`  | `/auth/pin/verify`                     | Verify PIN                     |
+| `GET`   | `/users/{address}`                     | Get user by address            |
+| `PATCH` | `/users/me`                            | Update profile                 |
+| `POST`  | `/lookup/names`                        | Resolve addresses to names     |
+| `GET`   | `/groups/by-invite/{code}`             | Lookup group by invite code    |
+| `GET`   | `/users/{address}/groups`              | User's group memberships       |
+| `GET`   | `/groups/{group}`                      | Group config                   |
+| `GET`   | `/groups/{group}/cycle`                | Current cycle state            |
+| `GET`   | `/groups/{group}/members`              | Active member list             |
+| `POST`  | `/relay/groups/{group}/contribute`     | Contribute (custodial)         |
+| `POST`  | `/relay/groups/{group}/join`           | Join group (custodial)         |
+| `POST`  | `/relay/groups/{group}/trigger-payout` | Advance payout (custodial)     |
 
 ### Terminal 4 — Mobile app
 
@@ -124,13 +124,13 @@ The `Ikimina` contract (per-group) manages contributions, rotating payouts, prop
 
 **Key governance flows (all via on-chain proposals):**
 
-| Proposal kind | What happens |
-|---|---|
-| `loan` | Disburses tokens to borrower, creates a loan |
-| `discretionary` | Disburses tokens to a recipient |
-| `settings` | Updates group config (contribution, penalties, etc.) |
-| `member_exit` | Removes member, pays settlement |
-| `dissolve` | Shares out reserve equally, closes group |
+| Proposal kind   | What happens                                         |
+| --------------- | ---------------------------------------------------- |
+| `loan`          | Disburses tokens to borrower, creates a loan         |
+| `discretionary` | Disburses tokens to a recipient                      |
+| `settings`      | Updates group config (contribution, penalties, etc.) |
+| `member_exit`   | Removes member, pays settlement                      |
+| `dissolve`      | Shares out reserve equally, closes group             |
 
 Proposals auto-execute at threshold and auto-reject when approval becomes impossible. No manual execution needed.
 
@@ -153,10 +153,10 @@ The app has been partially migrated from mock data to the on-chain design. The c
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Mobile app | Expo 57, HeroUI Native, Uniwind (Tailwind v4) |
-| Backend | Hono + `@hono/zod-openapi` + viem |
-| Smart contract | Solidity 0.8.28, Hardhat 3, forge-std |
-| Key management | viem WalletClient + Expo AsyncStorage |
-| State | Nanostores |
+| Layer          | Technology                                    |
+| -------------- | --------------------------------------------- |
+| Mobile app     | Expo 57, HeroUI Native, Uniwind (Tailwind v4) |
+| Backend        | Hono + `@hono/zod-openapi` + viem             |
+| Smart contract | Solidity 0.8.28, Hardhat 3, forge-std         |
+| Key management | viem WalletClient + Expo AsyncStorage         |
+| State          | Nanostores                                    |

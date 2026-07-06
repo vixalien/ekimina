@@ -1,3 +1,7 @@
+import type { JSX } from "react";
+
+import type { GroupSettingField } from "@/api";
+
 import { Ionicons } from "@expo/vector-icons";
 import {
   BottomSheet,
@@ -11,12 +15,10 @@ import {
   TextField,
   useBottomSheetAwareHandlers,
 } from "heroui-native";
-import type { JSX } from "react";
 import { useCallback, useState } from "react";
 import { Pressable, View } from "react-native";
 import { withUniwind } from "uniwind";
 
-import type { GroupSettingField } from "@/api";
 import { AppText } from "@/components/ui/app-text";
 
 const StyledIonicons = withUniwind(Ionicons);
@@ -220,9 +222,7 @@ function ToggleContent({
     <ControlField isSelected={value} onSelectedChange={onChange}>
       <View className="flex-1">
         <Label>Discretionary fund</Label>
-        <Description>
-          Lets the committee deposit or withdraw group funds directly
-        </Description>
+        <Description>Lets the committee deposit or withdraw group funds directly</Description>
       </View>
       <ControlField.Indicator />
     </ControlField>
@@ -242,17 +242,13 @@ export function SettingsModal({
     if (typeof rawValue === "number") return String(rawValue);
     return "";
   });
-  const [sliderValue, setSliderValue] = useState(
-    typeof rawValue === "number" ? rawValue : 15
-  );
-  const [toggleValue, setToggleValue] = useState(
-    typeof rawValue === "boolean" ? rawValue : false
-  );
+  const [sliderValue, setSliderValue] = useState(typeof rawValue === "number" ? rawValue : 15);
+  const [toggleValue, setToggleValue] = useState(typeof rawValue === "boolean" ? rawValue : false);
   const [committeeNumber, setCommitteeNumber] = useState(
-    field === "committee_size" && typeof rawValue === "number" ? String(rawValue) : "3"
+    field === "committee_size" && typeof rawValue === "number" ? String(rawValue) : "3",
   );
   const [policyValue, setPolicyValue] = useState(
-    typeof rawValue === "string" ? rawValue : "private"
+    typeof rawValue === "string" ? rawValue : "private",
   );
   const [thresholdValue, setThresholdValue] = useState(() => {
     if (typeof rawValue === "number") {
@@ -293,7 +289,16 @@ export function SettingsModal({
         proposed = numberInput;
     }
     onSubmit(proposed);
-  }, [field, numberInput, sliderValue, toggleValue, committeeNumber, thresholdValue, policyValue, onSubmit]);
+  }, [
+    field,
+    numberInput,
+    sliderValue,
+    toggleValue,
+    committeeNumber,
+    thresholdValue,
+    policyValue,
+    onSubmit,
+  ]);
 
   return (
     <BottomSheet isOpen={isOpen} onOpenChange={onOpenChange}>
@@ -312,11 +317,7 @@ export function SettingsModal({
           {field === "contribution_amount" ||
           field === "cycle_length" ||
           field === "payout_amount" ? (
-            <NumberInputContent
-              field={field}
-              value={numberInput}
-              onChange={setNumberInput}
-            />
+            <NumberInputContent field={field} value={numberInput} onChange={setNumberInput} />
           ) : field === "penalty_rate" ? (
             <SliderContent value={sliderValue} onChange={setSliderValue} />
           ) : field === "loan_interest_rate" ? (
@@ -341,10 +342,7 @@ export function SettingsModal({
               numberLabel="Committee size"
             />
           ) : field === "approval_threshold" ? (
-            <ApprovalThresholdContent
-              value={thresholdValue}
-              onChange={setThresholdValue}
-            />
+            <ApprovalThresholdContent value={thresholdValue} onChange={setThresholdValue} />
           ) : field === "group_policy" ? (
             <SegmentedContent value={policyValue} onChange={setPolicyValue} />
           ) : field === "discretionary_fund" ? (

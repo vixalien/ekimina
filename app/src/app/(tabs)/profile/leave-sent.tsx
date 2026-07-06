@@ -1,7 +1,8 @@
-import { Ionicons } from "@expo/vector-icons";
-import { Button } from "heroui-native";
-import { router } from "expo-router";
 import type { JSX } from "react";
+
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { Button } from "heroui-native";
 import { View } from "react-native";
 import { withUniwind } from "uniwind";
 
@@ -10,11 +11,11 @@ import { ScreenContainer } from "@/components/ui/screen-container";
 
 const StyledIonicons = withUniwind(Ionicons);
 
-export default function LeaveGroupSent(): JSX.Element {
-  function handleDone() {
-    router.replace("/(tabs)/profile");
-  }
+function handleDone() {
+  router.replace("/(tabs)/profile");
+}
 
+export default function LeaveGroupSent(): JSX.Element {
   return (
     <ScreenContainer>
       <View className="flex-1 items-center justify-center px-6 gap-6">

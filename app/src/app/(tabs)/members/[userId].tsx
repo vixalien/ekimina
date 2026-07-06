@@ -1,20 +1,22 @@
-import { Avatar, Button, useToast } from "heroui-native";
+import type { JSX } from "react";
+
+import type { MemberDetail as MemberDetailType } from "@/api";
+
 import { useStore } from "@nanostores/react";
 import { router, useLocalSearchParams } from "expo-router";
-import type { JSX } from "react";
+import { Avatar, Button, useToast } from "heroui-native";
 import { startTransition, useCallback, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 
 import { dataClient } from "@/api";
-import type { MemberDetail as MemberDetailType } from "@/api";
+import { WithdrawMemberSheet } from "@/components/activity/withdraw-member-sheet";
+import { ContributionHistory } from "@/components/members/contribution-history";
+import { LoansSection } from "@/components/members/loans-section";
+import { ReputationGauge } from "@/components/members/reputation-gauge";
+import { StatChipsRow } from "@/components/members/stat-chips";
 import { AppText } from "@/components/ui/app-text";
 import { Header } from "@/components/ui/header";
 import { ScreenContainer } from "@/components/ui/screen-container";
-import { ReputationGauge } from "@/components/members/reputation-gauge";
-import { StatChipsRow } from "@/components/members/stat-chips";
-import { ContributionHistory } from "@/components/members/contribution-history";
-import { LoansSection } from "@/components/members/loans-section";
-import { WithdrawMemberSheet } from "@/components/activity/withdraw-member-sheet";
 import { $activeGroup } from "@/stores/active-group";
 import { $auth } from "@/stores/auth";
 
@@ -49,7 +51,7 @@ export default function MemberDetailScreen(): JSX.Element {
           activeGroup.activeGroupId,
           userId,
           auth.id,
-          reasonCategory
+          reasonCategory,
         );
         toast.show({
           variant: "success",
@@ -64,7 +66,7 @@ export default function MemberDetailScreen(): JSX.Element {
         setWithdrawing(false);
       }
     },
-    [activeGroup.activeGroupId, userId, auth, toast]
+    [activeGroup.activeGroupId, userId, auth, toast],
   );
 
   if (loading || !detail) {

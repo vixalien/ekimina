@@ -26,38 +26,114 @@ const client = createPublicClient({
 // ── Minimal ABI ────────────────────────────────────────────────────────────
 
 const abi = [
-  { name: "admin",              type: "function", stateMutability: "view", inputs: [],                       outputs: [{ type: "address" }] },
-  { name: "currentRound",       type: "function", stateMutability: "view", inputs: [],                       outputs: [{ type: "uint256" }] },
-  { name: "contributionAmount", type: "function", stateMutability: "view", inputs: [],                       outputs: [{ type: "uint256" }] },
-  { name: "roundDuration",      type: "function", stateMutability: "view", inputs: [],                       outputs: [{ type: "uint256" }] },
-  { name: "roundStartTime",     type: "function", stateMutability: "view", inputs: [],                       outputs: [{ type: "uint256" }] },
-  { name: "getMemberCount",     type: "function", stateMutability: "view", inputs: [],                       outputs: [{ type: "uint256" }] },
-  { name: "getBalance",         type: "function", stateMutability: "view", inputs: [],                       outputs: [{ type: "uint256" }] },
-  { name: "reputationScore",    type: "function", stateMutability: "view", inputs: [{ type: "address" }],   outputs: [{ type: "uint256" }] },
-  { name: "roundRecipient",     type: "function", stateMutability: "view", inputs: [{ type: "uint256" }],   outputs: [{ type: "address" }] },
-  { name: "members",            type: "function", stateMutability: "view", inputs: [{ type: "uint256" }],   outputs: [{ type: "address" }] },
+  {
+    name: "admin",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "address" }],
+  },
+  {
+    name: "currentRound",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    name: "contributionAmount",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    name: "roundDuration",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    name: "roundStartTime",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    name: "getMemberCount",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    name: "getBalance",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    name: "reputationScore",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ type: "address" }],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    name: "roundRecipient",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ type: "uint256" }],
+    outputs: [{ type: "address" }],
+  },
+  {
+    name: "members",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ type: "uint256" }],
+    outputs: [{ type: "address" }],
+  },
 ] as const;
 
 // ── Event signatures ───────────────────────────────────────────────────────
 
-const evMemberRegistered  = parseAbiItem("event MemberRegistered(address indexed member)");
-const evContributionMade  = parseAbiItem("event ContributionMade(address indexed member, uint256 round, uint256 amount)");
-const evPayoutReleased    = parseAbiItem("event PayoutReleased(address indexed recipient, uint256 round, uint256 amount)");
-const evDefaultRecorded   = parseAbiItem("event DefaultRecorded(address indexed member, uint256 round)");
+const evMemberRegistered = parseAbiItem("event MemberRegistered(address indexed member)");
+const evContributionMade = parseAbiItem(
+  "event ContributionMade(address indexed member, uint256 round, uint256 amount)",
+);
+const evPayoutReleased = parseAbiItem(
+  "event PayoutReleased(address indexed recipient, uint256 round, uint256 amount)",
+);
+const evDefaultRecorded = parseAbiItem(
+  "event DefaultRecorded(address indexed member, uint256 round)",
+);
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 const read = <T>(fn: string, args: unknown[] = []) =>
-  client.readContract({ address: CONTRACT_ADDRESS, abi, functionName: fn as never, args } as never) as Promise<T>;
+  client.readContract({
+    address: CONTRACT_ADDRESS,
+    abi,
+    functionName: fn as never,
+    args,
+  }) as Promise<T>;
 
 const short = (addr: string) => `${addr.slice(0, 6)}…${addr.slice(-4)}`;
-const cUSD  = (wei: bigint)  => `${formatUnits(wei, 18)} cUSD`;
-const days  = (secs: bigint) => `${Number(secs) / 86400} day(s)`;
-const line  = (char = "─", n = 60) => char.repeat(n);
+const cUSD = (wei: bigint) => `${formatUnits(wei, 18)} cUSD`;
+const days = (secs: bigint) => `${Number(secs) / 86400} day(s)`;
+const line = (char = "─", n = 60) => char.repeat(n);
 
 async function getLogs(event: ReturnType<typeof parseAbiItem>) {
   try {
-    return await client.getLogs({ address: CONTRACT_ADDRESS, event, fromBlock: 0n, toBlock: "latest" });
+    return (await client.getLogs({
+      address: CONTRACT_ADDRESS,
+      event: event as any,
+      fromBlock: 0n,
+      toBlock: "latest",
+    })) as any[];
   } catch {
     return [];
   }
@@ -66,8 +142,13 @@ async function getLogs(event: ReturnType<typeof parseAbiItem>) {
 // ── Main ───────────────────────────────────────────────────────────────────
 
 const [
-  admin, currentRound, contributionAmount, roundDuration,
-  roundStartTime, memberCount, balance,
+  admin,
+  currentRound,
+  contributionAmount,
+  roundDuration,
+  roundStartTime,
+  memberCount,
+  balance,
 ] = await Promise.all([
   read<`0x${string}`>("admin"),
   read<bigint>("currentRound"),
@@ -84,7 +165,7 @@ for (let i = 0n; i < memberCount; i++) {
   memberAddresses.push(await read<`0x${string}`>("members", [i]));
 }
 const reputations = await Promise.all(
-  memberAddresses.map((addr) => read<bigint>("reputationScore", [addr]))
+  memberAddresses.map((addr) => read<bigint>("reputationScore", [addr])),
 );
 
 // Read events
@@ -138,24 +219,26 @@ console.log(line());
 
 console.log(`  MemberRegistered   ${regLogs.length} event(s)`);
 for (const log of regLogs.slice(-5)) {
-  console.log(`    block ${log.blockNumber}  member=${short(log.args.member!)}`);
+  console.log(`    block ${log.blockNumber}  member=${short(log.args.member)}`);
 }
 
 console.log(`  ContributionMade   ${contribLogs.length} event(s)`);
 for (const log of contribLogs.slice(-5)) {
   const { member, round, amount } = log.args;
-  console.log(`    block ${log.blockNumber}  round=${round}  ${short(member!)}  ${cUSD(amount!)}`);
+  console.log(`    block ${log.blockNumber}  round=${round}  ${short(member)}  ${cUSD(amount)}`);
 }
 
 console.log(`  PayoutReleased     ${payoutLogs.length} event(s)`);
 for (const log of payoutLogs.slice(-5)) {
   const { recipient, round, amount } = log.args;
-  console.log(`    block ${log.blockNumber}  round=${round}  ${short(recipient!)}  ${cUSD(amount!)}`);
+  console.log(`    block ${log.blockNumber}  round=${round}  ${short(recipient)}  ${cUSD(amount)}`);
 }
 
 console.log(`  DefaultRecorded    ${defaultLogs.length} event(s)`);
 for (const log of defaultLogs.slice(-5)) {
-  console.log(`    block ${log.blockNumber}  round=${log.args.round}  member=${short(log.args.member!)}`);
+  console.log(
+    `    block ${log.blockNumber}  round=${log.args.round}  member=${short(log.args.member)}`,
+  );
 }
 
 console.log();

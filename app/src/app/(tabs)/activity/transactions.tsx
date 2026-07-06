@@ -1,26 +1,29 @@
+import type { JSX } from "react";
+
+import type { MemberListItem, Transaction, TransactionType } from "@/api";
+import type { CycleRange } from "@/components/activity/cycle-filter-sheet";
+import type { DatePreset } from "@/components/activity/date-filter-sheet";
+import type { TypeFilterValue } from "@/components/activity/type-filter-sheet";
+
 import { Ionicons } from "@expo/vector-icons";
 import { useStore } from "@nanostores/react";
-import { Chip, ListGroup, PressableFeedback, ScrollShadow } from "heroui-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams } from "expo-router";
-import type { JSX } from "react";
+import { Chip, ListGroup, PressableFeedback, ScrollShadow } from "heroui-native";
 import { startTransition, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { withUniwind } from "uniwind";
+
 import { dataClient } from "@/api";
-import type { MemberListItem, Transaction, TransactionType } from "@/api";
 import { CycleFilterSheet } from "@/components/activity/cycle-filter-sheet";
-import type { CycleRange } from "@/components/activity/cycle-filter-sheet";
 import { DateFilterSheet, DATE_LABELS } from "@/components/activity/date-filter-sheet";
-import type { DatePreset } from "@/components/activity/date-filter-sheet";
 import { MemberFilterSheet } from "@/components/activity/member-filter-sheet";
 import { TransactionListItem } from "@/components/activity/transaction-list-item";
-import { TRANSACTION_TYPE_LABELS } from "@/lib/activity-constants";
 import { TypeFilterSheet } from "@/components/activity/type-filter-sheet";
-import type { TypeFilterValue } from "@/components/activity/type-filter-sheet";
+import { AppText } from "@/components/ui/app-text";
 import { Header } from "@/components/ui/header";
 import { ScreenContainer } from "@/components/ui/screen-container";
-import { AppText } from "@/components/ui/app-text";
+import { TRANSACTION_TYPE_LABELS } from "@/lib/activity-constants";
 import { nav } from "@/lib/routes";
 import { $activeGroup } from "@/stores/active-group";
 
@@ -39,10 +42,10 @@ export default function TransactionsScreen(): JSX.Element {
 
   // Filter state - initialize from route params if present
   const [typeFilter, setTypeFilter] = useState<TypeFilterValue>(
-    (params.type as TypeFilterValue) ?? "all"
+    (params.type as TypeFilterValue) ?? "all",
   );
   const [memberFilter, setMemberFilter] = useState<string[]>(
-    params.memberId ? [params.memberId] : []
+    params.memberId ? [params.memberId] : [],
   );
   const [cycleFilter, setCycleFilter] = useState<CycleRange | null>(null);
   const [dateFilter, setDateFilter] = useState<DatePreset>("all");
@@ -70,7 +73,9 @@ export default function TransactionsScreen(): JSX.Element {
 
   useEffect(() => {
     if (!activeGroupId) return;
-    dataClient.groups.getGroupMembers(activeGroupId).then((m: any) => startTransition(() => setMembers(m)));
+    dataClient.groups
+      .getGroupMembers(activeGroupId)
+      .then((m: any) => startTransition(() => setMembers(m)));
   }, [activeGroupId]);
 
   useEffect(() => {
@@ -88,7 +93,7 @@ export default function TransactionsScreen(): JSX.Element {
         startTransition(() => {
           setTransactions(txns);
           setLoading(false);
-        })
+        }),
       )
       .catch(() => setLoading(false));
   }, [activeGroupId, typeFilter, memberFilter, cycleFilter, dateFilter]);

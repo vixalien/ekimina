@@ -1,9 +1,11 @@
-import type { JSX } from "react";
-import { View } from "react-native";
-import { Avatar, BottomSheet, Button, Radio, RadioGroup } from "heroui-native";
-import { Ionicons } from "@expo/vector-icons";
-import { withUniwind } from "uniwind";
 import type { GroupMeta } from "@ekimina/types";
+import type { JSX } from "react";
+
+import { Ionicons } from "@expo/vector-icons";
+import { Avatar, BottomSheet, Button, Radio, RadioGroup } from "heroui-native";
+import { View } from "react-native";
+import { withUniwind } from "uniwind";
+
 import { AppText } from "./ui/app-text";
 
 const StyledIonicons = withUniwind(Ionicons);

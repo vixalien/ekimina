@@ -1,6 +1,7 @@
+import type { JSX } from "react";
+
 import { Dimensions } from "react-native";
 import Svg, { Path, Circle, Text as SvgText } from "react-native-svg";
-import type { JSX } from "react";
 
 interface LineChartProps {
   history: number[];
@@ -47,7 +48,8 @@ export function LineChart({
 
   const projEndIdx = allValues.length - 1;
   const peX = padding.left + (projEndIdx / (allValues.length - 1 || 1)) * chartW;
-  const peY = padding.top + chartH - ((projection[projection.length - 1] - minVal) / range) * chartH;
+  const peY =
+    padding.top + chartH - ((projection[projection.length - 1] - minVal) / range) * chartH;
 
   const pColor = projectionColor ?? color;
 

@@ -1,6 +1,8 @@
 import type { JSX } from "react";
-import React, { useCallback, useEffect, useState } from "react";
-import { View } from "react-native";
+
+import type { PublicGroup } from "../../api";
+
+import { Ionicons } from "@expo/vector-icons";
 import {
   Description,
   InputGroup,
@@ -12,13 +14,15 @@ import {
   TextField,
   useToast,
 } from "heroui-native";
-import { Ionicons } from "@expo/vector-icons";
+import React, { useCallback, useEffect, useState } from "react";
+import { View } from "react-native";
 import { withUniwind } from "uniwind";
+
 import { dataClient } from "@/api";
-import type { PublicGroup } from "../../api";
-import { nav } from "../../lib/routes";
+
 import { AppText } from "../../components/ui/app-text";
 import { OnboardingLayout } from "../../components/ui/onboarding-layout";
+import { nav } from "../../lib/routes";
 
 const StyledIonicons = withUniwind(Ionicons);
 
@@ -55,6 +59,7 @@ export default function SearchGroupsScreen(): JSX.Element {
         setGroups(results);
         setIsLoading(false);
       }
+      return;
     });
     return () => {
       cancelled = true;

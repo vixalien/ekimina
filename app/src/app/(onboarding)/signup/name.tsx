@@ -1,12 +1,15 @@
 import type { JSX } from "react";
-import { useState } from "react";
+
 import { useStore } from "@nanostores/react";
 import { InputGroup, Label, TextField, useToast } from "heroui-native";
+import { useState } from "react";
+
 import { dataClient } from "@/api";
+
+import { OnboardingLayout } from "../../../components/ui/onboarding-layout";
+import { saveAuth } from "../../../lib/auth-storage";
 import { nav } from "../../../lib/routes";
 import { $auth } from "../../../stores/auth";
-import { saveAuth } from "../../../lib/auth-storage";
-import { OnboardingLayout } from "../../../components/ui/onboarding-layout";
 
 export default function SignupNameScreen(): JSX.Element {
   const auth = useStore($auth);

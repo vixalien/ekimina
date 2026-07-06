@@ -1,5 +1,6 @@
-import { atom, map } from "nanostores";
 import type { Address, GroupMeta } from "@/api";
+
+import { atom, map } from "nanostores";
 
 export const $openSwitcher = atom(false);
 

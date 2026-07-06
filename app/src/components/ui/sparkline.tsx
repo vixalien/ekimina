@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+
 import Svg, { Polyline } from "react-native-svg";
 
 interface SparklineProps {

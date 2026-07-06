@@ -28,7 +28,7 @@ function toAmount(usdm: number): bigint {
 }
 
 async function main() {
-  const client = await hre.network.connect();
+  const client = await (hre.network.connect() as any);
   const wallets = await client.viem.getWalletClients();
   const publicClient = await client.viem.getPublicClient();
   console.log("Deploying from:", wallets[0].account.address);
@@ -39,7 +39,6 @@ async function main() {
 
   const mockContract = await client.viem.deployContract("MockUSDm", []);
   const mockAddress = mockContract.address;
-  console.log("MockUSDm:", mockAddress);
 
   const factoryContract = await client.viem.deployContract("IkiminaFactory", [mockAddress]);
   const factoryAddress = factoryContract.address;

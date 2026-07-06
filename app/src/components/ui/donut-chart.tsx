@@ -1,8 +1,10 @@
 import type { JSX } from "react";
+
+import { useThemeColor } from "heroui-native";
 import { View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
+
 import { AppText } from "./app-text";
-import { useThemeColor } from "heroui-native";
 
 interface DonutChartProps {
   percentage: number;

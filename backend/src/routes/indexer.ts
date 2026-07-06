@@ -1,8 +1,10 @@
-import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import { publicClient } from "../lib/chain.js";
+import type { Address } from "@ekimina/types";
+
 import { getIkiminaContract } from "@ekimina/contracts";
+import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
+
+import { publicClient } from "../lib/chain.js";
 import { getCachedGroup, getCachedCycle } from "../lib/indexer.js";
-import { groupMeta } from "../lib/store.js";
 import {
   addressSchema,
   errorResponses,
@@ -11,7 +13,7 @@ import {
   groupCycleSchema,
   memberSchema,
 } from "../lib/schemas.js";
-import type { Address } from "@ekimina/types";
+import { groupMeta } from "../lib/store.js";
 
 const indexer = new OpenAPIHono();
 
@@ -61,9 +63,10 @@ indexer.openapi(getGroupRoute, async (c) => {
     contributionAmount: config.contributionAmount.toString(),
     cycleLength: Number(config.cycleLength),
     payoutAmount: config.payoutAmount.toString(),
-    payoutPolicy: ["none", "rotating", "lump_sum_end"][
-      Number(config.payoutPolicy)
-    ] as "none" | "rotating" | "lump_sum_end",
+    payoutPolicy: ["none", "rotating", "lump_sum_end"][Number(config.payoutPolicy)] as
+      | "none"
+      | "rotating"
+      | "lump_sum_end",
     penaltyRateBps: Number(config.penaltyRateBps),
     approvalThresholdBps: Number(config.approvalThresholdBps),
     loansEnabled: config.loansEnabled,
@@ -93,8 +96,8 @@ indexer.openapi(getCycleRoute, async (c) => {
   if (cached) return c.json(cached);
 
   const contract = getIkiminaContract(groupAddr, { public: publicClient });
-  const currentCycle = (await contract.read.currentCycle()) as bigint;
-  const cycleStart = (await contract.read.cycleStart()) as bigint;
+  const currentCycle = await contract.read.currentCycle();
+  const cycleStart = await contract.read.cycleStart();
 
   return c.json({
     currentCycle: Number(currentCycle),
@@ -124,15 +127,15 @@ indexer.openapi(getMembersRoute, async (c) => {
   const { group } = c.req.valid("param");
   const groupAddr = group as Address;
   const contract = getIkiminaContract(groupAddr, { public: publicClient });
-  const members = (await contract.read.memberList()) as readonly Address[];
+  const members = await contract.read.memberList();
 
   const result = [];
   for (const addr of members) {
-    const active = (await contract.read.isActive([addr])) as boolean;
+    const active = await contract.read.isActive([addr]);
     if (!active) continue;
 
-    const isCommittee = (await contract.read.isCommittee([addr])) as boolean;
-    const joined = (await contract.read.joinedCycle([addr])) as bigint;
+    const isCommittee = await contract.read.isCommittee([addr]);
+    const joined = await contract.read.joinedCycle([addr]);
 
     result.push({
       address: addr,

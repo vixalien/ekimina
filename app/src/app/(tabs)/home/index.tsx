@@ -1,21 +1,26 @@
-import { Ionicons } from "@expo/vector-icons";
-import { Avatar, Card, Chip, PressableFeedback, ScrollShadow, Surface } from "heroui-native";
-import { useStore } from "@nanostores/react";
-import { router } from "expo-router";
 import type { JSX } from "react";
+
+import type { GroupDashboardData, GroupMembership } from "@/api";
+
+import { Ionicons } from "@expo/vector-icons";
+import { useStore } from "@nanostores/react";
+import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
+import { Avatar, Card, Chip, PressableFeedback, ScrollShadow, Surface } from "heroui-native";
 import { startTransition, useEffect, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { withUniwind } from "uniwind";
 
 import { dataClient } from "@/api";
-import type { GroupDashboardData, GroupMembership } from "@/api";
-import { DonutChart } from "@/components/ui/donut-chart";
+import { GroupSwitcher } from "@/components/group-switcher";
 import { MemberAvatar } from "@/components/member-avatar";
-import { Sparkline } from "@/components/ui/sparkline";
 import { AppText } from "@/components/ui/app-text";
+import { DonutChart } from "@/components/ui/donut-chart";
 import { Header } from "@/components/ui/header";
 import { ScreenContainer } from "@/components/ui/screen-container";
-import { GroupSwitcher } from "@/components/group-switcher";
+import { Sparkline } from "@/components/ui/sparkline";
+import { nav } from "@/lib/routes";
+import { formatRWF } from "@/lib/strings";
 import {
   $activeGroup,
   $openSwitcher,
@@ -24,9 +29,6 @@ import {
   switchGroup,
   triggerSwitcher,
 } from "@/stores/active-group";
-import { formatRWF } from "@/lib/strings";
-import { LinearGradient } from "expo-linear-gradient";
-import { nav } from "@/lib/routes";
 
 const StyledIonicons = withUniwind(Ionicons);
 
@@ -38,7 +40,7 @@ export default function HomeTab(): JSX.Element {
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
 
   const activeMembership = activeGroup.memberships.find(
-    (m) => m.address === activeGroup.activeGroupId
+    (m) => m.address === activeGroup.activeGroupId,
   );
   const groupName = activeMembership?.name ?? "";
 
@@ -87,7 +89,7 @@ export default function HomeTab(): JSX.Element {
   }
 
   const paidPercent = Math.round(
-    (dashboard.paidCount / Math.max(dashboard.totalMemberCount, 1)) * 100
+    (dashboard.paidCount / Math.max(dashboard.totalMemberCount, 1)) * 100,
   );
 
   const payoutText =

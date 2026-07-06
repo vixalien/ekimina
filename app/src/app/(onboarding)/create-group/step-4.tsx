@@ -1,10 +1,17 @@
 import type { JSX } from "react";
+
 import { useStore } from "@nanostores/react";
-import { nav } from "@/lib/routes";
-import { WizardLayout } from "@/components/ui/wizard-layout";
+
 import { RulesSettings } from "@/components/group-settings/rules";
-import { $group, updateSettings } from "@/stores/group";
+import { WizardLayout } from "@/components/ui/wizard-layout";
+import { nav } from "@/lib/routes";
 import { setStep } from "@/stores/create-group";
+import { $group, updateSettings } from "@/stores/group";
+
+function handleNext() {
+  setStep(5);
+  nav.onboarding.createGroup.toStep(5);
+}
 
 export default function CreateGroupStep4(): JSX.Element {
   const group = useStore($group);
@@ -16,11 +23,6 @@ export default function CreateGroupStep4(): JSX.Element {
   const committeeSize = settings.committeeSize ?? 0;
 
   const isValid = allMembersAreCommittee || committeeSize > 0;
-
-  function handleNext() {
-    setStep(5);
-    nav.onboarding.createGroup.toStep(5);
-  }
 
   return (
     <WizardLayout

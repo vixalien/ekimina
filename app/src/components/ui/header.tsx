@@ -1,8 +1,10 @@
 import type { JSX, ReactNode } from "react";
-import { Pressable, View } from "react-native";
-import { withUniwind } from "uniwind";
+
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { Pressable, View } from "react-native";
+import { withUniwind } from "uniwind";
+
 import { AppText } from "./app-text";
 
 const StyledIonicons = withUniwind(Ionicons);

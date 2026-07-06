@@ -1,18 +1,25 @@
 import type { JSX } from "react";
-import { Share, View } from "react-native";
-import { Button, Surface, useToast } from "heroui-native";
+
 import { Ionicons } from "@expo/vector-icons";
-import { withUniwind } from "uniwind";
 import { useStore } from "@nanostores/react";
 import * as Clipboard from "expo-clipboard";
+import { Button, Surface, useToast } from "heroui-native";
+import { Share, View } from "react-native";
+import { withUniwind } from "uniwind";
 
-import { nav } from "@/lib/routes";
 import { AppText } from "@/components/ui/app-text";
 import { OnboardingLayout } from "@/components/ui/onboarding-layout";
+import { nav } from "@/lib/routes";
 import { $createdGroup, resetWizard } from "@/stores/create-group";
 import { resetGroup } from "@/stores/group";
 
 const StyledIonicons = withUniwind(Ionicons);
+
+function handleGoToGroup() {
+  resetWizard();
+  resetGroup();
+  nav.toTabs();
+}
 
 export default function CreateGroupSuccess(): JSX.Element {
   const created = useStore($createdGroup);
@@ -34,12 +41,6 @@ export default function CreateGroupSuccess(): JSX.Element {
     Share.share({
       message: `Join my group "${groupName}" on e-Kimina with code: ${inviteCode}`,
     }).catch(() => {});
-  }
-
-  function handleGoToGroup() {
-    resetWizard();
-    resetGroup();
-    nav.toTabs();
   }
 
   return (

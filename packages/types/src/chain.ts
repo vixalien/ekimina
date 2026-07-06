@@ -168,15 +168,42 @@ interface TxBase {
   sourceProposalId: string | null;
 }
 
-export interface ContributionTx extends TxBase { type: "contribution" }
-export interface PayoutTx extends TxBase { type: "payout"; recipient: Address }
-export interface PenaltyTx extends TxBase { type: "penalty"; member: Address }
-export interface LoanDisbursementTx extends TxBase { type: "loan_disbursement"; loanId: string; recipient: Address }
-export interface LoanRepaymentTx extends TxBase { type: "loan_repayment"; loanId: string }
-export interface DiscretionaryTx extends TxBase { type: "discretionary_disbursement"; recipient: Address }
-export interface ShareOutTx extends TxBase { type: "share_out"; recipient: Address }
-export interface MemberJoinedTx extends TxBase { type: "member_joined"; amount: null }
-export interface MemberExitedTx extends TxBase { type: "member_exited"; recipient: Address }
+export interface ContributionTx extends TxBase {
+  type: "contribution";
+}
+export interface PayoutTx extends TxBase {
+  type: "payout";
+  recipient: Address;
+}
+export interface PenaltyTx extends TxBase {
+  type: "penalty";
+  member: Address;
+}
+export interface LoanDisbursementTx extends TxBase {
+  type: "loan_disbursement";
+  loanId: string;
+  recipient: Address;
+}
+export interface LoanRepaymentTx extends TxBase {
+  type: "loan_repayment";
+  loanId: string;
+}
+export interface DiscretionaryTx extends TxBase {
+  type: "discretionary_disbursement";
+  recipient: Address;
+}
+export interface ShareOutTx extends TxBase {
+  type: "share_out";
+  recipient: Address;
+}
+export interface MemberJoinedTx extends TxBase {
+  type: "member_joined";
+  amount: null;
+}
+export interface MemberExitedTx extends TxBase {
+  type: "member_exited";
+  recipient: Address;
+}
 
 export type Transaction =
   | ContributionTx

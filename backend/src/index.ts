@@ -1,28 +1,29 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+
+import type { Address } from "@ekimina/types";
+
 import { serve } from "@hono/node-server";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { logger } from "hono/logger";
+
+import { setFactoryAddress, startIndexer } from "./lib/indexer.js";
 import authRoutes from "./routes/auth.js";
-import profileRoutes from "./routes/profile.js";
-import lookupRoutes from "./routes/lookup.js";
-import indexerRoutes from "./routes/indexer.js";
-import relayRoutes from "./routes/relay.js";
-import ussdRoutes from "./routes/ussd.js";
 import groupsRoutes from "./routes/groups.js";
+import indexerRoutes from "./routes/indexer.js";
+import lookupRoutes from "./routes/lookup.js";
 import mutationsRoutes from "./routes/mutations.js";
 import paymentsRoutes from "./routes/payments.js";
-import { setFactoryAddress, startIndexer } from "./lib/indexer.js";
-import type { Address } from "@ekimina/types";
+import profileRoutes from "./routes/profile.js";
+import relayRoutes from "./routes/relay.js";
+import ussdRoutes from "./routes/ussd.js";
 
 const app = new OpenAPIHono();
 
 app.use("*", logger());
 
-app.get("/", (c) =>
-  c.json({ service: "e-Kimina API", version: "0.2.0", status: "running" }),
-);
+app.get("/", (c) => c.json({ service: "e-Kimina API", version: "0.2.0", status: "running" }));
 
 app.route("/", authRoutes);
 app.route("/", profileRoutes);
@@ -101,7 +102,7 @@ serve({ fetch: app.fetch, port: 3000 }, async () => {
 
   let FACTORY_ADDRESS: Address = process.env.FACTORY_ADDRESS as Address;
   if (FACTORY_ADDRESS) {
-    setFactoryAddress(FACTORY_ADDRESS as Address);
+    setFactoryAddress(FACTORY_ADDRESS);
     startIndexer().catch(console.error);
   } else {
     console.log("[bootstrap] No FACTORY_ADDRESS env var. Using local.json.");
@@ -113,9 +114,7 @@ serve({ fetch: app.fetch, port: 3000 }, async () => {
       try {
         setFactoryAddress(FACTORY_ADDRESS);
         startIndexer().catch(console.error);
-        console.log(
-          `[bootstrap] Indexer started with factory: ${FACTORY_ADDRESS}`,
-        );
+        console.log(`[bootstrap] Indexer started with factory: ${FACTORY_ADDRESS}`);
         return true;
       } catch (error) {
         console.error("here", error);

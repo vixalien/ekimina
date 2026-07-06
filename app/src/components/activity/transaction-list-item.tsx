@@ -1,9 +1,12 @@
+import type { JSX } from "react";
+
+import type { Transaction, TransactionDirection } from "@/api";
+
 import { Ionicons } from "@expo/vector-icons";
 import { cn, ListGroup, PressableFeedback, Separator } from "heroui-native";
-import type { JSX } from "react";
 import { View } from "react-native";
 import { withUniwind } from "uniwind";
-import type { Transaction, TransactionDirection } from "@/api";
+
 import {
   STATUS_ICON_BG,
   STATUS_ICON_COLOR,
@@ -52,7 +55,7 @@ export function TransactionListItem({
               <View
                 className={cn(
                   "size-9 rounded-full items-center justify-center",
-                  STATUS_ICON_BG[transaction.status]
+                  STATUS_ICON_BG[transaction.status],
                 )}
               >
                 <StyledIonicons

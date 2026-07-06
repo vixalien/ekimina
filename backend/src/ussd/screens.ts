@@ -1,11 +1,11 @@
-import { members, contributions, group, rotation } from "./members.js";
 import type { NextKey, Screen, ScreenFn, USSDContext } from "./types.js";
+
+import { members, contributions, group, rotation } from "./members.js";
 
 const con = (text: string) => `CON ${text}`;
 const end = (text: string) => `END ${text}`;
 
-const getMember = (ctx: USSDContext) =>
-  members.find((m) => m.id === ctx.params.memberId);
+const getMember = (ctx: USSDContext) => members.find((m) => m.id === ctx.params.memberId);
 
 const providers: Record<string, string> = {
   mtn: "MTN MoMo",
@@ -82,9 +82,7 @@ Due date: 15 Jul 2026
 
 const myContributionsScreen: ScreenFn = (ctx) => {
   const member = getMember(ctx);
-  const ctbs = contributions.filter(
-    (ct) => ct.memberId === member?.id,
-  );
+  const ctbs = contributions.filter((ct) => ct.memberId === member?.id);
   const lines = ctbs
     .map((ct) => {
       const date = ct.paidAt ? ct.paidAt.slice(5) : "PENDING";
@@ -104,12 +102,7 @@ ${lines}`,
 const rotationScheduleScreen: ScreenFn = () => {
   const lines = rotation
     .map((r) => {
-      const status =
-        r.status === "paid"
-          ? "PAID"
-          : r.status === "current"
-            ? "CURRENT"
-            : "PENDING";
+      const status = r.status === "paid" ? "PAID" : r.status === "current" ? "CURRENT" : "PENDING";
       return `Rnd ${r.round}: ${r.name} - ${status}`;
     })
     .join("\n");
@@ -191,9 +184,7 @@ Payout date: Aug 2026`,
 };
 
 const memberListScreen: ScreenFn = () => {
-  const lines = members
-    .map((m) => `${m.name.split(" ")[0]} - ${m.reputation}/100`)
-    .join("\n");
+  const lines = members.map((m) => `${m.name.split(" ")[0]} - ${m.reputation}/100`).join("\n");
   return { response: end(`Member List\nGasabo Farmers A\n\n${lines}`) };
 };
 
@@ -389,8 +380,7 @@ Gasabo Farmers A
 }
 
 export function mainMenu(ctx: USSDContext): Screen {
-  const leaderOption =
-    ctx.params.isLeader === "true" ? "\n6. Manage Group" : "";
+  const leaderOption = ctx.params.isLeader === "true" ? "\n6. Manage Group" : "";
   return {
     response: con(
       `e-Kimina
@@ -409,9 +399,7 @@ Gasabo Farmers A | Round 4
       ["3", groupInfoMenu],
       ["4", myReputationMenu],
       ["5", myBalanceScreen],
-      ...(ctx.params.isLeader === "true"
-        ? [["6", manageGroupMenu] as [string, ScreenFn]]
-        : []),
+      ...(ctx.params.isLeader === "true" ? [["6", manageGroupMenu] as [string, ScreenFn]] : []),
       ["0", exitScreen],
     ]),
   };

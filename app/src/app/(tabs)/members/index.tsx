@@ -1,4 +1,9 @@
+import type { MemberListItem } from "@/api";
+
 import { Ionicons } from "@expo/vector-icons";
+import { useStore } from "@nanostores/react";
+import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
 import {
   Button,
   cn,
@@ -9,22 +14,18 @@ import {
   Separator,
   Spinner,
 } from "heroui-native";
-import { useStore } from "@nanostores/react";
-import { router } from "expo-router";
 import { Fragment, type JSX } from "react";
 import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { withUniwind } from "uniwind";
 
 import { dataClient } from "@/api";
-import type { MemberListItem } from "@/api";
+import { FilterBottomSheet, type FilterKey } from "@/components/members/filter-bottom-sheet";
 import { AppText } from "@/components/ui/app-text";
 import { Header } from "@/components/ui/header";
 import { ScreenContainer } from "@/components/ui/screen-container";
 import { nav } from "@/lib/routes";
-import { FilterBottomSheet, type FilterKey } from "@/components/members/filter-bottom-sheet";
 import { $activeGroup } from "@/stores/active-group";
-import { LinearGradient } from "expo-linear-gradient";
 
 const StyledIonicons = withUniwind(Ionicons);
 
@@ -35,7 +36,14 @@ function sortMembers(members: MemberListItem[]): MemberListItem[] {
     no_status: 2,
     paid: 3,
   };
-  return [...members].sort((a, b) => (weight[a.status] ?? 9) - (weight[b.status] ?? 9));
+  return [...members].toSorted((a, b) => (weight[a.status] ?? 9) - (weight[b.status] ?? 9));
+}
+
+function handleMemberPress(userId: string) {
+  router.push({
+    pathname: "/(tabs)/members/[userId]",
+    params: { userId },
+  });
 }
 
 export default function MembersTab(): JSX.Element {
@@ -87,13 +95,6 @@ export default function MembersTab(): JSX.Element {
     }
     return sortMembers(list);
   }, [members, activeFilter]);
-
-  function handleMemberPress(userId: string) {
-    router.push({
-      pathname: "/(tabs)/members/[userId]",
-      params: { userId },
-    });
-  }
 
   const isFiltered = activeFilter !== "all";
 

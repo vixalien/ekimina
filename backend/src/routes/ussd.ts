@@ -1,12 +1,11 @@
+import type { ScreenFn, USSDContext } from "../ussd/types.js";
+
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import type { ScreenFn, USSDContext } from "../ussd/types.js";
+
 import { entryMenu } from "../ussd/screens.js";
 
-function resolve(
-  next: Map<string | RegExp, ScreenFn>,
-  key: string,
-): ScreenFn | undefined {
+function resolve(next: Map<string | RegExp, ScreenFn>, key: string): ScreenFn | undefined {
   if (next.has(key)) return next.get(key);
   for (const [pattern, fn] of next) {
     if (pattern instanceof RegExp && pattern.test(key)) return fn;

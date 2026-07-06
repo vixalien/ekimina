@@ -1,5 +1,19 @@
+import type { ReactNode } from "react";
+
+import type {
+  ContributionDetail,
+  DiscretionaryDetail,
+  LoanDisbursementDetail,
+  LoanRepaymentDetail,
+  PayoutDetail,
+  PenaltyDetail,
+  TransactionDetail,
+} from "@/api";
+
 import { Ionicons } from "@expo/vector-icons";
 import { useStore } from "@nanostores/react";
+import { LinearGradient } from "expo-linear-gradient";
+import { useLocalSearchParams } from "expo-router";
 import {
   Button,
   Chip,
@@ -10,25 +24,15 @@ import {
   Separator,
   useToast,
 } from "heroui-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { Fragment, ReactNode, type JSX } from "react";
+import { Fragment, type JSX } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
-import { useLocalSearchParams } from "expo-router";
 import { withUniwind } from "uniwind";
+
 import { dataClient } from "@/api";
-import type {
-  ContributionDetail,
-  DiscretionaryDetail,
-  LoanDisbursementDetail,
-  LoanRepaymentDetail,
-  PayoutDetail,
-  PenaltyDetail,
-  TransactionDetail,
-} from "@/api";
+import { AppText } from "@/components/ui/app-text";
 import { Header } from "@/components/ui/header";
 import { ScreenContainer } from "@/components/ui/screen-container";
-import { AppText } from "@/components/ui/app-text";
 import {
   STATUS_CHIP_COLOR,
   STATUS_ICON_BG,
@@ -66,7 +70,7 @@ function buildDetailRows(detail: TransactionDetail): DetailRow[] {
 
   switch (detail.type) {
     case "contribution": {
-      const d = detail as ContributionDetail;
+      const d = detail;
       return [
         { label: "From", value: d.fromName },
         { label: "Cycle", value: `Cycle ${d.cycle}` },
@@ -76,7 +80,7 @@ function buildDetailRows(detail: TransactionDetail): DetailRow[] {
       ];
     }
     case "payout": {
-      const d = detail as PayoutDetail;
+      const d = detail;
       return [
         { label: "To", value: d.toName },
         { label: "Cycle", value: `Cycle ${d.cycle}` },
@@ -86,7 +90,7 @@ function buildDetailRows(detail: TransactionDetail): DetailRow[] {
       ];
     }
     case "penalty": {
-      const d = detail as PenaltyDetail;
+      const d = detail;
       return [
         { label: "Member", value: d.memberName },
         { label: "Cycle", value: `Cycle ${d.cycle}` },
@@ -95,7 +99,7 @@ function buildDetailRows(detail: TransactionDetail): DetailRow[] {
       ];
     }
     case "loan_repayment": {
-      const d = detail as LoanRepaymentDetail;
+      const d = detail;
       return [
         { label: "Borrower", value: d.memberName },
         { label: "Installment", value: `${d.installmentNumber} of ${d.totalInstallments}` },
@@ -106,7 +110,7 @@ function buildDetailRows(detail: TransactionDetail): DetailRow[] {
       ];
     }
     case "loan_disbursement": {
-      const d = detail as LoanDisbursementDetail;
+      const d = detail;
       return [
         { label: "To", value: d.toName },
         { label: "Cycle", value: `Cycle ${d.cycle}` },
@@ -142,6 +146,7 @@ export default function TransactionDetailScreen(): JSX.Element {
       .then((d: any) => {
         setDetail(d);
         setLoading(false);
+        return;
       })
       .catch(() => setLoading(false));
   }, [activeGroupId, transactionId]);
@@ -210,7 +215,7 @@ export default function TransactionDetailScreen(): JSX.Element {
             <View
               className={cn(
                 "size-8 rounded-full items-center justify-center",
-                STATUS_ICON_BG[detail.status]
+                STATUS_ICON_BG[detail.status],
               )}
             >
               <StyledIonicons
@@ -275,7 +280,7 @@ export default function TransactionDetailScreen(): JSX.Element {
                     </ListGroup.ItemSuffix>
                   </ListGroup.Item>
                 </Fragment>
-              )
+              ),
             )}
           </ListGroup>
 

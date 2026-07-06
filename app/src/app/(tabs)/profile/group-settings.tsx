@@ -1,18 +1,27 @@
+import type { JSX } from "react";
+
+import type { GroupSettingField, GroupSettings } from "@/api";
+
 import { Ionicons } from "@expo/vector-icons";
-import { Avatar, ListGroup, PressableFeedback, ScrollShadow, Separator, useToast } from "heroui-native";
 import { useStore } from "@nanostores/react";
 import { LinearGradient } from "expo-linear-gradient";
-import type { JSX } from "react";
+import {
+  Avatar,
+  ListGroup,
+  PressableFeedback,
+  ScrollShadow,
+  Separator,
+  useToast,
+} from "heroui-native";
 import { Fragment, startTransition, useCallback, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { withUniwind } from "uniwind";
 
 import { dataClient } from "@/api";
-import type { GroupSettingField, GroupSettings } from "@/api";
+import { SettingsModal } from "@/components/settings/settings-modal";
 import { AppText } from "@/components/ui/app-text";
 import { Header } from "@/components/ui/header";
 import { ScreenContainer } from "@/components/ui/screen-container";
-import { SettingsModal } from "@/components/settings/settings-modal";
 import { $activeGroup } from "@/stores/active-group";
 import { $auth } from "@/stores/auth";
 
@@ -60,9 +69,7 @@ function buildRows(s: GroupSettings): SettingsRow[] {
     {
       field: "committee_size",
       label: "Committee",
-      value: s.allMembersAreCommittee
-        ? "All members"
-        : `${s.committeeSize} members`,
+      value: s.allMembersAreCommittee ? "All members" : `${s.committeeSize} members`,
       rawValue: s.allMembersAreCommittee ? 0 : s.committeeSize,
     },
     {
@@ -119,24 +126,24 @@ export default function GroupSettingsScreen(): JSX.Element {
           setSettings(s);
           setGroupName(group.name);
           setGroupInitials(group.avatarInitials);
-          setGroupCreatedAt(new Date().toLocaleDateString("en-RW", {
-            year: "numeric",
-            month: "long",
-          }));
+          setGroupCreatedAt(
+            new Date().toLocaleDateString("en-RW", {
+              year: "numeric",
+              month: "long",
+            }),
+          );
           setIsCommittee(detail.isCommitteeMember);
           setLoading(false);
         });
+        return;
       })
       .catch(() => startTransition(() => setLoading(false)));
   }, [activeGroupId, auth?.id]);
 
-  const handleRowPress = useCallback(
-    (row: SettingsRow) => {
-      setActiveField(row);
-      setModalOpen(true);
-    },
-    []
-  );
+  const handleRowPress = useCallback((row: SettingsRow) => {
+    setActiveField(row);
+    setModalOpen(true);
+  }, []);
 
   const handleSubmit = useCallback(
     (proposedValue: string) => {
@@ -150,12 +157,13 @@ export default function GroupSettingsScreen(): JSX.Element {
             label: "Change submitted",
             description: "Your request has been sent to the committee for approval.",
           });
+          return;
         })
         .catch(() => {
           toast.show({ variant: "danger", label: "Failed to submit change" });
         });
     },
-    [activeGroupId, auth, activeField, toast]
+    [activeGroupId, auth, activeField, toast],
   );
 
   if (loading || !settings) {
@@ -175,10 +183,7 @@ export default function GroupSettingsScreen(): JSX.Element {
     <ScreenContainer>
       <Header title="Group settings" canGoBack />
       <ScrollShadow LinearGradientComponent={LinearGradient} className="flex-1">
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerClassName="pb-36"
-        >
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="pb-36">
           <View className="px-4 pt-4 gap-4">
             {/* Group info header */}
             <ListGroup>
@@ -202,10 +207,7 @@ export default function GroupSettingsScreen(): JSX.Element {
               {rows.map((row, index) => (
                 <Fragment key={row.field}>
                   {index > 0 && <Separator className="mx-4" />}
-                  <PressableFeedback
-                    animation={false}
-                    onPress={() => handleRowPress(row)}
-                  >
+                  <PressableFeedback animation={false} onPress={() => handleRowPress(row)}>
                     <PressableFeedback.Scale>
                       <ListGroup.Item>
                         <ListGroup.ItemContent>
@@ -213,11 +215,7 @@ export default function GroupSettingsScreen(): JSX.Element {
                         </ListGroup.ItemContent>
                         <View className="flex-row items-center gap-1">
                           <AppText className="text-sm text-muted">{row.value}</AppText>
-                          <StyledIonicons
-                            name="chevron-forward"
-                            size={16}
-                            className="text-muted"
-                          />
+                          <StyledIonicons name="chevron-forward" size={16} className="text-muted" />
                         </View>
                       </ListGroup.Item>
                     </PressableFeedback.Scale>

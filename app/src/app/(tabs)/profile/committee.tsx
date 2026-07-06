@@ -1,4 +1,10 @@
+import type { JSX } from "react";
+
+import type { GroupSettings, MemberListItem } from "@/api";
+
 import { Ionicons } from "@expo/vector-icons";
+import { useStore } from "@nanostores/react";
+import { LinearGradient } from "expo-linear-gradient";
 import {
   Button,
   ControlField,
@@ -9,15 +15,11 @@ import {
   Surface,
   useToast,
 } from "heroui-native";
-import { useStore } from "@nanostores/react";
-import { LinearGradient } from "expo-linear-gradient";
-import type { JSX } from "react";
 import { startTransition, useCallback, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { withUniwind } from "uniwind";
 
 import { dataClient } from "@/api";
-import type { GroupSettings, MemberListItem } from "@/api";
 import { AppText } from "@/components/ui/app-text";
 import { Header } from "@/components/ui/header";
 import { ScreenContainer } from "@/components/ui/screen-container";
@@ -91,6 +93,7 @@ export default function CommitteeScreen(): JSX.Element {
           setIsCommittee(detail.isCommitteeMember);
           setLoading(false);
         });
+        return;
       })
       .catch(() => startTransition(() => setLoading(false)));
   }, [activeGroupId, auth?.id]);
@@ -107,7 +110,7 @@ export default function CommitteeScreen(): JSX.Element {
         return next;
       });
     },
-    []
+    [],
   );
 
   const hasChanges =
@@ -122,7 +125,7 @@ export default function CommitteeScreen(): JSX.Element {
         activeGroupId,
         "committee_size",
         String(committeeUserIds.size),
-        auth.id
+        auth.id,
       );
       setOriginalCommittee(new Set(committeeUserIds));
       toast.show({

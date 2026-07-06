@@ -1,10 +1,13 @@
 import type { JSX } from "react";
-import React, { useState } from "react";
+
 import { InputGroup, Label, Select, Separator, TextField, useToast } from "heroui-native";
+import React, { useState } from "react";
+
 import { dataClient } from "@/api";
-import { nav } from "../../lib/routes";
+
 import { AppText } from "../../components/ui/app-text";
 import { OnboardingLayout } from "../../components/ui/onboarding-layout";
+import { nav } from "../../lib/routes";
 
 const COUNTRY_CODES = [
   { value: "RW", label: "Rwanda", flag: "\u{1F1F7}\u{1F1FC}", code: "+250" },
@@ -19,7 +22,7 @@ type CountryCode = (typeof COUNTRY_CODES)[number];
 
 export default function PhoneScreen(): JSX.Element {
   const [phone, setPhone] = useState("");
-  const [countryCode, setCountryCode] = useState<CountryCode>(COUNTRY_CODES[0]!);
+  const [countryCode, setCountryCode] = useState<CountryCode>(COUNTRY_CODES[0]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 

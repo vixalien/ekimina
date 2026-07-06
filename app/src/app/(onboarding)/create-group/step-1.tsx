@@ -1,12 +1,15 @@
 import type { JSX } from "react";
-import { useState } from "react";
-import { useStore } from "@nanostores/react";
-import { nav } from "@/lib/routes";
-import { WizardLayout } from "@/components/ui/wizard-layout";
-import { TemplateSelector } from "@/components/group-settings/template";
-import { $group, applyTemplate } from "@/stores/group";
-import { setStep } from "@/stores/create-group";
+
 import type { TemplateId } from "@/stores/group";
+
+import { useStore } from "@nanostores/react";
+import { useState } from "react";
+
+import { TemplateSelector } from "@/components/group-settings/template";
+import { WizardLayout } from "@/components/ui/wizard-layout";
+import { nav } from "@/lib/routes";
+import { setStep } from "@/stores/create-group";
+import { $group, applyTemplate } from "@/stores/group";
 
 export default function CreateGroupStep1(): JSX.Element {
   const group = useStore($group);

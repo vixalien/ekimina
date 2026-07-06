@@ -1,22 +1,25 @@
 import type { ComponentType, JSX } from "react";
+
+import type { GroupSettings } from "@/api";
+import type { ReviewSection } from "@/components/group-settings/review";
+
+import { useStore } from "@nanostores/react";
+import { BottomSheet, Button } from "heroui-native";
 import { useCallback, useMemo, useState } from "react";
 import { View } from "react-native";
-import { BottomSheet, Button } from "heroui-native";
-import { useStore } from "@nanostores/react";
-import { nav } from "@/lib/routes";
+
 import { dataClient } from "@/api";
-import type { GroupSettings } from "@/api";
+import { BasicsSettings } from "@/components/group-settings/basics";
+import { LoansSettings } from "@/components/group-settings/loans";
+import { MoneySettings } from "@/components/group-settings/money";
+import { SettingsReviewList } from "@/components/group-settings/review";
+import { RulesSettings } from "@/components/group-settings/rules";
 import { AppText } from "@/components/ui/app-text";
 import { WizardLayout } from "@/components/ui/wizard-layout";
-import { BasicsSettings } from "@/components/group-settings/basics";
-import { MoneySettings } from "@/components/group-settings/money";
-import { RulesSettings } from "@/components/group-settings/rules";
-import { LoansSettings } from "@/components/group-settings/loans";
-import { SettingsReviewList } from "@/components/group-settings/review";
-import type { ReviewSection } from "@/components/group-settings/review";
-import { $group, updateSettings } from "@/stores/group";
-import { $isSubmitting, $submitError } from "@/stores/create-group";
+import { nav } from "@/lib/routes";
 import { $auth } from "@/stores/auth";
+import { $isSubmitting, $submitError } from "@/stores/create-group";
+import { $group, updateSettings } from "@/stores/group";
 
 type SectionConfig = {
   title: string;

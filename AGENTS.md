@@ -89,11 +89,11 @@ Everything lives in `@ekimina/types` (re-exported from `src/api/screen-types.ts`
 
 Three font families, loaded via `@expo-google-fonts/*` + `useFonts` in `_layout.tsx`:
 
-| Role | Font | Weights | Tailwind class |
-|------|------|---------|----------------|
-| All UI text (default) | Sora | 400, 500, 600, 700, 800 | `font-normal` (via AppText) |
-| Hero balance numbers | Space Grotesk | 700 | `font-hero` |
-| Transaction references | JetBrains Mono | 400 | `font-mono` |
+| Role                   | Font           | Weights                 | Tailwind class              |
+| ---------------------- | -------------- | ----------------------- | --------------------------- |
+| All UI text (default)  | Sora           | 400, 500, 600, 700, 800 | `font-normal` (via AppText) |
+| Hero balance numbers   | Space Grotesk  | 700                     | `font-hero`                 |
+| Transaction references | JetBrains Mono | 400                     | `font-mono`                 |
 
 Each weight is a separate font family in React Native. The CSS variables in `global.css` map them:
 
@@ -108,6 +108,7 @@ Each weight is a separate font family in React Native. The CSS variables in `glo
 ```
 
 Usage:
+
 ```tsx
 // Default body text (Sora 400)
 <AppText className="text-foreground text-base">Hello</AppText>
@@ -306,9 +307,7 @@ Use muted uppercase labels to title grouped content:
 ```tsx
 <View className="gap-3">
   <AppText className="text-xs text-muted uppercase tracking-wider ml-2">Section name</AppText>
-  <ListGroup>
-    {/* items */}
-  </ListGroup>
+  <ListGroup>{/* items */}</ListGroup>
 </View>
 ```
 
@@ -319,9 +318,7 @@ For sticky footer actions (approve, submit), place the button **outside** `Scrol
 ```tsx
 <ScreenContainer>
   <ScrollShadow LinearGradientComponent={LinearGradient} className="flex-1">
-    <ScrollView contentContainerClassName="pb-4">
-      {/* scrollable content */}
-    </ScrollView>
+    <ScrollView contentContainerClassName="pb-4">{/* scrollable content */}</ScrollView>
   </ScrollShadow>
   <View className="px-4 pb-6 pt-2">
     <Button variant="primary" onPress={handleApprove}>
@@ -394,7 +391,7 @@ import { ScrollShadow } from "heroui-native";
   <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="pb-36">
     {/* content */}
   </ScrollView>
-</ScrollShadow>
+</ScrollShadow>;
 ```
 
 ### BottomSheet trigger: use Pressable, not View
@@ -419,15 +416,15 @@ toLoanRepayments: (memberId: string) =>
   router.push({
     pathname: Routes.activity.transactions,
     params: { type: "loan_repayment", memberId },
-  })
+  });
 
 // Target screen
 const params = useLocalSearchParams<{ type?: string; memberId?: string }>();
 const [typeFilter, setTypeFilter] = useState<TypeFilterValue>(
-  (params.type as TypeFilterValue) ?? "all"
+  (params.type as TypeFilterValue) ?? "all",
 );
 const [memberFilter, setMemberFilter] = useState<string[]>(
-  params.memberId ? [params.memberId] : []
+  params.memberId ? [params.memberId] : [],
 );
 ```
 
@@ -436,11 +433,13 @@ const [memberFilter, setMemberFilter] = useState<string[]>(
 `getMemberDetail` response includes `isCommitteeMember` (boolean). Use it to conditionally show destructive actions:
 
 ```tsx
-{detail.isCommitteeMember && (
-  <Button variant="danger">
-    <Button.Label>Withdraw member</Button.Label>
-  </Button>
-)}
+{
+  detail.isCommitteeMember && (
+    <Button variant="danger">
+      <Button.Label>Withdraw member</Button.Label>
+    </Button>
+  );
+}
 ```
 
 ### Phone input: InputGroup + Select
@@ -492,6 +491,7 @@ const [memberFilter, setMemberFilter] = useState<string[]>(
 ### DRY: extract reusable ListGroup patterns
 
 Never duplicate ListGroup layouts across screens. If two screens show the same data card (e.g., loan terms, borrower info, repayment progress), extract it into a shared component in `components/`. Examples:
+
 - `components/loan/borrower-info.tsx` — tappable avatar + name + role
 - `components/loan/loan-terms-card.tsx` — amount, interest, total, deadline, purpose
 - `components/loan/repayment-info.tsx` — amount paid, total, percentage, optional press handler
@@ -511,6 +511,7 @@ Never duplicate ListGroup layouts across screens. If two screens show the same d
 - `"missed"` — `text-danger`
 
 Reputation gauge color bands:
+
 - Score > 70: success color
 - Score 40-70: warning color
 - Score < 40: danger color

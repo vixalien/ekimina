@@ -1,5 +1,6 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { AuthUser } from "../stores/auth";
+
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const AUTH_KEY = "ekimina_auth";
 

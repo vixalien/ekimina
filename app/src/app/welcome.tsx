@@ -1,12 +1,14 @@
 import type { JSX } from "react";
+
+import { Ionicons } from "@expo/vector-icons";
+import { Button, BottomSheet } from "heroui-native";
 import { useState } from "react";
 import { View, ImageBackground } from "react-native";
-import { Button, BottomSheet } from "heroui-native";
-import { Ionicons } from "@expo/vector-icons";
-import { withUniwind } from "uniwind";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { nav } from "../lib/routes";
+import { withUniwind } from "uniwind";
+
 import { AppText } from "../components/ui/app-text";
+import { nav } from "../lib/routes";
 
 const StyledIonicons = withUniwind(Ionicons);
 

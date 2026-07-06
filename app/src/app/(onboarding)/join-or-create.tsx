@@ -1,11 +1,13 @@
 import type { JSX } from "react";
+
+import { Ionicons } from "@expo/vector-icons";
+import { Description, Label, Radio, RadioGroup, Separator, Surface } from "heroui-native";
 import React, { useState } from "react";
 import { View } from "react-native";
-import { Description, Label, Radio, RadioGroup, Separator, Surface } from "heroui-native";
-import { Ionicons } from "@expo/vector-icons";
 import { withUniwind } from "uniwind";
-import { nav } from "../../lib/routes";
+
 import { OnboardingLayout } from "../../components/ui/onboarding-layout";
+import { nav } from "../../lib/routes";
 
 const StyledIonicons = withUniwind(Ionicons);
 
@@ -31,7 +33,7 @@ const OPTIONS = [
 ];
 
 export default function JoinOrCreateScreen(): JSX.Element {
-  const [selected, setSelected] = useState(OPTIONS[0]!.value);
+  const [selected, setSelected] = useState(OPTIONS[0].value);
 
   function handleContinue() {
     switch (selected) {
