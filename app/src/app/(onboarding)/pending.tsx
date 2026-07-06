@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { withUniwind } from "uniwind";
 
-import { dataClient } from "@/api";
+import { api } from "@/api";
 
 import { AppText } from "../../components/ui/app-text";
 import { ScreenContainer } from "../../components/ui/screen-container";
@@ -57,7 +57,7 @@ export default function PendingScreen(): JSX.Element {
     if (!requestId || isCancelling) return;
     setIsCancelling(true);
     try {
-      await dataClient.groups.cancelJoinRequest(requestId);
+      await api.groups.cancelJoinRequest(requestId);
       nav.onboarding.toJoinOrCreate();
     } catch (error) {
       console.error(error);

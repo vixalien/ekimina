@@ -9,7 +9,7 @@ import { Button, ListGroup, ScrollShadow, useToast } from "heroui-native";
 import { startTransition, useCallback, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 
-import { dataClient } from "@/api";
+import { api } from "@/api";
 import { LoanSignatureList } from "@/components/loan/loan-signature-row";
 import { RejectReasonSheet } from "@/components/loan/reject-reason-sheet";
 import { AppText } from "@/components/ui/app-text";
@@ -33,7 +33,7 @@ export default function JoinReviewScreen(): JSX.Element {
   useEffect(() => {
     if (!activeGroupId || !requestId) return;
     startTransition(() => setLoading(true));
-    dataClient.groups
+    api.groups
       .getJoinRequestReview(activeGroupId, requestId)
       .then(setReview)
       .catch(() => {})
@@ -48,7 +48,7 @@ export default function JoinReviewScreen(): JSX.Element {
       duration: "persistent",
     });
     try {
-      const result = await dataClient.groups.signJoinRequest(activeGroupId, requestId, auth.id);
+      const result = await api.groups.signJoinRequest(activeGroupId, requestId, auth.id);
       toast.hide(id);
       if (result.thresholdMet) {
         toast.show({
@@ -75,7 +75,7 @@ export default function JoinReviewScreen(): JSX.Element {
       if (!activeGroupId || !requestId || !auth?.id) return;
       setRejecting(true);
       try {
-        await dataClient.groups.rejectJoinRequest(activeGroupId, requestId, auth.id);
+        await api.groups.rejectJoinRequest(activeGroupId, requestId, auth.id);
         toast.show({ variant: "default", label: "Join request rejected" });
         setRejectOpen(false);
         nav.back();

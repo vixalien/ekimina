@@ -10,7 +10,7 @@ import { startTransition, useEffect, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { withUniwind } from "uniwind";
 
-import { dataClient } from "@/api";
+import { api } from "@/api";
 import { LoanListItem } from "@/components/activity/loan-list-item";
 import { PendingRequestCard } from "@/components/activity/pending-request-card";
 import { TransactionListItem } from "@/components/activity/transaction-list-item";
@@ -42,9 +42,9 @@ export default function ActivityTab(): JSX.Element {
     if (!activeGroupId) return;
     startTransition(() => setLoading(true));
     Promise.all([
-      dataClient.groups.getPendingRequests(activeGroupId),
-      dataClient.groups.getOutstandingLoans(activeGroupId),
-      dataClient.groups.getRecentTransactions(activeGroupId, 5),
+      api.groups.getPendingRequests(activeGroupId),
+      api.groups.getOutstandingLoans(activeGroupId),
+      api.groups.getRecentTransactions(activeGroupId, 5),
     ])
       .then(([requests, activeLoans, recentTxns]) => {
         startTransition(() => {

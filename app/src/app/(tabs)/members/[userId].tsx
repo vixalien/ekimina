@@ -8,7 +8,7 @@ import { Avatar, Button, useToast } from "heroui-native";
 import { startTransition, useCallback, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 
-import { dataClient } from "@/api";
+import { api } from "@/api";
 import { WithdrawMemberSheet } from "@/components/activity/withdraw-member-sheet";
 import { ContributionHistory } from "@/components/members/contribution-history";
 import { LoansSection } from "@/components/members/loans-section";
@@ -35,7 +35,7 @@ export default function MemberDetailScreen(): JSX.Element {
     if (!activeGroup.activeGroupId || !userId) return;
     const requestingUserId = auth?.id ?? auth?.phone ?? "";
     startTransition(() => setLoading(true));
-    dataClient.groups
+    api.groups
       .getMemberDetail(activeGroup.activeGroupId, userId, requestingUserId)
       .then(setDetail)
       .catch(() => {})
@@ -47,7 +47,7 @@ export default function MemberDetailScreen(): JSX.Element {
       if (!activeGroup.activeGroupId || !userId || !auth?.id) return;
       setWithdrawing(true);
       try {
-        await dataClient.groups.initiateWithdrawal(
+        await api.groups.initiateWithdrawal(
           activeGroup.activeGroupId,
           userId,
           auth.id,

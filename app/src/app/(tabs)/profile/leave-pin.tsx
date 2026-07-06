@@ -7,7 +7,7 @@ import { useCallback, useState } from "react";
 import { View, Keyboard } from "react-native";
 import { withUniwind } from "uniwind";
 
-import { dataClient } from "@/api";
+import { api } from "@/api";
 import { AppText } from "@/components/ui/app-text";
 import { ScreenContainer } from "@/components/ui/screen-container";
 import { nav } from "@/lib/routes";
@@ -33,9 +33,9 @@ export default function LeaveGroupPin(): JSX.Element {
     setVerifying(true);
     setShowError(false);
     try {
-      await dataClient.groups.verifyPin(userId, pin);
+      await api.groups.verifyPin(userId, pin);
       if (activeGroupId) {
-        dataClient.groups.leaveGroup(activeGroupId, userId).catch(() => {});
+        api.groups.leaveGroup(activeGroupId, userId).catch(() => {});
       }
       nav.profile.toLeaveGroupSent();
     } catch {

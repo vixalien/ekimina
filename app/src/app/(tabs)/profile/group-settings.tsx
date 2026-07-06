@@ -17,7 +17,7 @@ import { Fragment, startTransition, useCallback, useEffect, useState } from "rea
 import { ScrollView, View } from "react-native";
 import { withUniwind } from "uniwind";
 
-import { dataClient } from "@/api";
+import { api } from "@/api";
 import { SettingsModal } from "@/components/settings/settings-modal";
 import { AppText } from "@/components/ui/app-text";
 import { Header } from "@/components/ui/header";
@@ -117,9 +117,9 @@ export default function GroupSettingsScreen(): JSX.Element {
     if (!activeGroupId || !auth?.id) return;
     startTransition(() => setLoading(true));
     Promise.all([
-      dataClient.groups.getGroupSettings(activeGroupId),
-      dataClient.groups.getMemberDetail(activeGroupId, auth.id, auth.id),
-      dataClient.groups.getGroupDetails(activeGroupId),
+      api.groups.getGroupSettings(activeGroupId),
+      api.groups.getMemberDetail(activeGroupId, auth.id, auth.id),
+      api.groups.getGroupDetails(activeGroupId),
     ])
       .then(([s, detail, group]) => {
         startTransition(() => {
@@ -148,7 +148,7 @@ export default function GroupSettingsScreen(): JSX.Element {
   const handleSubmit = useCallback(
     (proposedValue: string) => {
       if (!activeGroupId || !auth?.id || !activeField) return;
-      dataClient.groups
+      api.groups
         .submitSettingsChange(activeGroupId, activeField.field, proposedValue, auth.id)
         .then(() => {
           setModalOpen(false);

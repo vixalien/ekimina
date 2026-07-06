@@ -10,7 +10,7 @@ import { startTransition, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { withUniwind } from "uniwind";
 
-import { dataClient } from "@/api";
+import { api } from "@/api";
 import { AppText } from "@/components/ui/app-text";
 import { Header } from "@/components/ui/header";
 import { LineChart } from "@/components/ui/line-chart";
@@ -112,7 +112,7 @@ export default function ReserveDetailScreen(): JSX.Element {
   useEffect(() => {
     if (!activeGroupId) return;
     startTransition(() => setLoading(true));
-    dataClient.groups
+    api.groups
       .getReserveDetail(activeGroupId)
       .then((d: ReserveDetail) =>
         startTransition(() => {

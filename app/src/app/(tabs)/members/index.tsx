@@ -19,7 +19,7 @@ import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { withUniwind } from "uniwind";
 
-import { dataClient } from "@/api";
+import { api } from "@/api";
 import { FilterBottomSheet, type FilterKey } from "@/components/members/filter-bottom-sheet";
 import { AppText } from "@/components/ui/app-text";
 import { Header } from "@/components/ui/header";
@@ -61,7 +61,7 @@ export default function MembersTab(): JSX.Element {
   useEffect(() => {
     if (!groupId) return;
     startTransition(() => setLoading(true));
-    dataClient.groups
+    api.groups
       .getGroupMembers(groupId)
       .then(setMembers)
       .catch(() => {})
@@ -75,8 +75,8 @@ export default function MembersTab(): JSX.Element {
       if (!groupId) return;
       setIsSearching(true);
       const promise = !text.trim()
-        ? dataClient.groups.getGroupMembers(groupId)
-        : dataClient.groups.searchMembers(groupId, text.trim());
+        ? api.groups.getGroupMembers(groupId)
+        : api.groups.searchMembers(groupId, text.trim());
       promise
         .then(setMembers)
         .catch(() => {})

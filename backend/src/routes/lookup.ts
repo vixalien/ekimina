@@ -5,8 +5,6 @@ import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { addressSchema, groupMetaSchema, lookupNamesResultSchema } from "../lib/schemas.js";
 import { usersByAddress, groupMeta } from "../lib/store.js";
 
-const lookup = new OpenAPIHono();
-
 const resolveNamesRoute = createRoute({
   method: "post",
   path: "/lookup/names",
@@ -28,16 +26,6 @@ const resolveNamesRoute = createRoute({
   },
 });
 
-lookup.openapi(resolveNamesRoute, async (c) => {
-  const { addresses } = c.req.valid("json");
-  const result: Record<string, string | null> = {};
-  for (const addr of addresses) {
-    const user = usersByAddress.get(addr as Address);
-    result[addr] = user?.name ?? addr.slice(0, 6);
-  }
-  return c.json(result);
-});
-
 const groupByInviteRoute = createRoute({
   method: "get",
   path: "/groups/by-invite/{code}",
@@ -57,11 +45,19 @@ const groupByInviteRoute = createRoute({
   },
 });
 
-lookup.openapi(groupByInviteRoute, async (c) => {
-  const { code } = c.req.valid("param");
-  const meta = Array.from(groupMeta.values()).find((g) => g.inviteCode === code);
-  if (!meta) return c.json({ error: "not found" }, 404);
-  return c.json(meta, 200);
-});
-
-export default lookup;
+export default new OpenAPIHono()
+  .openapi(resolveNamesRoute, async (c) => {
+    const { addresses } = c.req.valid("json");
+    const result: Record<string, string | null> = {};
+    for (const addr of addresses) {
+      const user = usersByAddress.get(addr as Address);
+      result[addr] = user?.name ?? addr.slice(0, 6);
+    }
+    return c.json(result);
+  })
+  .openapi(groupByInviteRoute, async (c) => {
+    const { code } = c.req.valid("param");
+    const meta = Array.from(groupMeta.values()).find((g) => g.inviteCode === code);
+    if (!meta) return c.json({ error: "not found" }, 404);
+    return c.json(meta, 200);
+  });

@@ -14,7 +14,7 @@ import { startTransition, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { withUniwind } from "uniwind";
 
-import { dataClient } from "@/api";
+import { api } from "@/api";
 import { CycleFilterSheet } from "@/components/activity/cycle-filter-sheet";
 import { DateFilterSheet, DATE_LABELS } from "@/components/activity/date-filter-sheet";
 import { MemberFilterSheet } from "@/components/activity/member-filter-sheet";
@@ -73,7 +73,7 @@ export default function TransactionsScreen(): JSX.Element {
 
   useEffect(() => {
     if (!activeGroupId) return;
-    dataClient.groups
+    api.groups
       .getGroupMembers(activeGroupId)
       .then((m: MemberListItem[]) => startTransition(() => setMembers(m)))
       .catch(() => {});
@@ -83,7 +83,7 @@ export default function TransactionsScreen(): JSX.Element {
     if (!activeGroupId) return;
     startTransition(() => setLoading(true));
     const types = typeFilter !== "all" ? [typeFilter as TransactionType] : undefined;
-    dataClient.groups
+    api.groups
       .getTransactions(activeGroupId, {
         types,
         memberIds: memberFilter.length > 0 ? memberFilter : undefined,

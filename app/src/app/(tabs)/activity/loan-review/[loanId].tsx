@@ -9,7 +9,7 @@ import { Button, ScrollShadow, useToast } from "heroui-native";
 import { startTransition, useCallback, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 
-import { dataClient } from "@/api";
+import { api } from "@/api";
 import { BorrowerInfo } from "@/components/loan/borrower-info";
 import { LoanSignatureList } from "@/components/loan/loan-signature-row";
 import { LoanTermsCard } from "@/components/loan/loan-terms-card";
@@ -35,7 +35,7 @@ export default function LoanReviewScreen(): JSX.Element {
   useEffect(() => {
     if (!activeGroupId || !loanId) return;
     startTransition(() => setLoading(true));
-    dataClient.groups
+    api.groups
       .getLoanRequestReview(activeGroupId, loanId)
       .then(setReview)
       .catch(() => {})
@@ -50,7 +50,7 @@ export default function LoanReviewScreen(): JSX.Element {
       duration: "persistent",
     });
     try {
-      const result = await dataClient.groups.signLoanRequest(activeGroupId, loanId, auth.id);
+      const result = await api.groups.signLoanRequest(activeGroupId, loanId, auth.id);
       toast.hide(id);
       if (result.thresholdMet) {
         toast.show({
@@ -77,7 +77,7 @@ export default function LoanReviewScreen(): JSX.Element {
       if (!activeGroupId || !loanId || !auth?.id) return;
       setRejecting(true);
       try {
-        await dataClient.groups.rejectLoanRequest(activeGroupId, loanId, auth.id);
+        await api.groups.rejectLoanRequest(activeGroupId, loanId, auth.id);
         toast.show({ variant: "default", label: "Loan request rejected" });
         setRejectOpen(false);
         nav.back();

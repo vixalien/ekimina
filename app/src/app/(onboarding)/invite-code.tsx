@@ -5,7 +5,7 @@ import { FieldError, InputGroup, Label, TextField, useToast } from "heroui-nativ
 import { useState } from "react";
 import { withUniwind } from "uniwind";
 
-import { dataClient } from "@/api";
+import { api } from "@/api";
 
 import { OnboardingLayout } from "../../components/ui/onboarding-layout";
 import { nav } from "../../lib/routes";
@@ -23,7 +23,7 @@ export default function InviteCodeScreen(): JSX.Element {
     setIsLoading(true);
     setError(null);
     try {
-      const request = await dataClient.groups.joinByInviteCode("user-new", code.trim());
+      const request = await api.groups.joinByInviteCode("user-new", code.trim());
       nav.onboarding.toPending({
         requestId: request.id,
         groupName: request.groupName,

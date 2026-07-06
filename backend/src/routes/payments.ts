@@ -7,8 +7,6 @@ import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { errorResponses, paymentIntentSchema } from "../lib/schemas.js";
 import { paymentIntents } from "../lib/store.js";
 
-const payments = new OpenAPIHono();
-
 const createIntentRoute = createRoute({
   method: "post",
   path: "/payments/intents",
@@ -34,25 +32,6 @@ const createIntentRoute = createRoute({
   },
 });
 
-payments.openapi(createIntentRoute, async (c) => {
-  const { amount, currency: _currency = "RWF" } = c.req.valid("json");
-  const id = crypto.randomUUID();
-  const intent = {
-    id,
-    userAddress: "0x0000000000000000000000000000000000000000" as Address,
-    groupAddress: "0x0000000000000000000000000000000000000000" as Address,
-    purpose: "contribution" as const,
-    amount: String(amount) as BaseUnit,
-    status: "pending" as const,
-    failureReason: null,
-    retryable: true,
-    createdAt: new Date().toISOString(),
-    resultingTxId: null,
-  };
-  paymentIntents.set(id, intent);
-  return c.json(intent);
-});
-
 const getIntentRoute = createRoute({
   method: "get",
   path: "/payments/intents/{id}",
@@ -65,14 +44,6 @@ const getIntentRoute = createRoute({
     },
     ...errorResponses,
   },
-});
-
-payments.openapi(getIntentRoute, async (c) => {
-  const { id } = c.req.valid("param");
-  const intent = paymentIntents.get(id);
-  // oxlint-disable-next-line typescript/no-explicit-any
-  if (!intent) return c.json({ error: "not found" }, 404) as any;
-  return c.json(intent);
 });
 
 const retryIntentRoute = createRoute({
@@ -89,13 +60,37 @@ const retryIntentRoute = createRoute({
   },
 });
 
-payments.openapi(retryIntentRoute, async (c) => {
-  const { id } = c.req.valid("param");
-  const intent = paymentIntents.get(id);
-  // oxlint-disable-next-line typescript/no-explicit-any
-  if (!intent) return c.json({ error: "not found" }, 404) as any;
-  intent.status = "pending";
-  return c.json(intent);
-});
-
-export default payments;
+export default new OpenAPIHono()
+  .openapi(createIntentRoute, async (c) => {
+    const { amount, currency: _currency = "RWF" } = c.req.valid("json");
+    const id = crypto.randomUUID();
+    const intent = {
+      id,
+      userAddress: "0x0000000000000000000000000000000000000000" as Address,
+      groupAddress: "0x0000000000000000000000000000000000000000" as Address,
+      purpose: "contribution" as const,
+      amount: String(amount) as BaseUnit,
+      status: "pending" as const,
+      failureReason: null,
+      retryable: true,
+      createdAt: new Date().toISOString(),
+      resultingTxId: null,
+    };
+    paymentIntents.set(id, intent);
+    return c.json(intent);
+  })
+  .openapi(getIntentRoute, async (c) => {
+    const { id } = c.req.valid("param");
+    const intent = paymentIntents.get(id);
+    // oxlint-disable-next-line typescript/no-explicit-any
+    if (!intent) return c.json({ error: "not found" }, 404) as any;
+    return c.json(intent);
+  })
+  .openapi(retryIntentRoute, async (c) => {
+    const { id } = c.req.valid("param");
+    const intent = paymentIntents.get(id);
+    // oxlint-disable-next-line typescript/no-explicit-any
+    if (!intent) return c.json({ error: "not found" }, 404) as any;
+    intent.status = "pending";
+    return c.json(intent);
+  });

@@ -9,7 +9,7 @@ import { Button, Chip, ListGroup, PressableFeedback, ScrollShadow, useToast } fr
 import { startTransition, useCallback, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 
-import { dataClient } from "@/api";
+import { api } from "@/api";
 import { LoanSignatureList } from "@/components/loan/loan-signature-row";
 import { RejectReasonSheet } from "@/components/loan/reject-reason-sheet";
 import { AppText } from "@/components/ui/app-text";
@@ -33,7 +33,7 @@ export default function DiscretionaryReviewScreen(): JSX.Element {
   useEffect(() => {
     if (!activeGroupId || !requestId) return;
     startTransition(() => setLoading(true));
-    dataClient.groups
+    api.groups
       .getDiscretionaryReview(activeGroupId, requestId)
       .then(setReview)
       .catch(() => {})
@@ -48,11 +48,7 @@ export default function DiscretionaryReviewScreen(): JSX.Element {
       duration: "persistent",
     });
     try {
-      const result = await dataClient.groups.signDiscretionaryRequest(
-        activeGroupId,
-        requestId,
-        auth.id,
-      );
+      const result = await api.groups.signDiscretionaryRequest(activeGroupId, requestId, auth.id);
       toast.hide(id);
       if (result.thresholdMet) {
         toast.show({
@@ -79,7 +75,7 @@ export default function DiscretionaryReviewScreen(): JSX.Element {
       if (!activeGroupId || !requestId || !auth?.id) return;
       setRejecting(true);
       try {
-        await dataClient.groups.rejectDiscretionaryRequest(activeGroupId, requestId, auth.id);
+        await api.groups.rejectDiscretionaryRequest(activeGroupId, requestId, auth.id);
         toast.show({ variant: "default", label: "Request rejected" });
         setRejectOpen(false);
         nav.back();

@@ -6,8 +6,6 @@ import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { walletClient, publicClient } from "../lib/chain.js";
 import { addressSchema, errorResponses } from "../lib/schemas.js";
 
-const relay = new OpenAPIHono();
-
 const contributeRoute = createRoute({
   method: "post",
   path: "/relay/groups/{group}/contribute",
@@ -22,18 +20,6 @@ const contributeRoute = createRoute({
     },
     ...errorResponses,
   },
-});
-
-relay.openapi(contributeRoute, async (c) => {
-  const { group } = c.req.valid("param");
-  const contract = getIkiminaContract(group as Address, {
-    public: publicClient,
-    wallet: walletClient,
-  });
-  // oxlint-disable-next-line typescript/no-explicit-any
-  const hash = await (contract as any).write.contribute();
-  const receipt = await publicClient.waitForTransactionReceipt({ hash });
-  return c.json({ txId: receipt.transactionHash });
 });
 
 const joinRoute = createRoute({
@@ -59,19 +45,6 @@ const joinRoute = createRoute({
   },
 });
 
-relay.openapi(joinRoute, async (c) => {
-  const { group } = c.req.valid("param");
-  const { code } = c.req.valid("json");
-  const contract = getIkiminaContract(group as Address, {
-    public: publicClient,
-    wallet: walletClient,
-  });
-  // oxlint-disable-next-line typescript/no-explicit-any
-  const hash = await (contract as any).write.join([code]);
-  const receipt = await publicClient.waitForTransactionReceipt({ hash });
-  return c.json({ txId: receipt.transactionHash });
-});
-
 const triggerPayoutRoute = createRoute({
   method: "post",
   path: "/relay/groups/{group}/trigger-payout",
@@ -86,18 +59,6 @@ const triggerPayoutRoute = createRoute({
     },
     ...errorResponses,
   },
-});
-
-relay.openapi(triggerPayoutRoute, async (c) => {
-  const { group } = c.req.valid("param");
-  const contract = getIkiminaContract(group as Address, {
-    public: publicClient,
-    wallet: walletClient,
-  });
-  // oxlint-disable-next-line typescript/no-explicit-any
-  const hash = await (contract as any).write.triggerPayout();
-  const receipt = await publicClient.waitForTransactionReceipt({ hash });
-  return c.json({ txId: receipt.transactionHash });
 });
 
 const rotateRoute = createRoute({
@@ -125,19 +86,6 @@ const rotateRoute = createRoute({
   },
 });
 
-relay.openapi(rotateRoute, async (c) => {
-  const { group } = c.req.valid("param");
-  const { order } = c.req.valid("json");
-  const contract = getIkiminaContract(group as Address, {
-    public: publicClient,
-    wallet: walletClient,
-  });
-  // oxlint-disable-next-line typescript/no-explicit-any
-  const hash = await (contract as any).write.setRotation([order]);
-  const receipt = await publicClient.waitForTransactionReceipt({ hash });
-  return c.json({ txId: receipt.transactionHash });
-});
-
 const repayLoanRoute = createRoute({
   method: "post",
   path: "/relay/groups/{group}/repay-loan",
@@ -161,19 +109,6 @@ const repayLoanRoute = createRoute({
   },
 });
 
-relay.openapi(repayLoanRoute, async (c) => {
-  const { group } = c.req.valid("param");
-  const { loanId } = c.req.valid("json");
-  const contract = getIkiminaContract(group as Address, {
-    public: publicClient,
-    wallet: walletClient,
-  });
-  // oxlint-disable-next-line typescript/no-explicit-any
-  const hash = await (contract as any).write.repayLoan([loanId]);
-  const receipt = await publicClient.waitForTransactionReceipt({ hash });
-  return c.json({ txId: receipt.transactionHash });
-});
-
 const shareOutRoute = createRoute({
   method: "post",
   path: "/relay/groups/{group}/share-out",
@@ -188,18 +123,6 @@ const shareOutRoute = createRoute({
     },
     ...errorResponses,
   },
-});
-
-relay.openapi(shareOutRoute, async (c) => {
-  const { group } = c.req.valid("param");
-  const contract = getIkiminaContract(group as Address, {
-    public: publicClient,
-    wallet: walletClient,
-  });
-  // oxlint-disable-next-line typescript/no-explicit-any
-  const hash = await (contract as any).write.shareOut();
-  const receipt = await publicClient.waitForTransactionReceipt({ hash });
-  return c.json({ txId: receipt.transactionHash });
 });
 
 const createProposalRoute = createRoute({
@@ -221,19 +144,6 @@ const createProposalRoute = createRoute({
   },
 });
 
-relay.openapi(createProposalRoute, async (c) => {
-  const { group } = c.req.valid("param");
-  const draft = c.req.valid("json");
-  const contract = getIkiminaContract(group as Address, {
-    public: publicClient,
-    wallet: walletClient,
-  });
-  // oxlint-disable-next-line typescript/no-explicit-any
-  const hash = await (contract as any).write.createProposal([draft]);
-  const receipt = await publicClient.waitForTransactionReceipt({ hash });
-  return c.json({ txId: receipt.transactionHash });
-});
-
 const approveProposalRoute = createRoute({
   method: "post",
   path: "/relay/groups/{group}/proposals/{id}/approve",
@@ -248,18 +158,6 @@ const approveProposalRoute = createRoute({
     },
     ...errorResponses,
   },
-});
-
-relay.openapi(approveProposalRoute, async (c) => {
-  const { group, id } = c.req.valid("param");
-  const contract = getIkiminaContract(group as Address, {
-    public: publicClient,
-    wallet: walletClient,
-  });
-  // oxlint-disable-next-line typescript/no-explicit-any
-  const hash = await (contract as any).write.approveProposal([id]);
-  const receipt = await publicClient.waitForTransactionReceipt({ hash });
-  return c.json({ txId: receipt.transactionHash });
 });
 
 const rejectProposalRoute = createRoute({
@@ -278,16 +176,107 @@ const rejectProposalRoute = createRoute({
   },
 });
 
-relay.openapi(rejectProposalRoute, async (c) => {
-  const { group, id } = c.req.valid("param");
-  const contract = getIkiminaContract(group as Address, {
-    public: publicClient,
-    wallet: walletClient,
+export default new OpenAPIHono()
+  .openapi(contributeRoute, async (c) => {
+    const { group } = c.req.valid("param");
+    const contract = getIkiminaContract(group as Address, {
+      public: publicClient,
+      wallet: walletClient,
+    });
+    // oxlint-disable-next-line typescript/no-explicit-any
+    const hash = await (contract as any).write.contribute();
+    const receipt = await publicClient.waitForTransactionReceipt({ hash });
+    return c.json({ txId: receipt.transactionHash });
+  })
+  .openapi(joinRoute, async (c) => {
+    const { group } = c.req.valid("param");
+    const { code } = c.req.valid("json");
+    const contract = getIkiminaContract(group as Address, {
+      public: publicClient,
+      wallet: walletClient,
+    });
+    // oxlint-disable-next-line typescript/no-explicit-any
+    const hash = await (contract as any).write.join([code]);
+    const receipt = await publicClient.waitForTransactionReceipt({ hash });
+    return c.json({ txId: receipt.transactionHash });
+  })
+  .openapi(triggerPayoutRoute, async (c) => {
+    const { group } = c.req.valid("param");
+    const contract = getIkiminaContract(group as Address, {
+      public: publicClient,
+      wallet: walletClient,
+    });
+    // oxlint-disable-next-line typescript/no-explicit-any
+    const hash = await (contract as any).write.triggerPayout();
+    const receipt = await publicClient.waitForTransactionReceipt({ hash });
+    return c.json({ txId: receipt.transactionHash });
+  })
+  .openapi(rotateRoute, async (c) => {
+    const { group } = c.req.valid("param");
+    const { order } = c.req.valid("json");
+    const contract = getIkiminaContract(group as Address, {
+      public: publicClient,
+      wallet: walletClient,
+    });
+    // oxlint-disable-next-line typescript/no-explicit-any
+    const hash = await (contract as any).write.setRotation([order]);
+    const receipt = await publicClient.waitForTransactionReceipt({ hash });
+    return c.json({ txId: receipt.transactionHash });
+  })
+  .openapi(repayLoanRoute, async (c) => {
+    const { group } = c.req.valid("param");
+    const { loanId } = c.req.valid("json");
+    const contract = getIkiminaContract(group as Address, {
+      public: publicClient,
+      wallet: walletClient,
+    });
+    // oxlint-disable-next-line typescript/no-explicit-any
+    const hash = await (contract as any).write.repayLoan([loanId]);
+    const receipt = await publicClient.waitForTransactionReceipt({ hash });
+    return c.json({ txId: receipt.transactionHash });
+  })
+  .openapi(shareOutRoute, async (c) => {
+    const { group } = c.req.valid("param");
+    const contract = getIkiminaContract(group as Address, {
+      public: publicClient,
+      wallet: walletClient,
+    });
+    // oxlint-disable-next-line typescript/no-explicit-any
+    const hash = await (contract as any).write.shareOut();
+    const receipt = await publicClient.waitForTransactionReceipt({ hash });
+    return c.json({ txId: receipt.transactionHash });
+  })
+  .openapi(createProposalRoute, async (c) => {
+    const { group } = c.req.valid("param");
+    const draft = c.req.valid("json");
+    const contract = getIkiminaContract(group as Address, {
+      public: publicClient,
+      wallet: walletClient,
+    });
+    // oxlint-disable-next-line typescript/no-explicit-any
+    const hash = await (contract as any).write.createProposal([draft]);
+    const receipt = await publicClient.waitForTransactionReceipt({ hash });
+    return c.json({ txId: receipt.transactionHash });
+  })
+  .openapi(approveProposalRoute, async (c) => {
+    const { group, id } = c.req.valid("param");
+    const contract = getIkiminaContract(group as Address, {
+      public: publicClient,
+      wallet: walletClient,
+    });
+    // oxlint-disable-next-line typescript/no-explicit-any
+    const hash = await (contract as any).write.approveProposal([id]);
+    const receipt = await publicClient.waitForTransactionReceipt({ hash });
+    return c.json({ txId: receipt.transactionHash });
+  })
+  .openapi(rejectProposalRoute, async (c) => {
+    const { group, id } = c.req.valid("param");
+    const contract = getIkiminaContract(group as Address, {
+      public: publicClient,
+      wallet: walletClient,
+    });
+    // oxlint-disable-next-line typescript/no-explicit-any
+    const hash = await (contract as any).write.rejectProposal([id]);
+    const receipt = await publicClient.waitForTransactionReceipt({ hash });
+    return c.json({ txId: receipt.transactionHash });
   });
-  // oxlint-disable-next-line typescript/no-explicit-any
-  const hash = await (contract as any).write.rejectProposal([id]);
-  const receipt = await publicClient.waitForTransactionReceipt({ hash });
-  return c.json({ txId: receipt.transactionHash });
-});
-
-export default relay;

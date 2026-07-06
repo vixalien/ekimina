@@ -3,27 +3,25 @@ import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { sendOtp, verifyOtp } from "../lib/auth.js";
 import { authResultSchema, errorResponses, phoneSchema, otpCodeSchema } from "../lib/schemas.js";
 
-const auth = new OpenAPIHono();
-
 const sendOtpRoute = createRoute({
   method: "post",
   path: "/auth/otp/send",
   tags: ["Auth"],
   request: {
-    body: { content: { "application/json": { schema: z.object({ phone: phoneSchema }) } } },
+    body: {
+      content: {
+        "application/json": { schema: z.object({ phone: phoneSchema }) },
+      },
+    },
   },
   responses: {
     200: {
-      content: { "application/json": { schema: z.object({ sent: z.boolean() }) } },
+      content: {
+        "application/json": { schema: z.object({ sent: z.boolean() }) },
+      },
       description: "OTP sent",
     },
   },
-});
-
-auth.openapi(sendOtpRoute, async (c) => {
-  const { phone } = c.req.valid("json");
-  const result = await sendOtp(phone);
-  return c.json(result);
 });
 
 const verifyOtpRoute = createRoute({
@@ -33,7 +31,9 @@ const verifyOtpRoute = createRoute({
   request: {
     body: {
       content: {
-        "application/json": { schema: z.object({ phone: phoneSchema, code: otpCodeSchema }) },
+        "application/json": {
+          schema: z.object({ phone: phoneSchema, code: otpCodeSchema }),
+        },
       },
     },
   },
@@ -43,17 +43,12 @@ const verifyOtpRoute = createRoute({
       description: "Verification result",
     },
     401: {
-      content: { "application/json": { schema: z.object({ error: z.string() }) } },
+      content: {
+        "application/json": { schema: z.object({ error: z.string() }) },
+      },
       description: "Invalid code",
     },
   },
-});
-
-auth.openapi(verifyOtpRoute, async (c) => {
-  const { phone, code } = c.req.valid("json");
-  const result = await verifyOtp(phone, code);
-  if (!result) return c.json({ error: "invalid code" }, 401);
-  return c.json(result, 200);
 });
 
 const setPinRoute = createRoute({
@@ -62,15 +57,13 @@ const setPinRoute = createRoute({
   tags: ["Auth"],
   responses: {
     200: {
-      content: { "application/json": { schema: z.object({ ok: z.boolean() }) } },
+      content: {
+        "application/json": { schema: z.object({ ok: z.boolean() }) },
+      },
       description: "PIN set",
     },
     ...errorResponses,
   },
-});
-
-auth.openapi(setPinRoute, async (c) => {
-  return c.json({ ok: true });
 });
 
 const verifyPinRoute = createRoute({
@@ -79,15 +72,30 @@ const verifyPinRoute = createRoute({
   tags: ["Auth"],
   responses: {
     200: {
-      content: { "application/json": { schema: z.object({ ok: z.boolean() }) } },
+      content: {
+        "application/json": { schema: z.object({ ok: z.boolean() }) },
+      },
       description: "PIN verified",
     },
     ...errorResponses,
   },
 });
 
-auth.openapi(verifyPinRoute, async (c) => {
-  return c.json({ ok: true });
-});
-
-export default auth;
+export default new OpenAPIHono()
+  .openapi(sendOtpRoute, async (c) => {
+    const { phone } = c.req.valid("json");
+    const result = await sendOtp(phone);
+    return c.json(result);
+  })
+  .openapi(verifyOtpRoute, async (c) => {
+    const { phone, code } = c.req.valid("json");
+    const result = await verifyOtp(phone, code);
+    if (!result) return c.json({ error: "invalid code" }, 401);
+    return c.json(result, 200);
+  })
+  .openapi(setPinRoute, async (c) => {
+    return c.json({ ok: true });
+  })
+  .openapi(verifyPinRoute, async (c) => {
+    return c.json({ ok: true });
+  });

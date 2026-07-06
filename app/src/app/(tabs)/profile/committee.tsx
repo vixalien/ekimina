@@ -19,7 +19,7 @@ import { startTransition, useCallback, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { withUniwind } from "uniwind";
 
-import { dataClient } from "@/api";
+import { api } from "@/api";
 import { AppText } from "@/components/ui/app-text";
 import { Header } from "@/components/ui/header";
 import { ScreenContainer } from "@/components/ui/screen-container";
@@ -78,10 +78,10 @@ export default function CommitteeScreen(): JSX.Element {
     if (!activeGroupId || !auth?.id) return;
     startTransition(() => setLoading(true));
     Promise.all([
-      dataClient.groups.getGroupMembers(activeGroupId),
-      dataClient.groups.getCommitteeMembers(activeGroupId),
-      dataClient.groups.getGroupSettings(activeGroupId),
-      dataClient.groups.getMemberDetail(activeGroupId, auth.id, auth.id),
+      api.groups.getGroupMembers(activeGroupId),
+      api.groups.getCommitteeMembers(activeGroupId),
+      api.groups.getGroupSettings(activeGroupId),
+      api.groups.getMemberDetail(activeGroupId, auth.id, auth.id),
     ])
       .then(([members, committeeMembers, s, detail]) => {
         startTransition(() => {
@@ -121,7 +121,7 @@ export default function CommitteeScreen(): JSX.Element {
     if (!activeGroupId || !auth?.id) return;
     setSubmitting(true);
     try {
-      await dataClient.groups.submitSettingsChange(
+      await api.groups.submitSettingsChange(
         activeGroupId,
         "committee_size",
         String(committeeUserIds.size),

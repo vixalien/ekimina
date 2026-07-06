@@ -19,7 +19,7 @@ import { startTransition, useCallback, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { withUniwind } from "uniwind";
 
-import { dataClient } from "@/api";
+import { api } from "@/api";
 import { MemberAvatar } from "@/components/member-avatar";
 import { AppText } from "@/components/ui/app-text";
 import { Header } from "@/components/ui/header";
@@ -42,7 +42,7 @@ export default function ProfileTab(): JSX.Element {
   useEffect(() => {
     if (!activeGroupId || !auth?.id) return;
     startTransition(() => setLoading(true));
-    dataClient.groups
+    api.groups
       .getUserProfile(activeGroupId, auth.id)
       .then((p: UserProfile) => {
         startTransition(() => {
@@ -59,7 +59,7 @@ export default function ProfileTab(): JSX.Element {
     (value: boolean) => {
       setNotificationsEnabled(value);
       if (auth?.id) {
-        dataClient.groups.updateNotifications(auth.id, value).catch(() => {});
+        api.groups.updateNotifications(auth.id, value).catch(() => {});
       }
     },
     [auth],

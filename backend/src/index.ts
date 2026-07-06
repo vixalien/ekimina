@@ -19,18 +19,6 @@ const app = new OpenAPIHono();
 
 app.use("*", logger());
 
-app.get("/", (c) => c.json({ service: "e-Kimina API", version: "0.2.0", status: "running" }));
-
-app.route("/", authRoutes);
-app.route("/", profileRoutes);
-app.route("/", lookupRoutes);
-app.route("/", indexerRoutes);
-app.route("/", relayRoutes);
-app.route("/ussd", ussdRoutes);
-app.route("/", groupsRoutes);
-app.route("/", mutationsRoutes);
-app.route("/", paymentsRoutes);
-
 app.doc("/openapi.json", {
   openapi: "3.0.0",
   info: { title: "e-Kimina API", version: "0.2.0" },
@@ -90,7 +78,19 @@ app.get("/scalar", (c) => {
 </html>`);
 });
 
-export type AppType = typeof app;
+const routes = app
+  .get("/", (c) => c.json({ service: "e-Kimina API", version: "0.2.0", status: "running" }))
+  .route("/", authRoutes)
+  .route("/", profileRoutes)
+  .route("/", lookupRoutes)
+  .route("/", indexerRoutes)
+  .route("/", relayRoutes)
+  .route("/ussd", ussdRoutes)
+  .route("/", groupsRoutes)
+  .route("/", mutationsRoutes)
+  .route("/", paymentsRoutes);
+
+export type AppType = typeof routes;
 
 serve({ fetch: app.fetch, port: 3000 }, async () => {
   console.log("e-Kimina backend running on http://localhost:3000");

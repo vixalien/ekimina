@@ -7,7 +7,7 @@ import { Button, InputOTP, REGEXP_ONLY_DIGITS, type InputOTPRef, useToast } from
 import { useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 
-import { dataClient } from "@/api";
+import { api } from "@/api";
 
 import { AppText } from "../../components/ui/app-text";
 import { OnboardingLayout } from "../../components/ui/onboarding-layout";
@@ -24,7 +24,7 @@ async function navigateAfterAuth(result: { status: string; user: { address: stri
   }
 
   const address = result.user.address as Address;
-  const memberships = await dataClient.groups.myGroups(address);
+  const memberships = await api.groups.myGroups(address);
 
   if (memberships.length === 0) {
     nav.onboarding.toJoinOrCreate();
@@ -63,7 +63,7 @@ export default function VerifyScreen(): JSX.Element {
     setIsVerifying(true);
     setError(null);
     try {
-      const result = await dataClient.auth.verifyOtp(phone, code);
+      const result = await api.auth.verifyOtp(phone, code);
       const authUser = await loginWithOtp(phone, result);
       await saveAuth(authUser);
       await navigateAfterAuth(result);
@@ -85,7 +85,7 @@ export default function VerifyScreen(): JSX.Element {
     if (!canResend || !phone) return;
     setResendTimer(RESEND_COOLDOWN);
     try {
-      await dataClient.auth.sendOtp(phone);
+      await api.auth.sendOtp(phone);
     } catch (e) {
       console.error(e);
       toast.show({

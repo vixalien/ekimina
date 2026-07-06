@@ -8,7 +8,7 @@ import { BottomSheet, Button } from "heroui-native";
 import { useCallback, useMemo, useState } from "react";
 import { View } from "react-native";
 
-import { dataClient } from "@/api";
+import { api } from "@/api";
 import { BasicsSettings } from "@/components/group-settings/basics";
 import { LoansSettings } from "@/components/group-settings/loans";
 import { MoneySettings } from "@/components/group-settings/money";
@@ -79,7 +79,7 @@ export default function CreateGroupStep6(): JSX.Element {
     $isSubmitting.set(true);
     $submitError.set(null);
     try {
-      const result = await dataClient.groups.createGroup({
+      const result = await api.groups.createGroup({
         settings,
         founderId: auth?.id ?? "current-user",
       });

@@ -5,8 +5,6 @@ import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { addressSchema, userSchema } from "../lib/schemas.js";
 import { usersByAddress } from "../lib/store.js";
 
-const profile = new OpenAPIHono();
-
 const getUserRoute = createRoute({
   method: "get",
   path: "/users/{address}",
@@ -24,13 +22,6 @@ const getUserRoute = createRoute({
       description: "Not found",
     },
   },
-});
-
-profile.openapi(getUserRoute, async (c) => {
-  const { address } = c.req.valid("param");
-  const user = usersByAddress.get(address as Address);
-  if (!user) return c.json({ error: "not found" }, 404);
-  return c.json(user, 200);
 });
 
 const updateMeRoute = createRoute({
@@ -62,11 +53,16 @@ const updateMeRoute = createRoute({
   },
 });
 
-profile.openapi(updateMeRoute, async (c) => {
-  const userId = c.req.header("x-user-id");
-  if (!userId) return c.json({ error: "unauthorized" }, 401);
-  // oxlint-disable-next-line typescript/no-explicit-any
-  return c.json({ ok: true }) as any;
-});
-
-export default profile;
+export default new OpenAPIHono()
+  .openapi(getUserRoute, async (c) => {
+    const { address } = c.req.valid("param");
+    const user = usersByAddress.get(address as Address);
+    if (!user) return c.json({ error: "not found" }, 404);
+    return c.json(user, 200);
+  })
+  .openapi(updateMeRoute, async (c) => {
+    const userId = c.req.header("x-user-id");
+    if (!userId) return c.json({ error: "unauthorized" }, 401);
+    // oxlint-disable-next-line typescript/no-explicit-any
+    return c.json({ ok: true }) as any;
+  });

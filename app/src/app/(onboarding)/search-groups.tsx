@@ -18,7 +18,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { View } from "react-native";
 import { withUniwind } from "uniwind";
 
-import { dataClient } from "@/api";
+import { api } from "@/api";
 
 import { AppText } from "../../components/ui/app-text";
 import { OnboardingLayout } from "../../components/ui/onboarding-layout";
@@ -38,7 +38,7 @@ export default function SearchGroupsScreen(): JSX.Element {
     async (text: string) => {
       setIsLoading(true);
       try {
-        const results = await dataClient.groups.searchPublicGroups(text);
+        const results = await api.groups.searchPublicGroups(text);
         setGroups(results);
       } catch (error) {
         console.error(error);
@@ -57,7 +57,7 @@ export default function SearchGroupsScreen(): JSX.Element {
 
   useEffect(() => {
     let cancelled = false;
-    dataClient.groups
+    api.groups
       .searchPublicGroups("")
       .then((results: PublicGroup[]) => {
         if (!cancelled) {
@@ -82,7 +82,7 @@ export default function SearchGroupsScreen(): JSX.Element {
     if (!selectedId || isJoining) return;
     setIsJoining(true);
     try {
-      const request = await dataClient.groups.requestToJoinGroup("user-new", selectedId);
+      const request = await api.groups.requestToJoinGroup("user-new", selectedId);
       nav.onboarding.toPending({
         requestId: request.id,
         groupName: request.groupName,

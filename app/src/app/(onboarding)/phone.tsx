@@ -3,7 +3,7 @@ import type { JSX } from "react";
 import { InputGroup, Label, Select, Separator, TextField, useToast } from "heroui-native";
 import React, { useState } from "react";
 
-import { dataClient } from "@/api";
+import { api } from "@/api";
 
 import { AppText } from "../../components/ui/app-text";
 import { OnboardingLayout } from "../../components/ui/onboarding-layout";
@@ -33,7 +33,7 @@ export default function PhoneScreen(): JSX.Element {
     setIsLoading(true);
     try {
       const fullPhone = `${countryCode.code}${phone.replace(/\s/g, "")}`;
-      await dataClient.auth.sendOtp(fullPhone);
+      await api.auth.sendOtp(fullPhone);
       nav.onboarding.toVerify(fullPhone);
     } catch (error) {
       toast.show({

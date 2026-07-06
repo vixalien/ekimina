@@ -11,7 +11,7 @@ import { startTransition, useEffect, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { withUniwind } from "uniwind";
 
-import { dataClient } from "@/api";
+import { api } from "@/api";
 import { GroupSwitcher } from "@/components/group-switcher";
 import { MemberAvatar } from "@/components/member-avatar";
 import { AppText } from "@/components/ui/app-text";
@@ -47,7 +47,7 @@ export default function HomeTab(): JSX.Element {
   useEffect(() => {
     if (!activeGroup.activeGroupId) return;
     startTransition(() => setLoading(true));
-    dataClient.groups
+    api.groups
       .getGroupDashboard(activeGroup.activeGroupId)
       .then(setDashboard)
       .catch(() => {})

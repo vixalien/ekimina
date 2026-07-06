@@ -15,8 +15,6 @@ import {
 } from "../lib/schemas.js";
 import { groupMeta } from "../lib/store.js";
 
-const indexer = new OpenAPIHono();
-
 const myGroupsRoute = createRoute({
   method: "get",
   path: "/users/{address}/groups",
@@ -29,11 +27,6 @@ const myGroupsRoute = createRoute({
     },
     ...errorResponses,
   },
-});
-
-indexer.openapi(myGroupsRoute, async (c) => {
-  const metas = Array.from(groupMeta.values());
-  return c.json(metas);
 });
 
 const getGroupRoute = createRoute({
@@ -50,33 +43,6 @@ const getGroupRoute = createRoute({
   },
 });
 
-indexer.openapi(getGroupRoute, async (c) => {
-  const { group } = c.req.valid("param");
-  const groupAddr = group as Address;
-  const cached = getCachedGroup(groupAddr);
-  if (cached) return c.json(cached);
-
-  const contract = getIkiminaContract(groupAddr, { public: publicClient });
-  // oxlint-disable-next-line typescript/no-explicit-any
-  const config = (await contract.read.config()) as any;
-
-  return c.json({
-    contributionAmount: config.contributionAmount.toString(),
-    cycleLength: Number(config.cycleLength),
-    payoutAmount: config.payoutAmount.toString(),
-    payoutPolicy: ["none", "rotating", "lump_sum_end"][Number(config.payoutPolicy)] as
-      | "none"
-      | "rotating"
-      | "lump_sum_end",
-    penaltyRateBps: Number(config.penaltyRateBps),
-    approvalThresholdBps: Number(config.approvalThresholdBps),
-    loansEnabled: config.loansEnabled,
-    discretionaryEnabled: config.discretionaryEnabled,
-    allMembersCommittee: config.allMembersCommittee,
-    // oxlint-disable-next-line typescript/no-explicit-any
-  } as any);
-});
-
 const getCycleRoute = createRoute({
   method: "get",
   path: "/groups/{group}/cycle",
@@ -89,26 +55,6 @@ const getCycleRoute = createRoute({
     },
     ...errorResponses,
   },
-});
-
-indexer.openapi(getCycleRoute, async (c) => {
-  const { group } = c.req.valid("param");
-  const groupAddr = group as Address;
-  const cached = getCachedCycle(groupAddr);
-  if (cached) return c.json(cached);
-
-  const contract = getIkiminaContract(groupAddr, { public: publicClient });
-  const currentCycle = await contract.read.currentCycle();
-  const cycleStart = await contract.read.cycleStart();
-
-  return c.json({
-    currentCycle: Number(currentCycle),
-    rotationLength: 0,
-    cycleStart: new Date(Number(cycleStart) * 1000).toISOString(),
-    reserveBalance: "0",
-    paidCount: 0,
-    memberCount: 0,
-  });
 });
 
 const getMembersRoute = createRoute({
@@ -125,28 +71,76 @@ const getMembersRoute = createRoute({
   },
 });
 
-indexer.openapi(getMembersRoute, async (c) => {
-  const { group } = c.req.valid("param");
-  const groupAddr = group as Address;
-  const contract = getIkiminaContract(groupAddr, { public: publicClient });
-  const members = await contract.read.memberList();
+export default new OpenAPIHono()
+  .openapi(myGroupsRoute, async (c) => {
+    const metas = Array.from(groupMeta.values());
+    return c.json(metas);
+  })
+  .openapi(getGroupRoute, async (c) => {
+    const { group } = c.req.valid("param");
+    const groupAddr = group as Address;
+    const cached = getCachedGroup(groupAddr);
+    if (cached) return c.json(cached);
 
-  const result = [];
-  for (const addr of members) {
-    const active = await contract.read.isActive([addr]);
-    if (!active) continue;
+    const contract = getIkiminaContract(groupAddr, { public: publicClient });
+    // oxlint-disable-next-line typescript/no-explicit-any
+    const config = (await contract.read.config()) as any;
 
-    const isCommittee = await contract.read.isCommittee([addr]);
-    const joined = await contract.read.joinedCycle([addr]);
+    return c.json({
+      contributionAmount: config.contributionAmount.toString(),
+      cycleLength: Number(config.cycleLength),
+      payoutAmount: config.payoutAmount.toString(),
+      payoutPolicy: ["none", "rotating", "lump_sum_end"][Number(config.payoutPolicy)] as
+        | "none"
+        | "rotating"
+        | "lump_sum_end",
+      penaltyRateBps: Number(config.penaltyRateBps),
+      approvalThresholdBps: Number(config.approvalThresholdBps),
+      loansEnabled: config.loansEnabled,
+      discretionaryEnabled: config.discretionaryEnabled,
+      allMembersCommittee: config.allMembersCommittee,
+      // oxlint-disable-next-line typescript/no-explicit-any
+    } as any);
+  })
+  .openapi(getCycleRoute, async (c) => {
+    const { group } = c.req.valid("param");
+    const groupAddr = group as Address;
+    const cached = getCachedCycle(groupAddr);
+    if (cached) return c.json(cached);
 
-    result.push({
-      address: addr,
-      isCommitteeMember: isCommittee,
-      joinedCycle: Number(joined),
-      active: true,
+    const contract = getIkiminaContract(groupAddr, { public: publicClient });
+    const currentCycle = await contract.read.currentCycle();
+    const cycleStart = await contract.read.cycleStart();
+
+    return c.json({
+      currentCycle: Number(currentCycle),
+      rotationLength: 0,
+      cycleStart: new Date(Number(cycleStart) * 1000).toISOString(),
+      reserveBalance: "0",
+      paidCount: 0,
+      memberCount: 0,
     });
-  }
-  return c.json(result);
-});
+  })
+  .openapi(getMembersRoute, async (c) => {
+    const { group } = c.req.valid("param");
+    const groupAddr = group as Address;
+    const contract = getIkiminaContract(groupAddr, { public: publicClient });
+    const members = await contract.read.memberList();
 
-export default indexer;
+    const result = [];
+    for (const addr of members) {
+      const active = await contract.read.isActive([addr]);
+      if (!active) continue;
+
+      const isCommittee = await contract.read.isCommittee([addr]);
+      const joined = await contract.read.joinedCycle([addr]);
+
+      result.push({
+        address: addr,
+        isCommitteeMember: isCommittee,
+        joinedCycle: Number(joined),
+        active: true,
+      });
+    }
+    return c.json(result);
+  });

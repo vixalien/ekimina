@@ -23,6 +23,13 @@ backend/              Hono + @hono/zod-openapi + viem API server
 test/                 Static HTML test page (live-server)
 ```
 
+## Lifecycle
+
+```sh
+pnpm -w lint                       # Lint AND Typecheck (tsc --noEmit not necessary)
+pnpm -w fmt                        # Format
+```
+
 ## Dev commands
 
 All commands run from repo root (or use `pnpm --filter` / `--prefix`).
@@ -30,13 +37,9 @@ All commands run from repo root (or use `pnpm --filter` / `--prefix`).
 ```bash
 # App
 cd app && pnpm expo start             # Dev server
-cd app && npm run typecheck            # tsc --noEmit
-cd app && npm run lint                 # ESLint
-cd app && npm run format:check         # Prettier
 
 # Backend
 cd backend && pnpm dev                 # tsx watch src/index.ts (needs FACTORY_ADDRESS)
-cd backend && npm run typecheck        # tsc --noEmit
 
 # Contracts
 cd packages/contracts && pnpm compile  # Hardhat compile + extract ABIs

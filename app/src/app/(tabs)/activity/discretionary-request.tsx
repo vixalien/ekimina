@@ -8,7 +8,7 @@ import { Button, Chip, InputGroup, ScrollShadow, TextField, useToast } from "her
 import { useCallback, useEffect, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 
-import { dataClient } from "@/api";
+import { api } from "@/api";
 import { AppText } from "@/components/ui/app-text";
 import { Header } from "@/components/ui/header";
 import { ScreenContainer } from "@/components/ui/screen-container";
@@ -33,7 +33,7 @@ export default function DiscretionaryRequestScreen(): JSX.Element {
 
   useEffect(() => {
     if (!activeGroupId) return;
-    dataClient.groups
+    api.groups
       .getGroupSettings(activeGroupId)
       .then(setSettings)
       .catch(() => {});
@@ -48,7 +48,7 @@ export default function DiscretionaryRequestScreen(): JSX.Element {
       duration: "persistent",
     });
     try {
-      await dataClient.groups.submitDiscretionaryRequest(activeGroupId, auth.id, {
+      await api.groups.submitDiscretionaryRequest(activeGroupId, auth.id, {
         direction,
         amount: parseInt(amount, 10),
         category,
