@@ -1,6 +1,6 @@
 import type { JSX } from "react";
 
-import type { GroupDashboardData, GroupMembership } from "@/api";
+import type { GroupDashboardData } from "@/api";
 
 import { Ionicons } from "@expo/vector-icons";
 import { useStore } from "@nanostores/react";

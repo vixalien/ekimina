@@ -1,6 +1,5 @@
 import { BottomSheet, Button, Radio, RadioGroup, Separator, Surface } from "heroui-native";
-import { Fragment, startTransition, type JSX } from "react";
-import { useEffect, useState } from "react";
+import { Fragment, type JSX } from "react";
 import { View } from "react-native";
 
 import { AppText } from "../ui/app-text";

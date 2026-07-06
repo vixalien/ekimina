@@ -4,8 +4,6 @@ import { useStore } from "@nanostores/react";
 import { InputGroup, Label, TextField, useToast } from "heroui-native";
 import { useState } from "react";
 
-import { dataClient } from "@/api";
-
 import { OnboardingLayout } from "../../../components/ui/onboarding-layout";
 import { saveAuth } from "../../../lib/auth-storage";
 import { nav } from "../../../lib/routes";

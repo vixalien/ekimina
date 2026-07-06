@@ -37,7 +37,12 @@
     "jest/no-conditional-expect": "allow",
     "typescript/unbound-method": "allow",
     // "eslint/func-style": ["error", "declaration"],
-    "typescript/consistent-type-imports": ["error", { "fixStyle": "separate-type-imports" }]
+    "typescript/consistent-type-imports": ["error", { "fixStyle": "separate-type-imports" }],
+    "typescript/no-explicit-any": "error",
+    "typescript/no-unused-vars": "error",
+    "typescript/no-non-null-assertion": "warn",
+    "no-restricted-imports": ["error", { "patterns": [{ "group": ["../*"] }] }],
+    "eqeqeq": "error"
   },
   "categories": {
     "suspicious": "error"

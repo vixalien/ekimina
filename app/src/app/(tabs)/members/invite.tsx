@@ -59,7 +59,7 @@ export default function InviteScreen(): JSX.Element {
 
   const handleCopy = useCallback(() => {
     if (!data) return;
-    Clipboard.setStringAsync(data.inviteCode);
+    void Clipboard.setStringAsync(data.inviteCode);
     toast.show({
       variant: "success",
       label: "Copied",

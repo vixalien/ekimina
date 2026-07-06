@@ -3,7 +3,7 @@ import type { Address } from "@ekimina/types";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 
 import * as contract from "../lib/contract-data.js";
-import { errorResponses, addressSchema } from "../lib/schemas.js";
+import { errorResponses } from "../lib/schemas.js";
 
 const groups = new OpenAPIHono();
 

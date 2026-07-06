@@ -28,7 +28,7 @@ function toAmount(v: bigint): number {
 
 export async function getDashboard(groupAddr: Address) {
   const c = r(groupAddr);
-  const [config, curCycle, cycleStart, reserve, activeCount] = await Promise.all([
+  const [config, curCycle, _cycleStart, reserve, _activeCount] = await Promise.all([
     c.config(),
     c.currentCycle(),
     c.cycleStart(),
@@ -257,7 +257,7 @@ export async function getReserveDetail(groupAddr: Address) {
 }
 
 export async function getLeaveInfo(groupAddr: Address, userId: string) {
-  const [active] = await Promise.all([r(groupAddr).isActive([userId as Address])]);
+  const active = await r(groupAddr).isActive([userId as Address]);
   const meta = GROUP_META[groupAddr.toLowerCase()] ?? { name: "Group", inviteCode: "" };
   return {
     groupName: meta.name,

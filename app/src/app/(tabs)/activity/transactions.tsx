@@ -75,7 +75,8 @@ export default function TransactionsScreen(): JSX.Element {
     if (!activeGroupId) return;
     dataClient.groups
       .getGroupMembers(activeGroupId)
-      .then((m: any) => startTransition(() => setMembers(m)));
+      .then((m: any) => startTransition(() => setMembers(m)))
+      .catch(() => {});
   }, [activeGroupId]);
 
   useEffect(() => {

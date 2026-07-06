@@ -1,7 +1,3 @@
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
-
 import type { Address } from "@ekimina/types";
 
 import { serve } from "@hono/node-server";

@@ -1,14 +1,6 @@
 import type { ReactNode } from "react";
 
-import type {
-  ContributionDetail,
-  DiscretionaryDetail,
-  LoanDisbursementDetail,
-  LoanRepaymentDetail,
-  PayoutDetail,
-  PenaltyDetail,
-  TransactionDetail,
-} from "@/api";
+import type { TransactionDetail } from "@/api";
 
 import { Ionicons } from "@expo/vector-icons";
 import { useStore } from "@nanostores/react";

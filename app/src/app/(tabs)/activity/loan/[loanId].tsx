@@ -5,7 +5,6 @@ import type {
   DefaultedLoanDetail,
   DisbursedLoanDetail,
   LoanDetail,
-  LoanState,
   RepaidLoanDetail,
   RepayingLoanDetail,
   RequestedLoanDetail,

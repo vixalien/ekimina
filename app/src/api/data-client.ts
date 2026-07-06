@@ -46,7 +46,7 @@ const profile: DataClient["profile"] = {
       notificationsEnabled: true,
     };
   },
-  async updateNotifications(enabled) {
+  async updateNotifications(_enabled) {
     return { ok: true };
   },
 };
@@ -269,7 +269,7 @@ const groupReads: DataClient["groups"] = {
       body: JSON.stringify({ groupId, userId }),
     });
   },
-  async retryTransaction(transactionId) {
+  async retryTransaction(_transactionId) {
     return { success: true };
   },
   async submitDiscretionaryRequest(group, userId, req) {

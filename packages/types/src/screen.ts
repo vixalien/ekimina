@@ -1,5 +1,3 @@
-import type { Address } from "./primitives.js";
-
 export interface Group {
   id: string;
   name: string;

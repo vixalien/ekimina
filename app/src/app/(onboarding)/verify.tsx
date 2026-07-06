@@ -4,7 +4,7 @@ import type { Address } from "@/api";
 
 import { useLocalSearchParams } from "expo-router";
 import { Button, InputOTP, REGEXP_ONLY_DIGITS, type InputOTPRef, useToast } from "heroui-native";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 
 import { dataClient } from "@/api";

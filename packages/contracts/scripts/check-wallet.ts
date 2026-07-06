@@ -1,6 +1,7 @@
 import hre from "hardhat";
 import { formatEther } from "viem";
 
+// oxlint-disable-next-line typescript/no-explicit-any
 const { viem } = await (hre.network.create("celoSepolia") as any);
 const [wallet] = await viem.getWalletClients();
 const publicClient = await viem.getPublicClient();

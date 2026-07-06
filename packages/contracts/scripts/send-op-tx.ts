@@ -1,5 +1,6 @@
 import { network } from "hardhat";
 
+// oxlint-disable-next-line typescript/no-explicit-any
 const { viem } = await (network.create({
   network: "hardhatOp",
   chainType: "op",

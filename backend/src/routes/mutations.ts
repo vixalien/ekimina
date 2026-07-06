@@ -8,7 +8,6 @@ import * as contract from "../lib/contract-data.js";
 import { ACCOUNT_NAMES } from "../lib/deployed-state.js";
 import {
   errorResponses,
-  addressSchema,
   successOnlySchema,
   successWithIdSchema,
   thresholdResultSchema,
@@ -34,7 +33,6 @@ function nameEntry(key: string): { name: string; initials: string } {
   return { name, initials };
 }
 
-const userIdParam = z.object({ userId: z.string() });
 const groupAndIdParams = z.object({ group: z.string(), id: z.string() });
 
 // ── Loan sign / reject ──────────────────────────────────────────────────
@@ -376,7 +374,7 @@ const initiateWithdrawalRoute = createRoute({
 
 mutations.openapi(initiateWithdrawalRoute, async (c) => {
   const { group } = c.req.valid("param");
-  const { memberId, userId, reasonCategory } = c.req.valid("json");
+  const { memberId, userId: _userId, reasonCategory } = c.req.valid("json");
   const id = crypto.randomUUID();
   const n = nameEntry(memberId);
   const review = {

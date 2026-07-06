@@ -59,7 +59,7 @@ export default function RootLayout(): JSX.Element | null {
       }
     }
 
-    bootstrap();
+    void bootstrap();
   }, [fontsLoaded]);
 
   if (!fontsLoaded) {

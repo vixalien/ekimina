@@ -130,10 +130,10 @@ async function getLogs(event: ReturnType<typeof parseAbiItem>) {
   try {
     return (await client.getLogs({
       address: CONTRACT_ADDRESS,
-      event: event as any,
+      event: event as any, // oxlint-disable-line typescript/no-explicit-any
       fromBlock: 0n,
       toBlock: "latest",
-    })) as any[];
+    })) as any[]; // oxlint-disable-line typescript/no-explicit-any
   } catch {
     return [];
   }

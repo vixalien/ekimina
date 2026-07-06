@@ -29,7 +29,7 @@ export default function CreateGroupSuccess(): JSX.Element {
   const inviteCode = created?.inviteCode ?? "--------";
 
   function handleCopy() {
-    Clipboard.setStringAsync(inviteCode);
+    void Clipboard.setStringAsync(inviteCode);
     toast.show({
       variant: "success",
       label: "Copied",
@@ -38,9 +38,9 @@ export default function CreateGroupSuccess(): JSX.Element {
   }
 
   function handleShare() {
-    Share.share({
+    void Share.share({
       message: `Join my group "${groupName}" on e-Kimina with code: ${inviteCode}`,
-    }).catch(() => {});
+    });
   }
 
   return (

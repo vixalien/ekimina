@@ -6,23 +6,6 @@ import type { Address } from "@ekimina/types";
 import hre from "hardhat";
 import { decodeEventLog, keccak256, toBytes } from "viem";
 
-const MEMBERS_G1 = [
-  { name: "Jean Mugabo", initials: "JM" },
-  { name: "Marie Uwimana", initials: "MU" },
-  { name: "Patrick Kabera", initials: "PK" },
-  { name: "Diane Mukamana", initials: "DM" },
-  { name: "Eric Bakunda", initials: "EB" },
-];
-
-const MEMBERS_G2 = [
-  { name: "Alice Niyonzima", initials: "AN" },
-  { name: "Grace Niyonsaba", initials: "GN" },
-  { name: "David Bizimana", initials: "DB" },
-  { name: "Fiston Mugisha", initials: "FM" },
-  { name: "Beatrice Zawadi", initials: "BZ" },
-  { name: "Sandrine Nikuze", initials: "SN" },
-];
-
 function toAmount(usdm: number): bigint {
   return BigInt(usdm) * BigInt("1000000000000000000"); // 18 decimals
 }

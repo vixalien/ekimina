@@ -34,33 +34,39 @@ export default function SearchGroupsScreen(): JSX.Element {
   const [isJoining, setIsJoining] = useState(false);
   const { toast } = useToast();
 
-  const search = useCallback(async (text: string) => {
-    setIsLoading(true);
-    try {
-      const results = await dataClient.groups.searchPublicGroups(text);
-      setGroups(results);
-    } catch (error) {
-      console.error(error);
-      setGroups([]);
-      toast.show({
-        variant: "danger",
-        label: "Search failed",
-        description: "Could not load groups. Please try again.",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const search = useCallback(
+    async (text: string) => {
+      setIsLoading(true);
+      try {
+        const results = await dataClient.groups.searchPublicGroups(text);
+        setGroups(results);
+      } catch (error) {
+        console.error(error);
+        setGroups([]);
+        toast.show({
+          variant: "danger",
+          label: "Search failed",
+          description: "Could not load groups. Please try again.",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [toast],
+  );
 
   useEffect(() => {
     let cancelled = false;
-    dataClient.groups.searchPublicGroups("").then((results: any) => {
-      if (!cancelled) {
-        setGroups(results);
-        setIsLoading(false);
-      }
-      return;
-    });
+    dataClient.groups
+      .searchPublicGroups("")
+      .then((results: any) => {
+        if (!cancelled) {
+          setGroups(results);
+          setIsLoading(false);
+        }
+        return;
+      })
+      .catch(() => {});
     return () => {
       cancelled = true;
     };
@@ -69,7 +75,7 @@ export default function SearchGroupsScreen(): JSX.Element {
   function handleQueryChange(text: string) {
     setQuery(text);
     setSelectedId(null);
-    search(text);
+    void search(text);
   }
 
   async function handleContinue() {

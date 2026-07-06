@@ -35,7 +35,7 @@ const createIntentRoute = createRoute({
 });
 
 payments.openapi(createIntentRoute, async (c) => {
-  const { amount, currency = "RWF" } = c.req.valid("json");
+  const { amount, currency: _currency = "RWF" } = c.req.valid("json");
   const id = crypto.randomUUID();
   const intent = {
     id,

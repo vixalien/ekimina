@@ -56,7 +56,7 @@ function proceed() {
   if (elements.dialogInput.value.trim() === "") return cancel();
 
   state.text += "*" + elements.dialogInput.value;
-  sendRequest();
+  void sendRequest();
 }
 window.proceed = proceed;
 
