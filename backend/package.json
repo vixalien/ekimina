@@ -9,11 +9,13 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ekimina/types": "workspace:*",
     "@ekimina/contracts": "workspace:*",
+    "@ekimina/types": "workspace:*",
     "@hono/node-server": "^2.0.4",
+    "@hono/zod-openapi": "^1.4.0",
     "hono": "^4.12.23",
-    "viem": "^2.52.0"
+    "viem": "^2.52.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^22.19.19",

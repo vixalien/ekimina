@@ -1,15 +1,3 @@
-// ============================================================
-// client.ts
-// The client plane. It defines almost no new stored data. It holds:
-//   1. friendly aliases for single-plane types the UI consumes directly
-//   2. ProposalView, the one genuine merge (chain envelope + backend text)
-//   3. the device-side CustodyApi
-//   4. the DataClient facade, which REUSES chain.ts + backend.ts interfaces
-//   5. the contract for computed-only helpers (never stored, never served)
-//
-// Import DAG: primitives <- chain <- backend <- client. No cycles.
-// ============================================================
-
 import type {
   Address,
   BaseUnit,
@@ -23,8 +11,7 @@ import type {
   GroupMember as ChainMember,
   GroupLoan as ChainLoan,
   Approval,
-  Transaction,
-  TransactionFilters,
+  Transaction as ChainTransaction,
   ReservePoint,
 } from "./chain.js";
 import type {
@@ -34,31 +21,43 @@ import type {
   PaymentApi,
   GroupMeta,
 } from "./backend.js";
-
-// ---- Friendly aliases (single-plane, no merge needed) ------
+import type {
+  GroupDashboardData,
+  MemberListItem,
+  MemberDetail,
+  ActivityPendingRequest,
+  OutstandingLoan,
+  Transaction as ScreenTransaction,
+  TransactionDetail,
+  LoanDetail,
+  LoanRequestReview,
+  GroupSettings,
+  UserProfile,
+  CommitteeMember,
+  SettingsChangeRequest,
+  GroupInviteData,
+  ReserveDetail,
+  LeaveGroupInfo,
+  DiscretionaryFundRequest,
+} from "./screen.js";
 
 export type Group = ChainGroup;
 export type CycleState = ChainCycleState;
-export type Member = ChainMember; // roleless: address + isCommitteeMember + joinedCycle
+export type Member = ChainMember;
 export type Loan = ChainLoan;
-
-// ---- Display money ([computed] at the UI edge) -------------
 
 export type DisplayCurrency = "USDm" | "RWF";
 
 export interface DisplayAmount {
   raw: BaseUnit;
-  currency: DisplayCurrency; // RWF via mocked bridge rate
+  currency: DisplayCurrency;
 }
-
-// ---- Proposal view (chain envelope + threshold + backend text) ----
 
 interface ProposalViewBase {
   id: string;
   groupAddress: Address;
   proposer: Address;
   approvals: Approval[];
-  /** [computed] ceil(committeeSize * approvalThresholdBps / 10000) */
   threshold: number;
   state: ProposalState;
   createdAt: ISODate;
@@ -71,20 +70,19 @@ export interface LoanProposalView extends ProposalViewBase {
   amount: BaseUnit;
   interestBps: Bps;
   dueCycle: number;
-  purpose: string; // backend text
+  purpose: string;
 }
 
 export interface DiscretionaryProposalView extends ProposalViewBase {
   kind: "discretionary";
   recipient: Address;
   amount: BaseUnit;
-  category: string; // backend text
-  reason: string; // backend text
+  category: string;
+  reason: string;
 }
 
 export interface SettingsProposalView extends ProposalViewBase {
   kind: "settings";
-  /** single-field diff, [computed] by comparing proposedGroup to the current Group */
   field: keyof Group;
   currentValue: string;
   proposedValue: string;
@@ -94,7 +92,7 @@ export interface MemberExitProposalView extends ProposalViewBase {
   kind: "member_exit";
   member: Address;
   settlementAmount: BaseUnit;
-  reasonCategory: string; // backend text
+  reasonCategory: string;
 }
 
 export type ProposalView =
@@ -103,48 +101,93 @@ export type ProposalView =
   | SettingsProposalView
   | MemberExitProposalView;
 
-// ---- Create-proposal draft (carries chain params + backend text) ----
-// The facade splits this: params to chain.createProposal, text to
-// backend.saveText. For settings the single field is expanded against the
-// current Group into the full proposedGroup before the chain call.
-
 export type ProposalDraft =
   | { kind: "loan"; borrower: Address; amount: BaseUnit; interestBps: Bps; dueCycle: number; purpose: string }
   | { kind: "discretionary"; recipient: Address; amount: BaseUnit; category: string; reason: string }
   | { kind: "settings"; field: keyof Group; proposedValue: string }
   | { kind: "member_exit"; member: Address; settlementAmount: BaseUnit; reasonCategory: string };
 
-// ---- Custody (device-side, not backend HTTP) ---------------
-
 export interface CustodyApi {
-  /** app path: import an EVM account, stored device-side, never sent to backend */
   importAccount(secret: string, pin: string): Promise<{ address: Address }>;
-  /** generate a fresh key */
   createAccount(): Promise<{ address: Address }>;
-  /** phone path: backend-provisioned encrypted key, cached locally, unlocked with PIN */
   unlock(pin: string): Promise<{ address: Address }>;
   currentAddress(): Promise<Address | null>;
 }
-
-// ---- Facade reads (reuse IndexerApi + ProposalTextApi) -----
-// Mostly return chain types verbatim; only proposals get merged into views.
 
 export interface GroupReads {
   myGroups(address: Address): Promise<GroupMeta[]>;
   getGroup(group: Address): Promise<Group>;
   getCycleState(group: Address): Promise<CycleState>;
   getMembers(group: Address): Promise<Member[]>;
-  listTransactions(group: Address, filters?: TransactionFilters): Promise<Transaction[]>;
-  getTransaction(group: Address, txId: string): Promise<Transaction>;
+  listTransactions(group: Address, filters?: {
+    types?: string[];
+    memberIds?: string[];
+    actors?: Address[];
+    cycleRange?: { from: number; to: number };
+    datePreset?: "all" | "this_week" | "this_month" | "last_30";
+  }): Promise<ChainTransaction[]>;
+  getTransaction(group: Address, txId: string): Promise<ChainTransaction>;
   listProposals(group: Address, state?: ProposalState): Promise<ProposalView[]>;
   getProposal(group: Address, id: string): Promise<ProposalView>;
   listLoans(group: Address, borrower?: Address): Promise<Loan[]>;
   getLoan(group: Address, id: string): Promise<Loan>;
   getReserveHistory(group: Address): Promise<ReservePoint[]>;
+  getGroupDashboard(group: Address): Promise<GroupDashboardData>;
+  getGroupMembers(group: Address): Promise<MemberListItem[]>;
+  searchMembers(group: Address, query: string): Promise<MemberListItem[]>;
+  getMemberDetail(group: Address, userId: string, requestingUserId: string): Promise<MemberDetail>;
+  getPendingRequests(group: Address): Promise<ActivityPendingRequest[]>;
+  getOutstandingLoans(group: Address): Promise<OutstandingLoan[]>;
+  getRecentTransactions(group: Address, limit?: number): Promise<ScreenTransaction[]>;
+  getTransactions(group: Address, filters?: {
+    types?: string[];
+    memberIds?: string[];
+    actors?: Address[];
+    cycleRange?: { from: number; to: number };
+    datePreset?: "all" | "this_week" | "this_month" | "last_30";
+  }): Promise<ScreenTransaction[]>;
+  getTransactionDetail(group: Address, transactionId: string): Promise<TransactionDetail>;
+  getLoanDetail(group: Address, loanId: string): Promise<LoanDetail>;
+  getLoanRequestReview(group: Address, loanId: string): Promise<LoanRequestReview>;
+  getGroupSettings(group: Address): Promise<GroupSettings>;
+  getUserProfile(group: Address, userId: string): Promise<UserProfile>;
+  getCommitteeMembers(group: Address): Promise<CommitteeMember[]>;
+  getSettingsChangeReview(group: Address, requestId: string): Promise<SettingsChangeRequest>;
+  getGroupInviteData(group: Address): Promise<GroupInviteData>;
+  getGroupDetails(group: string): Promise<any>;
+  getReserveDetail(group: Address): Promise<ReserveDetail>;
+  getLeaveGroupInfo(group: Address, userId: string): Promise<LeaveGroupInfo>;
+  updateNotifications(userId: string, enabled: boolean): Promise<{ success: boolean }>;
+  verifyPin(userId: string, pin: string): Promise<{ success: boolean }>;
+  leaveGroup(group: Address, userId: string): Promise<{ success: boolean }>;
+  submitSettingsChange(group: Address, field: string, proposedValue: string, userId: string): Promise<{ success: boolean }>;
+  signSettingsChange(group: Address, requestId: string, userId: string): Promise<{ success: boolean; thresholdMet: boolean }>;
+  rejectSettingsChange(group: Address, requestId: string, userId: string): Promise<{ success: boolean }>;
+  signLoanRequest(group: Address, loanId: string, userId: string): Promise<{ success: boolean; thresholdMet: boolean }>;
+  rejectLoanRequest(group: Address, loanId: string, userId: string): Promise<{ success: boolean }>;
+  initiateWithdrawal(group: Address, memberId: string, requestingUserId: string, reasonCategory: string): Promise<{ success: boolean; requestId: string }>;
+  signMemberWithdrawal(group: Address, requestId: string, userId: string): Promise<{ success: boolean; thresholdMet: boolean }>;
+  rejectMemberWithdrawal(group: Address, requestId: string, userId: string): Promise<{ success: boolean }>;
+  sendPhoneInvite(group: Address, phone: string): Promise<{ success: boolean }>;
+  // Onboarding
+  createGroup(payload: any): Promise<any>;
+  joinByInviteCode(userId: string, code: string): Promise<any>;
+  cancelJoinRequest(requestId: string): Promise<{ success: boolean }>;
+  searchPublicGroups(query: string): Promise<any[]>;
+  requestToJoinGroup(groupId: string, userId: string): Promise<any>;
+  // Transactions
+  retryTransaction(transactionId: string): Promise<{ success: boolean }>;
+  // Discretionary
+  submitDiscretionaryRequest(group: Address, userId: string, req: any): Promise<{ success: boolean }>;
+  getDiscretionaryReview(group: Address, requestId: string): Promise<any>;
+  signDiscretionaryRequest(group: Address, requestId: string, userId: string): Promise<{ success: boolean; thresholdMet: boolean }>;
+  rejectDiscretionaryRequest(group: Address, requestId: string, userId: string): Promise<{ success: boolean }>;
+  // Join requests
+  getJoinRequestReview(group: Address, requestId: string): Promise<any>;
+  signJoinRequest(group: Address, requestId: string, userId: string): Promise<{ success: boolean; thresholdMet: boolean }>;
+  rejectJoinRequest(group: Address, requestId: string, userId: string): Promise<{ success: boolean }>;
+  getMemberWithdrawalReview(group: Address, requestId: string): Promise<any>;
 }
-
-// ---- Facade writes (reuse ChainWriteApi + backend text/relay) ----
-// draft-aware, so it differs from the raw ChainWriteApi (which takes params).
 
 export interface GroupActions {
   createGroup(group: Group, name: string): Promise<{ group: Address; inviteCode: string }>;
@@ -157,6 +200,23 @@ export interface GroupActions {
   createProposal(group: Address, draft: ProposalDraft): Promise<{ id: string }>;
   approveProposal(group: Address, id: string): Promise<{ id: string; executed: boolean }>;
   rejectProposal(group: Address, id: string): Promise<{ id: string }>;
+  signLoanRequest(group: Address, loanId: string, userId: string): Promise<{ success: boolean; thresholdMet: boolean }>;
+  rejectLoanRequest(group: Address, loanId: string, userId: string): Promise<{ success: boolean }>;
+  signSettingsChange(group: Address, requestId: string, userId: string): Promise<{ success: boolean; thresholdMet: boolean }>;
+  rejectSettingsChange(group: Address, requestId: string, userId: string): Promise<{ success: boolean }>;
+  submitSettingsChange(group: Address, field: string, proposedValue: string, userId: string): Promise<{ success: boolean }>;
+  updateNotifications(userId: string, enabled: boolean): Promise<{ success: boolean }>;
+  leaveGroup(group: Address, userId: string): Promise<{ success: boolean }>;
+  verifyPin(userId: string, pin: string): Promise<{ success: boolean }>;
+  initiateWithdrawal(group: Address, memberId: string, requestingUserId: string, reasonCategory: string): Promise<{ success: boolean; requestId: string }>;
+  signMemberWithdrawal(group: Address, requestId: string, userId: string): Promise<{ success: boolean; thresholdMet: boolean }>;
+  rejectMemberWithdrawal(group: Address, requestId: string, userId: string): Promise<{ success: boolean }>;
+  sendPhoneInvite(group: Address, phone: string): Promise<{ success: boolean }>;
+  signJoinRequest(group: Address, requestId: string, userId: string): Promise<{ success: boolean; thresholdMet: boolean }>;
+  rejectJoinRequest(group: Address, requestId: string, userId: string): Promise<{ success: boolean }>;
+  signDiscretionaryRequest(group: Address, requestId: string, userId: string): Promise<{ success: boolean; thresholdMet: boolean }>;
+  rejectDiscretionaryRequest(group: Address, requestId: string, userId: string): Promise<{ success: boolean }>;
+  submitDiscretionaryRequest(group: Address, userId: string, req: DiscretionaryFundRequest): Promise<{ success: boolean }>;
 }
 
 export interface DataClient {
@@ -168,21 +228,3 @@ export interface DataClient {
   groups: GroupReads;
   actions: GroupActions;
 }
-
-// ============================================================
-// [computed] contract. NOT served, NOT stored. Pure functions over the
-// types above, implemented once in UI helpers:
-//
-//   initials(name: string): string
-//   memberCount(members: Member[]): number
-//   paymentStatus(tx, deadline): "on_time" | "late"   // "missed" is a real PenaltyTx
-//   daysUntilPayout(cycle: CycleState): number
-//   onTimeStreak(txs: Transaction[], member: Address): number
-//   hasApproved(p: ProposalView, me: Address): boolean
-//   approvedAt(p: ProposalView, me: Address): ISODate | null
-//   threshold(members: Member[], group: Group): number
-//   projectReserve(history: ReservePoint[], cycles: number): ReservePoint[]
-//   reserveInsight(history: ReservePoint[], group: Group): string
-//   cycleSummary(txs: Transaction[], cycle: number): { in; out; penalties; ... }
-//   toDisplay(raw: BaseUnit, currency: DisplayCurrency, rate?): DisplayAmount
-// ============================================================

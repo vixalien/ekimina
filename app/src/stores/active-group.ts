@@ -1,5 +1,5 @@
 import { atom, map } from "nanostores";
-import type { GroupMeta } from "@/api";
+import type { Address, GroupMeta } from "@/api";
 
 export const $openSwitcher = atom(false);
 
@@ -13,7 +13,7 @@ export function clearOpenSwitcher(): void {
 
 export interface ActiveGroupState {
   memberships: GroupMeta[];
-  activeGroupId: string | null;
+  activeGroupId: Address | null;
   showSwitcherOnMount: boolean;
 }
 
@@ -34,7 +34,7 @@ export function setMemberships(memberships: GroupMeta[]): void {
   });
 }
 
-export function switchGroup(groupId: string): void {
+export function switchGroup(groupId: Address): void {
   $activeGroup.setKey("activeGroupId", groupId);
 }
 

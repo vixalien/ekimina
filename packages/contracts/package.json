@@ -1,13 +1,35 @@
 {
   "name": "@ekimina/contracts",
   "version": "0.1.0",
+  "private": true,
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
   "exports": {
     ".": "./src/index.ts"
   },
+  "scripts": {
+    "test": "hardhat test",
+    "hardhat": "hardhat",
+    "compile": "hardhat compile && pnpm extract-abis",
+    "extract-abis": "tsx scripts/extract-abis.ts",
+    "deploy": "pnpm hardhat ignition deploy ignition/modules/Ikimina.ts --network celoSepolia",
+    "read-state": "pnpm hardhat run scripts/read-state.ts --network celoSepolia",
+    "dev:deploy": "pnpm hardhat run scripts/deploy-local.ts --network localhost",
+    "dev:node": "pnpm hardhat node",
+    "dev": "pnpm run --parallel dev:deploy dev:node"
+  },
   "dependencies": {
+    "@nomicfoundation/hardhat-ignition": "^3.1.6",
+    "@nomicfoundation/hardhat-toolbox-viem": "^5.0.6",
+    "dotenv": "^17.4.2",
+    "forge-std": "github:foundry-rs/forge-std#v1.9.4",
+    "hardhat": "^3.7.0",
+    "typescript": "~6.0.3",
     "viem": "^2.52.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.19",
+    "tsx": "^4.22.4"
   }
 }

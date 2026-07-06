@@ -114,7 +114,8 @@ function buildDetailRows(detail: TransactionDetail): DetailRow[] {
         { label: "Method", value: d.method },
       ];
     }
-    case "discretionary_disbursement":
+    case "discretionary_deposit":
+    case "discretionary_withdrawal":
     default: {
       return [
         { label: "Type", value: detail.type },

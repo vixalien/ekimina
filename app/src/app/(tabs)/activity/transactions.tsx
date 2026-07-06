@@ -58,7 +58,7 @@ export default function TransactionsScreen(): JSX.Element {
     : "All types";
   const memberLabel = hasMemberFilter
     ? memberFilter.length === 1
-      ? (members.find((m) => m.id === memberFilter[0])?.name.split(" ")[0] ?? "1 member")
+      ? (members.find((m) => m.userId === memberFilter[0])?.name.split(" ")[0] ?? "1 member")
       : `${memberFilter.length} members`
     : "All members";
   const cycleLabel = hasCycleFilter

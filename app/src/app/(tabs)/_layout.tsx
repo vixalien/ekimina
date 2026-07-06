@@ -43,7 +43,7 @@ export default function TabLayout() {
     if (!auth) return;
     const userId = auth.phone ?? auth.id ?? "";
     dataClient.groups
-      .myGroups(userId)
+      .myGroups(userId as `0x${string}`)
       .then((memberships: any) => startTransition(() => setMemberships(memberships)))
       .catch(() => {});
   }, [auth]);

@@ -1,6 +1,109 @@
-export * from "./primitives.js";
-export * from "./chain.js";
-export * from "./backend.js";
+// primitives (core scalar types)
+export type {
+  Address,
+  BaseUnit,
+  Bps,
+  ISODate,
+  PayoutPolicy,
+  ProposalKind,
+  ProposalState,
+} from "./primitives.js";
+
+// chain (on-chain types, used internally by indexer/relay)
+export type {
+  Group as ChainGroup,
+  GroupCycle,
+  GroupMember,
+  GroupLoan,
+  Approval,
+  ChainProposal,
+  ChainProposalParams,
+  ChainWriteApi,
+  ReservePoint,
+  ContributionTx,
+  PayoutTx,
+  PenaltyTx,
+  LoanDisbursementTx,
+  LoanRepaymentTx,
+  DiscretionaryTx,
+  ShareOutTx,
+  MemberJoinedTx,
+  MemberExitedTx,
+  Transaction as ChainTransaction,
+  TransactionFilters,
+} from "./chain.js";
+
+// backend (off-chain PII, invite, payment intents)
+export type {
+  User,
+  GroupMeta,
+  ProposalText,
+  PaymentIntent,
+  PaymentIntentStatus,
+  AuthResult,
+  AuthApi,
+  ProfileApi,
+  LookupApi,
+  PaymentApi,
+  ProposalTextApi,
+  IndexerApi,
+} from "./backend.js";
+
+// screen (UI display shapes consumed by the app)
+export type {
+  Group,
+  PublicGroup,
+  GroupMembership,
+  MemberStanding,
+  MemberListItem,
+  MemberDetail,
+  ContributionHistoryEntry,
+  LoanEntry,
+  GroupDashboardData,
+  GroupSettings,
+  GroupSettingField,
+  SettingsChangeRequest,
+  LoanState,
+  LoanSignature,
+  LoanDetailBase,
+  RequestedLoanDetail,
+  SigningLoanDetail,
+  ApprovedLoanDetail,
+  DisbursedLoanDetail,
+  RepayingLoanDetail,
+  RepaidLoanDetail,
+  DefaultedLoanDetail,
+  LoanDetail,
+  LoanRequestReview,
+  TransactionType,
+  TransactionDirection,
+  TransactionStatus,
+  PendingRequestType,
+  ActivityPendingRequest,
+  OutstandingLoan,
+  Transaction,
+  ContributionDetail,
+  PayoutDetail,
+  PenaltyDetail,
+  LoanRepaymentDetail,
+  LoanDisbursementDetail,
+  DiscretionaryDetail,
+  TransactionDetail,
+  DiscretionaryFundReview,
+  DiscretionaryFundRequest,
+  JoinRequestReview,
+  MemberWithdrawalReview,
+  SentInvite,
+  GroupInviteData,
+  UserProfile,
+  CommitteeMember,
+  ReserveDataPoint,
+  ReserveCycleSummary,
+  ReserveDetail,
+  LeaveGroupInfo,
+} from "./screen.js";
+
+// client (facade interfaces)
 export type {
   CycleState,
   Member,

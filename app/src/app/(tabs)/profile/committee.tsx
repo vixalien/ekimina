@@ -179,12 +179,12 @@ export default function CommitteeScreen(): JSX.Element {
                 </AppText>
                 <Surface className="py-4 px-4">
                   {allMembers.map((member, index) => (
-                    <View key={member.id}>
+                    <View key={member.userId}>
                       {index > 0 && <Separator className="my-3" />}
                       <MemberSwitchField
                         member={member}
-                        isSelected={committeeUserIds.has(member.id)}
-                        onSelectedChange={isCommittee ? handleToggle(member.id) : () => {}}
+                        isSelected={committeeUserIds.has(member.userId)}
+                        onSelectedChange={isCommittee ? handleToggle(member.userId) : () => {}}
                         isDisabled={!isCommittee}
                       />
                     </View>

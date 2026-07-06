@@ -29,3 +29,8 @@
 
 # Snapshot cheatcodes output
 /snapshots
+
+# Auto-generated ABI files (produced by scripts/extract-abis.ts)
+/src/abi
+
+/ignition/deployments/**/build-info

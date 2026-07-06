@@ -165,11 +165,11 @@ export default function MembersTab(): JSX.Element {
             {sorted.length > 0 ? (
               <ListGroup>
                 {sorted.map((member, index) => (
-                  <Fragment key={member.id}>
+                  <Fragment key={member.userId}>
                     {index > 0 && <Separator className="mx-4" />}
                     <PressableFeedback
                       animation={false}
-                      onPress={() => handleMemberPress(member.id)}
+                      onPress={() => handleMemberPress(member.userId)}
                     >
                       <PressableFeedback.Scale>
                         <ListGroup.Item>

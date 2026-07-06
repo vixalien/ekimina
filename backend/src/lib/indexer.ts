@@ -1,7 +1,7 @@
 import { publicClient } from "./chain.js";
-import { factoryABI, ikiminaABI } from "@ekimina/contracts";
+import { getFactoryContract, getIkiminaContract } from "@ekimina/contracts";
 import { groupMeta } from "./store.js";
-import type { Group, GroupCycle, Address } from "@ekimina/types";
+import type { ChainGroup as Group, GroupCycle, Address } from "@ekimina/types";
 
 const groupCache = new Map<Address, Group>();
 const cycleCache = new Map<Address, GroupCycle>();
@@ -22,19 +22,11 @@ export async function startIndexer() {
 async function poll() {
   if (!factoryAddress) return;
   try {
-    const length = await publicClient.readContract({
-      address: factoryAddress,
-      abi: factoryABI,
-      functionName: "allGroupsLength",
-    });
+    const factory = getFactoryContract(factoryAddress, { public: publicClient });
+    const length = await factory.read.allGroupsLength();
 
     for (let i = 0; i < Number(length); i++) {
-      const addr = await publicClient.readContract({
-        address: factoryAddress,
-        abi: factoryABI,
-        functionName: "allGroups",
-        args: [BigInt(i)],
-      }) as Address;
+      const addr = await factory.read.allGroups([BigInt(i)]) as Address;
       await refreshGroup(addr);
     }
   } catch (e) {
@@ -45,16 +37,13 @@ async function poll() {
 
 async function refreshGroup(address: Address) {
   try {
-    const config = await publicClient.readContract({
-      address,
-      abi: ikiminaABI,
-      functionName: "config",
-    }) as any;
+    const contract = getIkiminaContract(address, { public: publicClient });
+    const config: any = await contract.read.config();
 
     groupCache.set(address, {
-      contributionAmount: config.contributionAmount.toString() as any,
+      contributionAmount: config.contributionAmount.toString() as Group["contributionAmount"],
       cycleLength: Number(config.cycleLength),
-      payoutAmount: config.payoutAmount.toString() as any,
+      payoutAmount: config.payoutAmount.toString() as Group["payoutAmount"],
       payoutPolicy: ["none", "rotating", "lump_sum_end"][Number(config.payoutPolicy)] as Group["payoutPolicy"],
       penaltyRateBps: Number(config.penaltyRateBps),
       approvalThresholdBps: Number(config.approvalThresholdBps),
@@ -63,28 +52,17 @@ async function refreshGroup(address: Address) {
       allMembersCommittee: config.allMembersCommittee,
     });
 
-    const currentCycle = await publicClient.readContract({
-      address, abi: ikiminaABI, functionName: "currentCycle",
-    }) as bigint;
-    const cycleStart = await publicClient.readContract({
-      address, abi: ikiminaABI, functionName: "cycleStart",
-    }) as bigint;
-    const reserve = await publicClient.readContract({
-      address, abi: ikiminaABI, functionName: "reserve",
-    }) as bigint;
-    const activeCount = await publicClient.readContract({
-      address, abi: ikiminaABI, functionName: "activeCount",
-    }) as bigint;
-    const paid = await publicClient.readContract({
-      address, abi: ikiminaABI, functionName: "paidCount",
-      args: [currentCycle],
-    }) as bigint;
+    const currentCycle = await contract.read.currentCycle() as bigint;
+    const cycleStart = await contract.read.cycleStart() as bigint;
+    const reserve = await contract.read.reserve() as bigint;
+    const activeCount = await contract.read.activeCount() as bigint;
+    const paid = await contract.read.paidCount([currentCycle]) as bigint;
 
     cycleCache.set(address, {
       currentCycle: Number(currentCycle),
       rotationLength: Number(activeCount),
       cycleStart: new Date(Number(cycleStart) * 1000).toISOString(),
-      reserveBalance: reserve.toString() as any,
+      reserveBalance: reserve.toString() as GroupCycle["reserveBalance"],
       paidCount: Number(paid),
       memberCount: Number(activeCount),
     });

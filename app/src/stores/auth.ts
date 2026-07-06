@@ -1,5 +1,4 @@
 import { atom } from "nanostores";
-import { dataClient } from "../api";
 import type { Address } from "@/api";
 
 export interface AuthUser {
@@ -14,8 +13,7 @@ export interface AuthUser {
 export const $auth = atom<AuthUser | null>(null);
 export const $authLoading = atom(true);
 
-export async function loginWithOtp(phone: string, code: string): Promise<AuthUser> {
-  const result = await dataClient.auth.verifyOtp(phone, code);
+export async function loginWithOtp(phone: string, result: { token: string; user: { address: Address; phone: string | null; name: string | null; custodial: boolean; id: string } }): Promise<AuthUser> {
   const user = result.user;
   const authUser: AuthUser = {
     phone: user.phone ?? phone,

@@ -1,31 +1,53 @@
-import { Hono } from "hono";
+import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { publicClient } from "../lib/chain.js";
-import { ikiminaABI } from "@ekimina/contracts";
+import { getIkiminaContract } from "@ekimina/contracts";
 import { getCachedGroup, getCachedCycle } from "../lib/indexer.js";
 import { groupMeta } from "../lib/store.js";
+import { addressSchema, errorResponses, groupMetaSchema, groupConfigSchema, groupCycleSchema, memberSchema } from "../lib/schemas.js";
 
-const indexer = new Hono();
+const indexer = new OpenAPIHono();
 
-indexer.get("/users/:address/groups", async (c) => {
+const myGroupsRoute = createRoute({
+  method: "get",
+  path: "/users/{address}/groups",
+  tags: ["Indexer"],
+  request: { params: z.object({ address: addressSchema }) },
+  responses: {
+    200: { content: { "application/json": { schema: z.array(groupMetaSchema) } }, description: "User's groups" },
+    ...errorResponses,
+  },
+});
+
+indexer.openapi(myGroupsRoute, async (c) => {
   const metas = Array.from(groupMeta.values());
   return c.json(metas);
 });
 
-indexer.get("/groups/:group", async (c) => {
-  const group = c.req.param("group") as `0x${string}`;
-  const cached = getCachedGroup(group);
+const getGroupRoute = createRoute({
+  method: "get",
+  path: "/groups/{group}",
+  tags: ["Indexer"],
+  request: { params: z.object({ group: addressSchema }) },
+  responses: {
+    200: { content: { "application/json": { schema: groupConfigSchema } }, description: "Group config" },
+    ...errorResponses,
+  },
+});
+
+indexer.openapi(getGroupRoute, async (c) => {
+  const { group } = c.req.valid("param");
+  const groupAddr = group as `0x${string}`;
+  const cached = getCachedGroup(groupAddr);
   if (cached) return c.json(cached);
 
-  const config = await publicClient.readContract({
-    address: group,
-    abi: ikiminaABI,
-    functionName: "config",
-  }) as any;
+  const contract = getIkiminaContract(groupAddr, { public: publicClient });
+  const config = await contract.read.config() as any;
+
   return c.json({
     contributionAmount: config.contributionAmount.toString(),
     cycleLength: Number(config.cycleLength),
     payoutAmount: config.payoutAmount.toString(),
-    payoutPolicy: ["none", "rotating", "lump_sum_end"][Number(config.payoutPolicy)],
+    payoutPolicy: ["none", "rotating", "lump_sum_end"][Number(config.payoutPolicy)] as "none" | "rotating" | "lump_sum_end",
     penaltyRateBps: Number(config.penaltyRateBps),
     approvalThresholdBps: Number(config.approvalThresholdBps),
     loansEnabled: config.loansEnabled,
@@ -34,17 +56,27 @@ indexer.get("/groups/:group", async (c) => {
   } as any);
 });
 
-indexer.get("/groups/:group/cycle", async (c) => {
-  const group = c.req.param("group") as `0x${string}`;
-  const cached = getCachedCycle(group);
+const getCycleRoute = createRoute({
+  method: "get",
+  path: "/groups/{group}/cycle",
+  tags: ["Indexer"],
+  request: { params: z.object({ group: addressSchema }) },
+  responses: {
+    200: { content: { "application/json": { schema: groupCycleSchema } }, description: "Cycle state" },
+    ...errorResponses,
+  },
+});
+
+indexer.openapi(getCycleRoute, async (c) => {
+  const { group } = c.req.valid("param");
+  const groupAddr = group as `0x${string}`;
+  const cached = getCachedCycle(groupAddr);
   if (cached) return c.json(cached);
 
-  const currentCycle = await publicClient.readContract({
-    address: group, abi: ikiminaABI, functionName: "currentCycle",
-  }) as bigint;
-  const cycleStart = await publicClient.readContract({
-    address: group, abi: ikiminaABI, functionName: "cycleStart",
-  }) as bigint;
+  const contract = getIkiminaContract(groupAddr, { public: publicClient });
+  const currentCycle = await contract.read.currentCycle() as bigint;
+  const cycleStart = await contract.read.cycleStart() as bigint;
+
   return c.json({
     currentCycle: Number(currentCycle),
     rotationLength: 0,
@@ -52,38 +84,40 @@ indexer.get("/groups/:group/cycle", async (c) => {
     reserveBalance: "0",
     paidCount: 0,
     memberCount: 0,
-  } as any);
+  });
 });
 
-indexer.get("/groups/:group/members", async (c) => {
-  const group = c.req.param("group") as `0x${string}`;
-  const members = await publicClient.readContract({
-    address: group,
-    abi: ikiminaABI,
-    functionName: "memberList",
-  }) as readonly `0x${string}`[];
+const getMembersRoute = createRoute({
+  method: "get",
+  path: "/groups/{group}/members",
+  tags: ["Indexer"],
+  request: { params: z.object({ group: addressSchema }) },
+  responses: {
+    200: { content: { "application/json": { schema: z.array(memberSchema) } }, description: "Member list" },
+    ...errorResponses,
+  },
+});
+
+indexer.openapi(getMembersRoute, async (c) => {
+  const { group } = c.req.valid("param");
+  const groupAddr = group as `0x${string}`;
+  const contract = getIkiminaContract(groupAddr, { public: publicClient });
+  const members = await contract.read.memberList() as readonly `0x${string}`[];
 
   const result = [];
   for (const addr of members) {
-    const active = await publicClient.readContract({
-      address: group, abi: ikiminaABI, functionName: "isActive", args: [addr],
-    }) as boolean;
-    const joined = await publicClient.readContract({
-      address: group, abi: ikiminaABI, functionName: "joinedCycle", args: [addr],
-    }) as bigint;
+    const active = await contract.read.isActive([addr]) as boolean;
+    if (!active) continue;
 
-    if (active) {
-      const isCommittee = await publicClient.readContract({
-        address: group, abi: ikiminaABI, functionName: "isCommittee", args: [addr],
-      }) as boolean;
+    const isCommittee = await contract.read.isCommittee([addr]) as boolean;
+    const joined = await contract.read.joinedCycle([addr]) as bigint;
 
-      result.push({
-        address: addr,
-        isCommitteeMember: isCommittee,
-        joinedCycle: Number(joined),
-        active: true,
-      });
-    }
+    result.push({
+      address: addr,
+      isCommitteeMember: isCommittee,
+      joinedCycle: Number(joined),
+      active: true,
+    });
   }
   return c.json(result);
 });

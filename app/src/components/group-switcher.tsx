@@ -3,17 +3,26 @@ import { View } from "react-native";
 import { Avatar, BottomSheet, Button, Radio, RadioGroup } from "heroui-native";
 import { Ionicons } from "@expo/vector-icons";
 import { withUniwind } from "uniwind";
-import type { GroupMembership } from "@/api";
+import type { GroupMeta } from "@ekimina/types";
 import { AppText } from "./ui/app-text";
 
 const StyledIonicons = withUniwind(Ionicons);
 
+function initials(name: string): string {
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
+
 interface GroupSwitcherProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  memberships: GroupMembership[];
+  memberships: GroupMeta[];
   activeGroupId?: string;
-  onSelectGroup: (membership: GroupMembership) => void;
+  onSelectGroup: (membership: GroupMeta) => void;
   onJoinOrCreate: () => void;
 }
 
@@ -36,17 +45,17 @@ export function GroupSwitcher({
             <RadioGroup
               value={activeGroupId}
               onValueChange={(val) => {
-                const membership = memberships.find((m) => m.group.id === val);
+                const membership = memberships.find((m) => m.address === val);
                 if (membership) onSelectGroup(membership);
                 onOpenChange(false);
               }}
             >
               {memberships.map((m) => {
-                const isActive = m.group.id === activeGroupId;
+                const isActive = m.address === activeGroupId;
                 return (
                   <RadioGroup.Item
-                    key={m.group.id}
-                    value={m.group.id}
+                    key={m.address}
+                    value={m.address}
                     onPress={() => {
                       if (isActive) onOpenChange(false);
                     }}
@@ -54,13 +63,12 @@ export function GroupSwitcher({
                     {() => (
                       <View className="flex-row items-center gap-3 flex-1">
                         <Avatar size="md" color="accent">
-                          <Avatar.Fallback>{m.group.avatarInitials}</Avatar.Fallback>
+                          <Avatar.Fallback>{initials(m.name)}</Avatar.Fallback>
                         </Avatar>
                         <View className="flex-1 gap-0.5">
                           <AppText className="text-base font-semibold text-foreground">
-                            {m.group.name}
+                            {m.name}
                           </AppText>
-                          <AppText className="text-xs text-muted capitalize">{m.role}</AppText>
                         </View>
                         <Radio>
                           <Radio.Indicator className="border-none shadow-none bg-transparent size-6">

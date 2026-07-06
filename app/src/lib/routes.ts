@@ -17,8 +17,8 @@ export const Routes = {
     pending: "/(onboarding)/pending" as const,
 
     signup: {
-      name: "/(onboarding)/signup/name",
-      wallet: "/(onboarding)/signup/wallet",
+      name: "/(onboarding)/signup/name" as const,
+      wallet: "/(onboarding)/signup/wallet" as const,
     },
 
     createGroup: {
@@ -29,13 +29,13 @@ export const Routes = {
 
   activity: {
     transactions: "/(tabs)/activity/transactions" as const,
-    detail: (id: string) => `/(tabs)/activity/${id}` as const,
+    detail: "/(tabs)/activity/[transactionId]" as const,
     discretionaryRequest: "/(tabs)/activity/discretionary-request" as const,
-    discretionaryReview: (id: string) => `/(tabs)/activity/discretionary-review/${id}` as const,
-    joinReview: (id: string) => `/(tabs)/activity/join-review/${id}` as const,
-    withdrawalReview: (id: string) => `/(tabs)/activity/withdrawal-review/${id}` as const,
-    loanDetail: (loanId: string) => `/(tabs)/activity/loan/${loanId}` as const,
-    loanReview: (loanId: string) => `/(tabs)/activity/loan-review/${loanId}` as const,
+    discretionaryReview: "/(tabs)/activity/discretionary-review/[requestId]" as const,
+    joinReview: "/(tabs)/activity/join-review/[requestId]" as const,
+    withdrawalReview: "/(tabs)/activity/withdrawal-review/[requestId]" as const,
+    loanDetail: "/(tabs)/activity/loan/[loanId]" as const,
+    loanReview: "/(tabs)/activity/loan-review/[loanId]" as const,
   },
 
   profile: {
@@ -57,7 +57,7 @@ export const nav = {
   toTabs: () => router.replace(Routes.tabs),
   back: () => router.back(),
   home: {
-    toReserve: () => router.push(Routes.home.reserve as any),
+    toReserve: () => router.push(Routes.home.reserve),
   },
 
   onboarding: {
@@ -71,47 +71,50 @@ export const nav = {
       router.replace({ pathname: Routes.onboarding.pending, params: params ?? {} }),
 
     signup: {
-      toName: () => router.push(Routes.onboarding.signup.name as any),
-      toWallet: () => router.push(Routes.onboarding.signup.wallet as any),
+      toName: () => router.push(Routes.onboarding.signup.name),
+      toWallet: () => router.push(Routes.onboarding.signup.wallet),
     },
 
     createGroup: {
       toStep: (n: 1 | 2 | 3 | 4 | 5 | 6 = 1) =>
-        router.push(Routes.onboarding.createGroup.step(n) as any),
+        router.push(Routes.onboarding.createGroup.step(n)),
       toSuccess: () => router.replace(Routes.onboarding.createGroup.success),
     },
   },
 
   activity: {
-    toTransactions: () => router.push(Routes.activity.transactions as any),
-    toDetail: (id: string) => router.push(Routes.activity.detail(id) as any),
-    toDiscretionaryRequest: () => router.push(Routes.activity.discretionaryRequest as any),
+    toTransactions: () => router.push(Routes.activity.transactions),
+    toDetail: (id: string) =>
+      router.push({ pathname: Routes.activity.detail, params: { transactionId: id } }),
+    toDiscretionaryRequest: () => router.push(Routes.activity.discretionaryRequest),
     toDiscretionaryReview: (requestId: string) =>
-      router.push({ pathname: Routes.activity.discretionaryReview(requestId) as any }),
+      router.push({ pathname: Routes.activity.discretionaryReview, params: { requestId } }),
     toJoinReview: (requestId: string) =>
-      router.push({ pathname: Routes.activity.joinReview(requestId) as any }),
+      router.push({ pathname: Routes.activity.joinReview, params: { requestId } }),
     toWithdrawalReview: (requestId: string) =>
-      router.push({ pathname: Routes.activity.withdrawalReview(requestId) as any }),
-    toLoanDetail: (loanId: string) => router.push(Routes.activity.loanDetail(loanId) as any),
-    toLoanReview: (loanId: string) => router.push(Routes.activity.loanReview(loanId) as any),
+      router.push({ pathname: Routes.activity.withdrawalReview, params: { requestId } }),
+    toLoanDetail: (loanId: string) =>
+      router.push({ pathname: Routes.activity.loanDetail, params: { loanId } }),
+    toLoanReview: (loanId: string) =>
+      router.push({ pathname: Routes.activity.loanReview, params: { loanId } }),
     toLoanRepayments: (memberId: string) =>
       router.push({
-        pathname: Routes.activity.transactions as any,
+        pathname: Routes.activity.transactions,
         params: { type: "loan_repayment", memberId },
       }),
   },
 
   profile: {
-    toGroupSettings: () => router.push(Routes.profile.groupSettings as any),
-    toCommittee: () => router.push(Routes.profile.committee as any),
+    toGroupSettings: () => router.push(Routes.profile.groupSettings),
+    toCommittee: () => router.push(Routes.profile.committee),
     toSettingsReview: (requestId: string) =>
-      router.push({ pathname: Routes.profile.settingsReview as any, params: { requestId } }),
-    toLeaveGroupConfirm: () => router.push(Routes.profile.leaveGroupConfirm as any),
-    toLeaveGroupPin: () => router.push(Routes.profile.leaveGroupPin as any),
-    toLeaveGroupSent: () => router.replace(Routes.profile.leaveGroupSent as any),
+      router.push({ pathname: Routes.profile.settingsReview, params: { requestId } }),
+    toLeaveGroupConfirm: () => router.push(Routes.profile.leaveGroupConfirm),
+    toLeaveGroupPin: () => router.push(Routes.profile.leaveGroupPin),
+    toLeaveGroupSent: () => router.replace(Routes.profile.leaveGroupSent),
   },
 
   members: {
-    toInvite: () => router.push(Routes.members.invite as any),
+    toInvite: () => router.push(Routes.members.invite),
   },
 };

@@ -33,16 +33,23 @@ export default function VerifyScreen(): JSX.Element {
     return () => clearTimeout(t);
   }, [resendTimer]);
 
-  const handleResult = useCallback(async (result: any) => {
-    const authUser = await loginWithOtp(phone ?? "", otp);
-    await saveAuth(authUser);
-
+  async function navigateAfterAuth(result: { status: string; user: { address: string } }) {
     if (result.status === "created") {
       nav.onboarding.signup.toName();
+      return;
+    }
+
+    const address = result.user.address as `0x${string}`;
+    const memberships = await dataClient.groups.myGroups(address);
+
+    if (memberships.length === 0) {
+      nav.onboarding.toJoinOrCreate();
+    } else if (memberships.length === 1) {
+      nav.toTabs();
     } else {
       nav.onboarding.toJoinOrCreate();
     }
-  }, [phone, otp]);
+  }
 
   async function handleVerify(code: string) {
     if (!phone || isVerifying) return;
@@ -50,7 +57,9 @@ export default function VerifyScreen(): JSX.Element {
     setError(null);
     try {
       const result = await dataClient.auth.verifyOtp(phone, code);
-      await handleResult(result);
+      const authUser = await loginWithOtp(phone, result);
+      await saveAuth(authUser);
+      await navigateAfterAuth(result);
     } catch (error) {
       console.error(error);
       setError("Invalid code. Please try again.");
