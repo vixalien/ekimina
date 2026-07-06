@@ -3,7 +3,7 @@ import { useStore } from "@nanostores/react";
 import { Tabs } from "expo-router";
 import { ComponentProps, startTransition, useEffect } from "react";
 
-import { dataClient } from "@/api";
+import { Address, dataClient } from "@/api";
 import { $auth } from "../../stores/auth";
 import { setMemberships } from "../../stores/active-group";
 
@@ -43,7 +43,7 @@ export default function TabLayout() {
     if (!auth) return;
     const userId = auth.phone ?? auth.id ?? "";
     dataClient.groups
-      .myGroups(userId as `0x${string}`)
+      .myGroups(userId as Address)
       .then((memberships: any) => startTransition(() => setMemberships(memberships)))
       .catch(() => {});
   }, [auth]);

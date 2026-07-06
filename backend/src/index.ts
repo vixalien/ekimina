@@ -10,6 +10,9 @@ import lookupRoutes from "./routes/lookup.js";
 import indexerRoutes from "./routes/indexer.js";
 import relayRoutes from "./routes/relay.js";
 import ussdRoutes from "./routes/ussd.js";
+import groupsRoutes from "./routes/groups.js";
+import mutationsRoutes from "./routes/mutations.js";
+import paymentsRoutes from "./routes/payments.js";
 import { setFactoryAddress, startIndexer } from "./lib/indexer.js";
 import type { Address } from "@ekimina/types";
 
@@ -27,6 +30,9 @@ app.route("/", lookupRoutes);
 app.route("/", indexerRoutes);
 app.route("/", relayRoutes);
 app.route("/ussd", ussdRoutes);
+app.route("/", groupsRoutes);
+app.route("/", mutationsRoutes);
+app.route("/", paymentsRoutes);
 
 app.doc("/openapi.json", {
   openapi: "3.0.0",
@@ -95,7 +101,7 @@ serve({ fetch: app.fetch, port: 3000 }, async () => {
 
   let FACTORY_ADDRESS: Address = process.env.FACTORY_ADDRESS as Address;
   if (FACTORY_ADDRESS) {
-    setFactoryAddress(FACTORY_ADDRESS as `0x${string}`);
+    setFactoryAddress(FACTORY_ADDRESS as Address);
     startIndexer().catch(console.error);
   } else {
     console.log("[bootstrap] No FACTORY_ADDRESS env var. Using local.json.");
@@ -107,7 +113,9 @@ serve({ fetch: app.fetch, port: 3000 }, async () => {
       try {
         setFactoryAddress(FACTORY_ADDRESS);
         startIndexer().catch(console.error);
-        console.log(`[bootstrap] Indexer started with factory: ${FACTORY_ADDRESS}`);
+        console.log(
+          `[bootstrap] Indexer started with factory: ${FACTORY_ADDRESS}`,
+        );
         return true;
       } catch (error) {
         console.error("here", error);

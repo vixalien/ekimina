@@ -30,6 +30,7 @@
     "viem": "^2.52.0"
   },
   "devDependencies": {
+    "@ekimina/types": "workspace:*",
     "@types/node": "^22.19.19",
     "concurrently": "^10.0.3",
     "tsx": "^4.22.4",

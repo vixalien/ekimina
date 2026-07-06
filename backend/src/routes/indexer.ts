@@ -3,7 +3,15 @@ import { publicClient } from "../lib/chain.js";
 import { getIkiminaContract } from "@ekimina/contracts";
 import { getCachedGroup, getCachedCycle } from "../lib/indexer.js";
 import { groupMeta } from "../lib/store.js";
-import { addressSchema, errorResponses, groupMetaSchema, groupConfigSchema, groupCycleSchema, memberSchema } from "../lib/schemas.js";
+import {
+  addressSchema,
+  errorResponses,
+  groupMetaSchema,
+  groupConfigSchema,
+  groupCycleSchema,
+  memberSchema,
+} from "../lib/schemas.js";
+import type { Address } from "@ekimina/types";
 
 const indexer = new OpenAPIHono();
 
@@ -13,7 +21,10 @@ const myGroupsRoute = createRoute({
   tags: ["Indexer"],
   request: { params: z.object({ address: addressSchema }) },
   responses: {
-    200: { content: { "application/json": { schema: z.array(groupMetaSchema) } }, description: "User's groups" },
+    200: {
+      content: { "application/json": { schema: z.array(groupMetaSchema) } },
+      description: "User's groups",
+    },
     ...errorResponses,
   },
 });
@@ -29,25 +40,30 @@ const getGroupRoute = createRoute({
   tags: ["Indexer"],
   request: { params: z.object({ group: addressSchema }) },
   responses: {
-    200: { content: { "application/json": { schema: groupConfigSchema } }, description: "Group config" },
+    200: {
+      content: { "application/json": { schema: groupConfigSchema } },
+      description: "Group config",
+    },
     ...errorResponses,
   },
 });
 
 indexer.openapi(getGroupRoute, async (c) => {
   const { group } = c.req.valid("param");
-  const groupAddr = group as `0x${string}`;
+  const groupAddr = group as Address;
   const cached = getCachedGroup(groupAddr);
   if (cached) return c.json(cached);
 
   const contract = getIkiminaContract(groupAddr, { public: publicClient });
-  const config = await contract.read.config() as any;
+  const config = (await contract.read.config()) as any;
 
   return c.json({
     contributionAmount: config.contributionAmount.toString(),
     cycleLength: Number(config.cycleLength),
     payoutAmount: config.payoutAmount.toString(),
-    payoutPolicy: ["none", "rotating", "lump_sum_end"][Number(config.payoutPolicy)] as "none" | "rotating" | "lump_sum_end",
+    payoutPolicy: ["none", "rotating", "lump_sum_end"][
+      Number(config.payoutPolicy)
+    ] as "none" | "rotating" | "lump_sum_end",
     penaltyRateBps: Number(config.penaltyRateBps),
     approvalThresholdBps: Number(config.approvalThresholdBps),
     loansEnabled: config.loansEnabled,
@@ -62,20 +78,23 @@ const getCycleRoute = createRoute({
   tags: ["Indexer"],
   request: { params: z.object({ group: addressSchema }) },
   responses: {
-    200: { content: { "application/json": { schema: groupCycleSchema } }, description: "Cycle state" },
+    200: {
+      content: { "application/json": { schema: groupCycleSchema } },
+      description: "Cycle state",
+    },
     ...errorResponses,
   },
 });
 
 indexer.openapi(getCycleRoute, async (c) => {
   const { group } = c.req.valid("param");
-  const groupAddr = group as `0x${string}`;
+  const groupAddr = group as Address;
   const cached = getCachedCycle(groupAddr);
   if (cached) return c.json(cached);
 
   const contract = getIkiminaContract(groupAddr, { public: publicClient });
-  const currentCycle = await contract.read.currentCycle() as bigint;
-  const cycleStart = await contract.read.cycleStart() as bigint;
+  const currentCycle = (await contract.read.currentCycle()) as bigint;
+  const cycleStart = (await contract.read.cycleStart()) as bigint;
 
   return c.json({
     currentCycle: Number(currentCycle),
@@ -93,24 +112,27 @@ const getMembersRoute = createRoute({
   tags: ["Indexer"],
   request: { params: z.object({ group: addressSchema }) },
   responses: {
-    200: { content: { "application/json": { schema: z.array(memberSchema) } }, description: "Member list" },
+    200: {
+      content: { "application/json": { schema: z.array(memberSchema) } },
+      description: "Member list",
+    },
     ...errorResponses,
   },
 });
 
 indexer.openapi(getMembersRoute, async (c) => {
   const { group } = c.req.valid("param");
-  const groupAddr = group as `0x${string}`;
+  const groupAddr = group as Address;
   const contract = getIkiminaContract(groupAddr, { public: publicClient });
-  const members = await contract.read.memberList() as readonly `0x${string}`[];
+  const members = (await contract.read.memberList()) as readonly Address[];
 
   const result = [];
   for (const addr of members) {
-    const active = await contract.read.isActive([addr]) as boolean;
+    const active = (await contract.read.isActive([addr])) as boolean;
     if (!active) continue;
 
-    const isCommittee = await contract.read.isCommittee([addr]) as boolean;
-    const joined = await contract.read.joinedCycle([addr]) as bigint;
+    const isCommittee = (await contract.read.isCommittee([addr])) as boolean;
+    const joined = (await contract.read.joinedCycle([addr])) as bigint;
 
     result.push({
       address: addr,

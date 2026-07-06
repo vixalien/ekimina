@@ -1,4 +1,5 @@
 import hre from "hardhat";
+import { Address } from "@ekimina/types";
 
 async function main() {
   const client = await hre.network.connect();
@@ -43,7 +44,7 @@ async function main() {
   const group1CreatedLog = receipt1.logs.find(
     (log: any) => log.topics[0] === client.viem.utils.keccak256(client.viem.utils.toHex("GroupCreated(address,address)")),
   );
-  const group1Address = `0x${group1CreatedLog?.topics?.[1]?.slice(26)}` as `0x${string}`;
+  const group1Address = `0x${group1CreatedLog?.topics?.[1]?.slice(26)}` as Address;
   console.log("Group 1 created at:", group1Address);
   console.log("Invite code:", inviteCode1);
 
@@ -69,7 +70,7 @@ async function main() {
   const group2CreatedLog = receipt2.logs.find(
     (log: any) => log.topics[0] === client.viem.utils.keccak256(client.viem.utils.toHex("GroupCreated(address,address)")),
   );
-  const group2Address = `0x${group2CreatedLog?.topics?.[1]?.slice(26)}` as `0x${string}`;
+  const group2Address = `0x${group2CreatedLog?.topics?.[1]?.slice(26)}` as Address;
   console.log("Group 2 created at:", group2Address);
   console.log("Invite code:", inviteCode2);
 

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { Button, InputOTP, REGEXP_ONLY_DIGITS, type InputOTPRef, useToast } from "heroui-native";
-import { dataClient } from "@/api";
+import { Address, dataClient } from "@/api";
 import { nav } from "../../lib/routes";
 import { loginWithOtp } from "../../stores/auth";
 import { saveAuth } from "../../lib/auth-storage";
@@ -39,7 +39,7 @@ export default function VerifyScreen(): JSX.Element {
       return;
     }
 
-    const address = result.user.address as `0x${string}`;
+    const address = result.user.address as Address;
     const memberships = await dataClient.groups.myGroups(address);
 
     if (memberships.length === 0) {
