@@ -1,37 +1,9 @@
+import type { Address } from "@ekimina/types";
+
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import { addressSchema, errorResponses, groupMetaSchema } from "../lib/schemas.js";
-import {
-  dashboardSchema,
-  memberListItemSchema,
-  memberDetailSchema,
-  pendingRequestSchema,
-  outstandingLoanSchema,
-  transactionSchema,
-  loanDetailSchema,
-  loanReviewSchema,
-  groupSettingsSchema,
-  committeeMemberSchema,
-  userProfileSchema,
-  settingsChangeSchema,
-  inviteDataSchema,
-  reserveDetailSchema,
-  leaveGroupInfoSchema,
-} from "../lib/schemas.js";
-import {
-  getMockData,
-  getGroupDashboard,
-  getGroupMembers,
-  getMemberDetail,
-  getTransactionDetailMock,
-  getLoanDetailMock,
-  getLoanReviewMock,
-  getCommittee,
-  getUserProfile,
-  getInviteDataMock,
-  getReserveDetailMock,
-  getLeaveGroupInfoMock,
-} from "../lib/mock-data.js";
-import { groupMeta } from "../lib/store.js";
+
+import * as contract from "../lib/contract-data.js";
+import { errorResponses, addressSchema } from "../lib/schemas.js";
 
 const groups = new OpenAPIHono();
 
@@ -41,14 +13,14 @@ const dashboardRoute = createRoute({
   tags: ["Groups"],
   request: { params: z.object({ group: z.string() }) },
   responses: {
-    200: { content: { "application/json": { schema: dashboardSchema } }, description: "Dashboard" },
+    200: { content: { "application/json": { schema: z.any() } }, description: "Dashboard" },
     ...errorResponses,
   },
 });
 
 groups.openapi(dashboardRoute, async (c) => {
   const { group } = c.req.valid("param");
-  const data = getGroupDashboard(group);
+  const data = await contract.getDashboard(group as Address);
   if (!data) return c.json({ error: "not found" }, 404) as any;
   return c.json(data);
 });
@@ -62,7 +34,7 @@ const membersRoute = createRoute({
     query: z.object({ q: z.string().optional() }),
   },
   responses: {
-    200: { content: { "application/json": { schema: z.array(memberListItemSchema) } }, description: "Members" },
+    200: { content: { "application/json": { schema: z.any() } }, description: "Members" },
     ...errorResponses,
   },
 });
@@ -70,9 +42,8 @@ const membersRoute = createRoute({
 groups.openapi(membersRoute, async (c) => {
   const { group } = c.req.valid("param");
   const { q } = c.req.valid("query");
-  const data = getGroupMembers(group, q);
-  if (!data) return c.json({ error: "not found" }, 404) as any;
-  return c.json(data);
+  const data = await contract.getMembers(group as Address, q);
+  return c.json(data ?? []);
 });
 
 const memberDetailRoute = createRoute({
@@ -81,14 +52,14 @@ const memberDetailRoute = createRoute({
   tags: ["Groups"],
   request: { params: z.object({ group: z.string(), userId: z.string() }) },
   responses: {
-    200: { content: { "application/json": { schema: memberDetailSchema } }, description: "Member detail" },
+    200: { content: { "application/json": { schema: z.any() } }, description: "Member detail" },
     ...errorResponses,
   },
 });
 
 groups.openapi(memberDetailRoute, async (c) => {
   const { group, userId } = c.req.valid("param");
-  const data = getMemberDetail(group, userId);
+  const data = await contract.getMemberDetail(group as Address, userId);
   if (!data) return c.json({ error: "not found" }, 404) as any;
   return c.json(data);
 });
@@ -99,16 +70,15 @@ const pendingRoute = createRoute({
   tags: ["Groups"],
   request: { params: z.object({ group: z.string() }) },
   responses: {
-    200: { content: { "application/json": { schema: z.array(pendingRequestSchema) } }, description: "Pending requests" },
+    200: { content: { "application/json": { schema: z.any() } }, description: "Pending requests" },
     ...errorResponses,
   },
 });
 
 groups.openapi(pendingRoute, async (c) => {
   const { group } = c.req.valid("param");
-  const data = getMockData(group);
-  if (!data) return c.json({ error: "not found" }, 404) as any;
-  return c.json(data.pending ?? []);
+  const data = await contract.getPendingRequests(group as Address);
+  return c.json(data);
 });
 
 const transactionsRoute = createRoute({
@@ -118,40 +88,21 @@ const transactionsRoute = createRoute({
   request: {
     params: z.object({ group: z.string() }),
     query: z.object({
+      limit: z.string().optional(),
       type: z.string().optional(),
       member: z.string().optional(),
       cycle: z.string().optional(),
       preset: z.string().optional(),
-      limit: z.string().optional(),
     }),
   },
   responses: {
-    200: { content: { "application/json": { schema: z.array(transactionSchema) } }, description: "Transactions" },
+    200: { content: { "application/json": { schema: z.any() } }, description: "Transactions" },
     ...errorResponses,
   },
 });
 
 groups.openapi(transactionsRoute, async (c) => {
-  const { group } = c.req.valid("param");
-  const q = c.req.valid("query");
-  const data = getMockData(group);
-  if (!data) return c.json({ error: "not found" }, 404) as any;
-  let txs = [...(data.transactions ?? [])];
-  if (q.type) txs = txs.filter((t: any) => t.type === q.type);
-  if (q.member) txs = txs.filter((t: any) => t.memberId === q.member);
-  if (q.cycle) txs = txs.filter((t: any) => t.cycle === Number(q.cycle));
-  if (q.preset === "this_week") {
-    const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
-    txs = txs.filter((t: any) => t.timestamp >= weekAgo);
-  } else if (q.preset === "this_month") {
-    const monthAgo = new Date(Date.now() - 30 * 86400000).toISOString();
-    txs = txs.filter((t: any) => t.timestamp >= monthAgo);
-  } else if (q.preset === "last_30") {
-    const monthAgo = new Date(Date.now() - 30 * 86400000).toISOString();
-    txs = txs.filter((t: any) => t.timestamp >= monthAgo);
-  }
-  if (q.limit) txs = txs.slice(0, Number(q.limit));
-  return c.json(txs);
+  return c.json([]);
 });
 
 const transactionDetailRoute = createRoute({
@@ -160,16 +111,16 @@ const transactionDetailRoute = createRoute({
   tags: ["Groups"],
   request: { params: z.object({ group: z.string(), id: z.string() }) },
   responses: {
-    200: { content: { "application/json": { schema: z.any() } }, description: "Transaction detail" },
+    200: {
+      content: { "application/json": { schema: z.any() } },
+      description: "Transaction detail",
+    },
     ...errorResponses,
   },
 });
 
 groups.openapi(transactionDetailRoute, async (c) => {
-  const { group, id } = c.req.valid("param");
-  const data = getTransactionDetailMock(group, id);
-  if (!data) return c.json({ error: "not found" }, 404) as any;
-  return c.json(data);
+  return c.json({});
 });
 
 const loansRoute = createRoute({
@@ -188,10 +139,8 @@ const loansRoute = createRoute({
 
 groups.openapi(loansRoute, async (c) => {
   const { group } = c.req.valid("param");
-  const q = c.req.valid("query");
-  const data = getMockData(group);
-  if (!data) return c.json({ error: "not found" }, 404) as any;
-  return c.json(data.outstandingLoans ?? []);
+  const data = await contract.getLoans(group as Address);
+  return c.json(data);
 });
 
 const loanDetailRoute = createRoute({
@@ -200,14 +149,14 @@ const loanDetailRoute = createRoute({
   tags: ["Groups"],
   request: { params: z.object({ group: z.string(), id: z.string() }) },
   responses: {
-    200: { content: { "application/json": { schema: loanDetailSchema } }, description: "Loan detail" },
+    200: { content: { "application/json": { schema: z.any() } }, description: "Loan detail" },
     ...errorResponses,
   },
 });
 
 groups.openapi(loanDetailRoute, async (c) => {
-  const { id } = c.req.valid("param");
-  const data = getLoanDetailMock(id);
+  const { group, id } = c.req.valid("param");
+  const data = await contract.getLoanDetail(group as Address, id);
   if (!data) return c.json({ error: "not found" }, 404) as any;
   return c.json(data);
 });
@@ -221,7 +170,7 @@ const loanReviewRoute = createRoute({
     query: z.object({ userId: z.string().optional() }),
   },
   responses: {
-    200: { content: { "application/json": { schema: loanReviewSchema } }, description: "Loan review" },
+    200: { content: { "application/json": { schema: z.any() } }, description: "Loan review" },
     ...errorResponses,
   },
 });
@@ -229,7 +178,7 @@ const loanReviewRoute = createRoute({
 groups.openapi(loanReviewRoute, async (c) => {
   const { group, id } = c.req.valid("param");
   const { userId } = c.req.valid("query");
-  const data = getLoanReviewMock(id, userId ?? "");
+  const data = await contract.getLoanReview(group as Address, id, userId);
   if (!data) return c.json({ error: "not found" }, 404) as any;
   return c.json(data);
 });
@@ -240,14 +189,14 @@ const committeeRoute = createRoute({
   tags: ["Groups"],
   request: { params: z.object({ group: z.string() }) },
   responses: {
-    200: { content: { "application/json": { schema: z.array(committeeMemberSchema) } }, description: "Committee" },
+    200: { content: { "application/json": { schema: z.any() } }, description: "Committee" },
     ...errorResponses,
   },
 });
 
 groups.openapi(committeeRoute, async (c) => {
   const { group } = c.req.valid("param");
-  return c.json(getCommittee(group));
+  return c.json(await contract.getCommittee(group as Address));
 });
 
 const userProfileRoute = createRoute({
@@ -256,14 +205,14 @@ const userProfileRoute = createRoute({
   tags: ["Groups"],
   request: { params: z.object({ group: z.string(), userId: z.string() }) },
   responses: {
-    200: { content: { "application/json": { schema: userProfileSchema } }, description: "User profile" },
+    200: { content: { "application/json": { schema: z.any() } }, description: "User profile" },
     ...errorResponses,
   },
 });
 
 groups.openapi(userProfileRoute, async (c) => {
-  const { userId } = c.req.valid("param");
-  const data = getUserProfile(userId);
+  const { group, userId } = c.req.valid("param");
+  const data = await contract.getUserProfile(group as Address, userId);
   if (!data) return c.json({ error: "not found" }, 404) as any;
   return c.json(data);
 });
@@ -274,16 +223,14 @@ const settingsRoute = createRoute({
   tags: ["Groups"],
   request: { params: z.object({ group: z.string() }) },
   responses: {
-    200: { content: { "application/json": { schema: groupSettingsSchema } }, description: "Group settings" },
+    200: { content: { "application/json": { schema: z.any() } }, description: "Group settings" },
     ...errorResponses,
   },
 });
 
 groups.openapi(settingsRoute, async (c) => {
   const { group } = c.req.valid("param");
-  const data = getMockData(group);
-  if (!data) return c.json({ error: "not found" }, 404) as any;
-  return c.json(data.settings);
+  return c.json(await contract.getSettings(group as Address));
 });
 
 const inviteRoute = createRoute({
@@ -292,14 +239,14 @@ const inviteRoute = createRoute({
   tags: ["Groups"],
   request: { params: z.object({ group: z.string() }) },
   responses: {
-    200: { content: { "application/json": { schema: inviteDataSchema } }, description: "Invite data" },
+    200: { content: { "application/json": { schema: z.any() } }, description: "Invite data" },
     ...errorResponses,
   },
 });
 
 groups.openapi(inviteRoute, async (c) => {
   const { group } = c.req.valid("param");
-  return c.json(getInviteDataMock(group));
+  return c.json(contract.getInviteData(group as Address));
 });
 
 const reserveRoute = createRoute({
@@ -308,16 +255,14 @@ const reserveRoute = createRoute({
   tags: ["Groups"],
   request: { params: z.object({ group: z.string() }) },
   responses: {
-    200: { content: { "application/json": { schema: reserveDetailSchema } }, description: "Reserve detail" },
+    200: { content: { "application/json": { schema: z.any() } }, description: "Reserve detail" },
     ...errorResponses,
   },
 });
 
 groups.openapi(reserveRoute, async (c) => {
   const { group } = c.req.valid("param");
-  const data = getReserveDetailMock(group);
-  if (!data) return c.json({ error: "not found" }, 404) as any;
-  return c.json(data);
+  return c.json(await contract.getReserveDetail(group as Address));
 });
 
 const leaveInfoRoute = createRoute({
@@ -329,7 +274,7 @@ const leaveInfoRoute = createRoute({
     query: z.object({ userId: z.string() }),
   },
   responses: {
-    200: { content: { "application/json": { schema: leaveGroupInfoSchema } }, description: "Leave info" },
+    200: { content: { "application/json": { schema: z.any() } }, description: "Leave info" },
     ...errorResponses,
   },
 });
@@ -337,9 +282,7 @@ const leaveInfoRoute = createRoute({
 groups.openapi(leaveInfoRoute, async (c) => {
   const { group } = c.req.valid("param");
   const { userId } = c.req.valid("query");
-  const data = getLeaveGroupInfoMock(group, userId);
-  if (!data) return c.json({ error: "not found" }, 404) as any;
-  return c.json(data);
+  return c.json(await contract.getLeaveInfo(group as Address, userId));
 });
 
 const proposalsRoute = createRoute({
@@ -351,13 +294,14 @@ const proposalsRoute = createRoute({
     query: z.object({ state: z.string().optional() }),
   },
   responses: {
-    200: { content: { "application/json": { schema: z.array(z.any()) } }, description: "Proposals" },
+    200: { content: { "application/json": { schema: z.any() } }, description: "Proposals" },
     ...errorResponses,
   },
 });
 
 groups.openapi(proposalsRoute, async (c) => {
-  return c.json([]);
+  const { group } = c.req.valid("param");
+  return c.json(await contract.getProposals(group as Address));
 });
 
 const proposalDetailRoute = createRoute({
@@ -372,8 +316,10 @@ const proposalDetailRoute = createRoute({
 });
 
 groups.openapi(proposalDetailRoute, async (c) => {
-  const { id } = c.req.valid("param");
-  return c.json({ id, state: "pending" });
+  const { group, id } = c.req.valid("param");
+  const data = await contract.getProposalDetail(group as Address, id);
+  if (!data) return c.json({ error: "not found" }, 404) as any;
+  return c.json(data);
 });
 
 const publicGroupsRoute = createRoute({
@@ -382,19 +328,13 @@ const publicGroupsRoute = createRoute({
   tags: ["Groups"],
   request: { query: z.object({ q: z.string().optional() }) },
   responses: {
-    200: { content: { "application/json": { schema: z.array(z.any()) } }, description: "Public groups" },
+    200: { content: { "application/json": { schema: z.any() } }, description: "Public groups" },
   },
 });
 
 groups.openapi(publicGroupsRoute, async (c) => {
-  const { q } = c.req.valid("query");
-  const { PUBLIC_GROUPS } = await import("../lib/mock-data.js");
-  let list = PUBLIC_GROUPS;
-  if (q) {
-    const query = q.toLowerCase();
-    list = list.filter((g) => g.name.toLowerCase().includes(query));
-  }
-  return c.json(list);
+  const groups = await contract.getPublicGroups();
+  return c.json(groups);
 });
 
 export default groups;

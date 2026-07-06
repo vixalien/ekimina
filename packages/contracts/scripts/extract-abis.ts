@@ -19,9 +19,10 @@ mkdirSync(outDir, { recursive: true });
 for (const relPath of contractArtifacts) {
   const src = resolve(artifactsDir, relPath);
   const artifact = JSON.parse(readFileSync(src, "utf-8"));
-  const out = resolve(outDir, relPath.split("/").pop()!);
+  const out = resolve(outDir, relPath.split("/").pop()!.replace(".json", ".ts"));
 
-  writeFileSync(out, JSON.stringify(artifact.abi, null, 2) + "\n");
+  const content = `export default ${JSON.stringify(artifact.abi, null, 2)} as const;\n`;
+  writeFileSync(out, content);
   console.log(`  ✓ ${relPath.split("/").pop()}`);
 }
 

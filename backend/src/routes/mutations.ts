@@ -1,17 +1,38 @@
-import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import { errorResponses, addressSchema, successOnlySchema, successWithIdSchema, thresholdResultSchema } from "../lib/schemas.js";
-import {
-  pendingRequests, settingsChanges, discretionaryReviews,
-  joinRequestReviews, withdrawalReviews, loanReviews,
-} from "../lib/store.js";
-import {
-  getLoanDetailMock, getMockData, getDefaultSettingsChange,
-  getDefaultDiscretionaryReview, getDefaultJoinReview,
-  getDefaultWithdrawalReview, getLoanReviewMock,
-} from "../lib/mock-data.js";
 import crypto from "crypto";
 
+import type { Address } from "@ekimina/types";
+
+import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
+
+import * as contract from "../lib/contract-data.js";
+import { ACCOUNT_NAMES } from "../lib/deployed-state.js";
+import {
+  errorResponses,
+  addressSchema,
+  successOnlySchema,
+  successWithIdSchema,
+  thresholdResultSchema,
+} from "../lib/schemas.js";
+import {
+  pendingRequests,
+  settingsChanges,
+  discretionaryReviews,
+  joinRequestReviews,
+  withdrawalReviews,
+  loanReviews,
+} from "../lib/store.js";
+
 const mutations = new OpenAPIHono();
+
+function nameEntry(key: string): { name: string; initials: string } {
+  const name = ACCOUNT_NAMES[key.toLowerCase()] ?? key.slice(0, 6);
+  const initials = name
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? "")
+    .join("");
+  return { name, initials };
+}
 
 const userIdParam = z.object({ userId: z.string() });
 const groupAndIdParams = z.object({ group: z.string(), id: z.string() });
@@ -27,25 +48,26 @@ const signLoanRoute = createRoute({
     body: { content: { "application/json": { schema: z.object({ userId: z.string() }) } } },
   },
   responses: {
-    200: { content: { "application/json": { schema: thresholdResultSchema } }, description: "Signed" },
+    200: {
+      content: { "application/json": { schema: thresholdResultSchema } },
+      description: "Signed",
+    },
     ...errorResponses,
   },
 });
 
 mutations.openapi(signLoanRoute, async (c) => {
-  const { id } = c.req.valid("param");
+  const { group, id } = c.req.valid("param");
   const { userId } = c.req.valid("json");
-  const loan = getLoanDetailMock(id);
+  const loan = await contract.getLoanDetail(group as Address, id);
   if (!loan) return c.json({ error: "not found" }, 404) as any;
-  if (loan.currentState !== "signing") return c.json({ error: "loan not in signing state" }, 400) as any;
 
   const key = `loan:${id}`;
   let state = loanReviews.get(key) ?? { signed: new Set<string>() };
   state.signed.add(userId);
   loanReviews.set(key, state);
 
-  const thresholdMet = state.signed.size >= loan.signatureThreshold;
-  return c.json({ success: true, thresholdMet });
+  return c.json({ success: true, thresholdMet: false });
 });
 
 const rejectLoanRoute = createRoute({
@@ -57,14 +79,17 @@ const rejectLoanRoute = createRoute({
     body: { content: { "application/json": { schema: z.object({ userId: z.string() }) } } },
   },
   responses: {
-    200: { content: { "application/json": { schema: successOnlySchema } }, description: "Rejected" },
+    200: {
+      content: { "application/json": { schema: successOnlySchema } },
+      description: "Rejected",
+    },
     ...errorResponses,
   },
 });
 
 mutations.openapi(rejectLoanRoute, async (c) => {
-  const { id } = c.req.valid("param");
-  const loan = getLoanDetailMock(id);
+  const { group, id } = c.req.valid("param");
+  const loan = await contract.getLoanDetail(group as Address, id);
   if (!loan) return c.json({ error: "not found" }, 404) as any;
   return c.json({ success: true });
 });
@@ -77,10 +102,19 @@ const submitSettingsRoute = createRoute({
   tags: ["Mutations"],
   request: {
     params: z.object({ group: z.string() }),
-    body: { content: { "application/json": { schema: z.object({ field: z.string(), proposedValue: z.string(), userId: z.string() }) } } },
+    body: {
+      content: {
+        "application/json": {
+          schema: z.object({ field: z.string(), proposedValue: z.string(), userId: z.string() }),
+        },
+      },
+    },
   },
   responses: {
-    200: { content: { "application/json": { schema: successOnlySchema } }, description: "Submitted" },
+    200: {
+      content: { "application/json": { schema: successOnlySchema } },
+      description: "Submitted",
+    },
     ...errorResponses,
   },
 });
@@ -88,8 +122,32 @@ const submitSettingsRoute = createRoute({
 mutations.openapi(submitSettingsRoute, async (c) => {
   const { group } = c.req.valid("param");
   const { field, proposedValue, userId } = c.req.valid("json");
-  const change = getDefaultSettingsChange(group, field, proposedValue, userId);
-  if (!change) return c.json({ error: "not found" }, 404) as any;
+  const n = nameEntry(userId);
+  const change = {
+    id: crypto.randomUUID(),
+    groupId: group,
+    field,
+    fieldLabel: field.replace(/_/g, " ").replace(/\b\w/g, (l: string) => l.toUpperCase()),
+    currentValue: "",
+    proposedValue,
+    requesterName: n.name,
+    requesterInitials: n.initials,
+    requesterUserId: userId,
+    signatureCount: 1,
+    signatureThreshold: 2,
+    signatures: [
+      {
+        userId,
+        name: n.name,
+        initials: n.initials,
+        signed: true,
+        signedAt: new Date().toISOString(),
+      },
+    ],
+    currentUserAlreadySigned: true,
+    currentUserSignedAt: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+  };
   settingsChanges.set(change.id, change);
   return c.json({ success: true });
 });
@@ -103,7 +161,10 @@ const signSettingsRoute = createRoute({
     body: { content: { "application/json": { schema: z.object({ userId: z.string() }) } } },
   },
   responses: {
-    200: { content: { "application/json": { schema: thresholdResultSchema } }, description: "Signed" },
+    200: {
+      content: { "application/json": { schema: thresholdResultSchema } },
+      description: "Signed",
+    },
     ...errorResponses,
   },
 });
@@ -132,7 +193,10 @@ const rejectSettingsRoute = createRoute({
     body: { content: { "application/json": { schema: z.object({ userId: z.string() }) } } },
   },
   responses: {
-    200: { content: { "application/json": { schema: successOnlySchema } }, description: "Rejected" },
+    200: {
+      content: { "application/json": { schema: successOnlySchema } },
+      description: "Rejected",
+    },
     ...errorResponses,
   },
 });
@@ -170,7 +234,10 @@ const submitDiscRoute = createRoute({
     body: { content: { "application/json": { schema: z.any() } } },
   },
   responses: {
-    200: { content: { "application/json": { schema: successOnlySchema } }, description: "Submitted" },
+    200: {
+      content: { "application/json": { schema: successOnlySchema } },
+      description: "Submitted",
+    },
     ...errorResponses,
   },
 });
@@ -178,8 +245,33 @@ const submitDiscRoute = createRoute({
 mutations.openapi(submitDiscRoute, async (c) => {
   const { group } = c.req.valid("param");
   const body = c.req.valid("json");
-  const review = getDefaultDiscretionaryReview(group, body.userId, body);
-  if (!review) return c.json({ error: "not found" }, 404) as any;
+  const n = body.userId ? nameEntry(body.userId) : { name: "Unknown", initials: "??" };
+  const review = {
+    id: crypto.randomUUID(),
+    groupId: group,
+    requesterName: n.name,
+    requesterInitials: n.initials,
+    requesterUserId: body.userId,
+    direction: body.direction ?? "deposit",
+    amount: body.amount ?? 0,
+    category: body.category ?? "",
+    paidTo: body.paidTo ?? "",
+    reason: body.reason ?? "",
+    requestedAt: new Date().toISOString(),
+    signatureCount: 1,
+    signatureThreshold: 2,
+    signatures: [
+      {
+        userId: body.userId,
+        name: n.name,
+        initials: n.initials,
+        signed: true,
+        signedAt: new Date().toISOString(),
+      },
+    ],
+    currentUserAlreadySigned: true,
+    currentUserSignedAt: new Date().toISOString(),
+  };
   discretionaryReviews.set(review.id, review);
   return c.json({ success: true });
 });
@@ -190,7 +282,10 @@ const getDiscReviewRoute = createRoute({
   tags: ["Mutations"],
   request: { params: groupAndIdParams },
   responses: {
-    200: { content: { "application/json": { schema: z.any() } }, description: "Discretionary review" },
+    200: {
+      content: { "application/json": { schema: z.any() } },
+      description: "Discretionary review",
+    },
     ...errorResponses,
   },
 });
@@ -211,7 +306,10 @@ const signDiscRoute = createRoute({
     body: { content: { "application/json": { schema: z.object({ userId: z.string() }) } } },
   },
   responses: {
-    200: { content: { "application/json": { schema: thresholdResultSchema } }, description: "Signed" },
+    200: {
+      content: { "application/json": { schema: thresholdResultSchema } },
+      description: "Signed",
+    },
     ...errorResponses,
   },
 });
@@ -235,7 +333,10 @@ const rejectDiscRoute = createRoute({
     body: { content: { "application/json": { schema: z.object({ userId: z.string() }) } } },
   },
   responses: {
-    200: { content: { "application/json": { schema: successOnlySchema } }, description: "Rejected" },
+    200: {
+      content: { "application/json": { schema: successOnlySchema } },
+      description: "Rejected",
+    },
     ...errorResponses,
   },
 });
@@ -252,10 +353,23 @@ const initiateWithdrawalRoute = createRoute({
   tags: ["Mutations"],
   request: {
     params: z.object({ group: z.string() }),
-    body: { content: { "application/json": { schema: z.object({ memberId: z.string(), userId: z.string(), reasonCategory: z.string() }) } } },
+    body: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            memberId: z.string(),
+            userId: z.string(),
+            reasonCategory: z.string(),
+          }),
+        },
+      },
+    },
   },
   responses: {
-    200: { content: { "application/json": { schema: successWithIdSchema } }, description: "Withdrawal initiated" },
+    200: {
+      content: { "application/json": { schema: successWithIdSchema } },
+      description: "Withdrawal initiated",
+    },
     ...errorResponses,
   },
 });
@@ -264,8 +378,23 @@ mutations.openapi(initiateWithdrawalRoute, async (c) => {
   const { group } = c.req.valid("param");
   const { memberId, userId, reasonCategory } = c.req.valid("json");
   const id = crypto.randomUUID();
-  const review = getDefaultWithdrawalReview(group, id, memberId);
-  if (!review) return c.json({ error: "not found" }, 404) as any;
+  const n = nameEntry(memberId);
+  const review = {
+    id,
+    groupId: group,
+    memberName: n.name,
+    memberInitials: n.initials,
+    memberUserId: memberId,
+    reasonCategory: reasonCategory ?? "Other",
+    contributionRate: "N/A",
+    penaltyCount: 0,
+    outstandingLoanAmount: null,
+    requestedAt: new Date().toISOString(),
+    signatureCount: 1,
+    signatureThreshold: 2,
+    signatures: [],
+    currentUserAlreadySigned: false,
+  };
   withdrawalReviews.set(id, review);
   return c.json({ success: true, requestId: id });
 });
@@ -297,7 +426,10 @@ const signWithdrawalRoute = createRoute({
     body: { content: { "application/json": { schema: z.object({ userId: z.string() }) } } },
   },
   responses: {
-    200: { content: { "application/json": { schema: thresholdResultSchema } }, description: "Signed" },
+    200: {
+      content: { "application/json": { schema: thresholdResultSchema } },
+      description: "Signed",
+    },
     ...errorResponses,
   },
 });
@@ -321,7 +453,10 @@ const rejectWithdrawalRoute = createRoute({
     body: { content: { "application/json": { schema: z.object({ userId: z.string() }) } } },
   },
   responses: {
-    200: { content: { "application/json": { schema: successOnlySchema } }, description: "Rejected" },
+    200: {
+      content: { "application/json": { schema: successOnlySchema } },
+      description: "Rejected",
+    },
     ...errorResponses,
   },
 });
@@ -341,7 +476,10 @@ const leaveGroupRoute = createRoute({
     body: { content: { "application/json": { schema: z.object({ userId: z.string() }) } } },
   },
   responses: {
-    200: { content: { "application/json": { schema: successOnlySchema } }, description: "Left group" },
+    200: {
+      content: { "application/json": { schema: successOnlySchema } },
+      description: "Left group",
+    },
     ...errorResponses,
   },
 });
@@ -355,7 +493,11 @@ const updateNotificationsRoute = createRoute({
   path: "/users/notifications",
   tags: ["Mutations"],
   request: {
-    body: { content: { "application/json": { schema: z.object({ userId: z.string(), enabled: z.boolean() }) } } },
+    body: {
+      content: {
+        "application/json": { schema: z.object({ userId: z.string(), enabled: z.boolean() }) },
+      },
+    },
   },
   responses: {
     200: { content: { "application/json": { schema: successOnlySchema } }, description: "Updated" },
@@ -372,10 +514,17 @@ const verifyPinRoute = createRoute({
   path: "/users/verify-pin",
   tags: ["Mutations"],
   request: {
-    body: { content: { "application/json": { schema: z.object({ userId: z.string(), pin: z.string() }) } } },
+    body: {
+      content: {
+        "application/json": { schema: z.object({ userId: z.string(), pin: z.string() }) },
+      },
+    },
   },
   responses: {
-    200: { content: { "application/json": { schema: successOnlySchema } }, description: "Verified" },
+    200: {
+      content: { "application/json": { schema: successOnlySchema } },
+      description: "Verified",
+    },
     ...errorResponses,
   },
 });
@@ -395,7 +544,10 @@ const sendPhoneInviteRoute = createRoute({
     body: { content: { "application/json": { schema: z.object({ phone: z.string() }) } } },
   },
   responses: {
-    200: { content: { "application/json": { schema: successOnlySchema } }, description: "Invite sent" },
+    200: {
+      content: { "application/json": { schema: successOnlySchema } },
+      description: "Invite sent",
+    },
     ...errorResponses,
   },
 });
@@ -411,7 +563,11 @@ const requestToJoinRoute = createRoute({
   path: "/groups/join-requests",
   tags: ["Mutations"],
   request: {
-    body: { content: { "application/json": { schema: z.object({ groupId: z.string(), userId: z.string() }) } } },
+    body: {
+      content: {
+        "application/json": { schema: z.object({ groupId: z.string(), userId: z.string() }) },
+      },
+    },
   },
   responses: {
     200: { content: { "application/json": { schema: z.any() } }, description: "Request created" },
@@ -433,7 +589,10 @@ const cancelJoinRequestRoute = createRoute({
   tags: ["Mutations"],
   request: { params: z.object({ id: z.string() }) },
   responses: {
-    200: { content: { "application/json": { schema: successOnlySchema } }, description: "Cancelled" },
+    200: {
+      content: { "application/json": { schema: successOnlySchema } },
+      description: "Cancelled",
+    },
     ...errorResponses,
   },
 });
@@ -450,7 +609,10 @@ const getJoinReviewRoute = createRoute({
   tags: ["Mutations"],
   request: { params: groupAndIdParams },
   responses: {
-    200: { content: { "application/json": { schema: z.any() } }, description: "Join request review" },
+    200: {
+      content: { "application/json": { schema: z.any() } },
+      description: "Join request review",
+    },
     ...errorResponses,
   },
 });
@@ -459,9 +621,19 @@ mutations.openapi(getJoinReviewRoute, async (c) => {
   const { group, id } = c.req.valid("param");
   const review = joinRequestReviews.get(id);
   if (review) return c.json(review);
-  const generated = getDefaultJoinReview(group, id);
-  if (!generated) return c.json({ error: "not found" }, 404) as any;
-  return c.json(generated);
+  return c.json({
+    id,
+    groupId: group,
+    applicantName: "Applicant",
+    applicantInitials: "AP",
+    applicantPhone: "",
+    joinMethod: "invite_code" as const,
+    requestedAt: new Date().toISOString(),
+    signatureCount: 0,
+    signatureThreshold: 2,
+    signatures: [],
+    currentUserAlreadySigned: false,
+  });
 });
 
 const signJoinRoute = createRoute({
@@ -473,7 +645,10 @@ const signJoinRoute = createRoute({
     body: { content: { "application/json": { schema: z.object({ userId: z.string() }) } } },
   },
   responses: {
-    200: { content: { "application/json": { schema: thresholdResultSchema } }, description: "Signed" },
+    200: {
+      content: { "application/json": { schema: thresholdResultSchema } },
+      description: "Signed",
+    },
     ...errorResponses,
   },
 });
@@ -497,7 +672,10 @@ const rejectJoinRoute = createRoute({
     body: { content: { "application/json": { schema: z.object({ userId: z.string() }) } } },
   },
   responses: {
-    200: { content: { "application/json": { schema: successOnlySchema } }, description: "Rejected" },
+    200: {
+      content: { "application/json": { schema: successOnlySchema } },
+      description: "Rejected",
+    },
     ...errorResponses,
   },
 });
@@ -513,7 +691,11 @@ const joinByCodeRoute = createRoute({
   path: "/groups/join-by-code",
   tags: ["Mutations"],
   request: {
-    body: { content: { "application/json": { schema: z.object({ code: z.string(), userId: z.string() }) } } },
+    body: {
+      content: {
+        "application/json": { schema: z.object({ code: z.string(), userId: z.string() }) },
+      },
+    },
   },
   responses: {
     200: { content: { "application/json": { schema: z.any() } }, description: "Joined" },

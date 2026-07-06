@@ -1,11 +1,6 @@
 import type { DataClient, Address } from "@ekimina/types";
-import { custody } from "./custody";
-import { createUserWalletClient, publicClient } from "./client/chain";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getIkiminaContract } from "@ekimina/contracts";
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL ?? "http://localhost:3000";
-const KEY_STORE = "ekimina_private_key";
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BACKEND_URL}${path}`, {
@@ -42,7 +37,14 @@ const profile: DataClient["profile"] = {
   },
   async updateName(name) {
     await apiFetch("/users/me", { method: "PATCH", body: JSON.stringify({ name }) });
-    return { id: "", address: "" as Address, name, phone: null, custodial: true, notificationsEnabled: true };
+    return {
+      id: "",
+      address: "" as Address,
+      name,
+      phone: null,
+      custodial: true,
+      notificationsEnabled: true,
+    };
   },
   async updateNotifications(enabled) {
     return { ok: true };
@@ -92,7 +94,8 @@ const groupReads: DataClient["groups"] = {
     if (filters?.types?.length) params.set("type", filters.types.join(","));
     if (filters?.memberIds?.length) params.set("member", filters.memberIds[0]);
     if (filters?.cycleRange) params.set("cycle", String(filters.cycleRange.to));
-    if (filters?.datePreset && filters.datePreset !== "all") params.set("preset", filters.datePreset);
+    if (filters?.datePreset && filters.datePreset !== "all")
+      params.set("preset", filters.datePreset);
     return apiFetch(`/groups/${group}/transactions?${params}`);
   },
   async getTransaction(group, txId) {
@@ -141,7 +144,8 @@ const groupReads: DataClient["groups"] = {
     if (filters?.types?.length) params.set("type", filters.types.join(","));
     if (filters?.memberIds?.length) params.set("member", filters.memberIds[0]);
     if (filters?.cycleRange) params.set("cycle", String(filters.cycleRange.to));
-    if (filters?.datePreset && filters.datePreset !== "all") params.set("preset", filters.datePreset);
+    if (filters?.datePreset && filters.datePreset !== "all")
+      params.set("preset", filters.datePreset);
     return apiFetch(`/groups/${group}/transactions?${params}`);
   },
   async getTransactionDetail(group, txId) {
@@ -178,7 +182,10 @@ const groupReads: DataClient["groups"] = {
     return apiFetch(`/groups/${group}/leave-info?userId=${userId}`);
   },
   async updateNotifications(userId, enabled) {
-    return apiFetch("/users/notifications", { method: "POST", body: JSON.stringify({ userId, enabled }) });
+    return apiFetch("/users/notifications", {
+      method: "POST",
+      body: JSON.stringify({ userId, enabled }),
+    });
   },
   async verifyPin(userId, pin) {
     return apiFetch("/users/verify-pin", { method: "POST", body: JSON.stringify({ userId, pin }) });
@@ -188,47 +195,56 @@ const groupReads: DataClient["groups"] = {
   },
   async submitSettingsChange(group, field, proposedValue, userId) {
     return apiFetch(`/groups/${group}/settings/changes`, {
-      method: "POST", body: JSON.stringify({ field, proposedValue, userId }),
+      method: "POST",
+      body: JSON.stringify({ field, proposedValue, userId }),
     });
   },
   async signSettingsChange(group, requestId, userId) {
     return apiFetch(`/groups/${group}/settings/changes/${requestId}/sign`, {
-      method: "POST", body: JSON.stringify({ userId }),
+      method: "POST",
+      body: JSON.stringify({ userId }),
     });
   },
   async rejectSettingsChange(group, requestId, userId) {
     return apiFetch(`/groups/${group}/settings/changes/${requestId}/reject`, {
-      method: "POST", body: JSON.stringify({ userId }),
+      method: "POST",
+      body: JSON.stringify({ userId }),
     });
   },
   async signLoanRequest(group, loanId, userId) {
     return apiFetch(`/groups/${group}/loans/${loanId}/sign`, {
-      method: "POST", body: JSON.stringify({ userId }),
+      method: "POST",
+      body: JSON.stringify({ userId }),
     });
   },
   async rejectLoanRequest(group, loanId, userId) {
     return apiFetch(`/groups/${group}/loans/${loanId}/reject`, {
-      method: "POST", body: JSON.stringify({ userId }),
+      method: "POST",
+      body: JSON.stringify({ userId }),
     });
   },
   async initiateWithdrawal(group, memberId, requestingUserId, reasonCategory) {
     return apiFetch(`/groups/${group}/withdrawals`, {
-      method: "POST", body: JSON.stringify({ memberId, userId: requestingUserId, reasonCategory }),
+      method: "POST",
+      body: JSON.stringify({ memberId, userId: requestingUserId, reasonCategory }),
     });
   },
   async signMemberWithdrawal(group, requestId, userId) {
     return apiFetch(`/groups/${group}/withdrawals/${requestId}/sign`, {
-      method: "POST", body: JSON.stringify({ userId }),
+      method: "POST",
+      body: JSON.stringify({ userId }),
     });
   },
   async rejectMemberWithdrawal(group, requestId, userId) {
     return apiFetch(`/groups/${group}/withdrawals/${requestId}/reject`, {
-      method: "POST", body: JSON.stringify({ userId }),
+      method: "POST",
+      body: JSON.stringify({ userId }),
     });
   },
   async sendPhoneInvite(group, phone) {
     return apiFetch(`/groups/${group}/invite/phone`, {
-      method: "POST", body: JSON.stringify({ phone }),
+      method: "POST",
+      body: JSON.stringify({ phone }),
     });
   },
   async createGroup(payload) {
@@ -236,7 +252,8 @@ const groupReads: DataClient["groups"] = {
   },
   async joinByInviteCode(userId, code) {
     return apiFetch("/groups/join-by-code", {
-      method: "POST", body: JSON.stringify({ code, userId }),
+      method: "POST",
+      body: JSON.stringify({ code, userId }),
     });
   },
   async cancelJoinRequest(requestId) {
@@ -248,7 +265,8 @@ const groupReads: DataClient["groups"] = {
   },
   async requestToJoinGroup(groupId, userId) {
     return apiFetch("/groups/join-requests", {
-      method: "POST", body: JSON.stringify({ groupId, userId }),
+      method: "POST",
+      body: JSON.stringify({ groupId, userId }),
     });
   },
   async retryTransaction(transactionId) {
@@ -256,7 +274,8 @@ const groupReads: DataClient["groups"] = {
   },
   async submitDiscretionaryRequest(group, userId, req) {
     return apiFetch(`/groups/${group}/discretionary`, {
-      method: "POST", body: JSON.stringify({ ...req, userId }),
+      method: "POST",
+      body: JSON.stringify({ ...req, userId }),
     });
   },
   async getDiscretionaryReview(group, requestId) {
@@ -264,12 +283,14 @@ const groupReads: DataClient["groups"] = {
   },
   async signDiscretionaryRequest(group, requestId, userId) {
     return apiFetch(`/groups/${group}/discretionary/${requestId}/sign`, {
-      method: "POST", body: JSON.stringify({ userId }),
+      method: "POST",
+      body: JSON.stringify({ userId }),
     });
   },
   async rejectDiscretionaryRequest(group, requestId, userId) {
     return apiFetch(`/groups/${group}/discretionary/${requestId}/reject`, {
-      method: "POST", body: JSON.stringify({ userId }),
+      method: "POST",
+      body: JSON.stringify({ userId }),
     });
   },
   async getJoinRequestReview(group, requestId) {
@@ -277,12 +298,14 @@ const groupReads: DataClient["groups"] = {
   },
   async signJoinRequest(group, requestId, userId) {
     return apiFetch(`/groups/${group}/join-requests/${requestId}/sign`, {
-      method: "POST", body: JSON.stringify({ userId }),
+      method: "POST",
+      body: JSON.stringify({ userId }),
     });
   },
   async rejectJoinRequest(group, requestId, userId) {
     return apiFetch(`/groups/${group}/join-requests/${requestId}/reject`, {
-      method: "POST", body: JSON.stringify({ userId }),
+      method: "POST",
+      body: JSON.stringify({ userId }),
     });
   },
   async getMemberWithdrawalReview(group, requestId) {
@@ -298,17 +321,11 @@ const groupActions: DataClient["actions"] = {
     const meta = await lookup.groupByInviteCode(code);
     if (!meta) throw new Error("invite code not found");
     return apiFetch(`/relay/groups/${meta.address}/join`, {
-      method: "POST", body: JSON.stringify({ code }),
+      method: "POST",
+      body: JSON.stringify({ code }),
     });
   },
   async contribute(group) {
-    const pk = await AsyncStorage.getItem(KEY_STORE);
-    if (pk) {
-      const wallet = createUserWalletClient(pk as Address);
-      const contract = getIkiminaContract(group as Address, { public: publicClient, wallet });
-      const hash = await (contract as any).write.contribute();
-      return { txId: hash };
-    }
     return apiFetch(`/relay/groups/${group}/contribute`, { method: "POST" });
   },
   async triggerPayout(group) {
@@ -316,12 +333,14 @@ const groupActions: DataClient["actions"] = {
   },
   async startRotation(group, order) {
     return apiFetch(`/relay/groups/${group}/rotate`, {
-      method: "POST", body: JSON.stringify({ order }),
+      method: "POST",
+      body: JSON.stringify({ order }),
     });
   },
   async repayLoan(group, loanId) {
     return apiFetch(`/relay/groups/${group}/repay-loan`, {
-      method: "POST", body: JSON.stringify({ loanId }),
+      method: "POST",
+      body: JSON.stringify({ loanId }),
     });
   },
   async shareOut(group) {
@@ -329,7 +348,8 @@ const groupActions: DataClient["actions"] = {
   },
   async createProposal(group, draft) {
     return apiFetch(`/relay/groups/${group}/proposals`, {
-      method: "POST", body: JSON.stringify(draft),
+      method: "POST",
+      body: JSON.stringify(draft),
     });
   },
   async approveProposal(group, id) {
@@ -340,31 +360,39 @@ const groupActions: DataClient["actions"] = {
   },
   async signLoanRequest(group, loanId, userId) {
     return apiFetch(`/groups/${group}/loans/${loanId}/sign`, {
-      method: "POST", body: JSON.stringify({ userId }),
+      method: "POST",
+      body: JSON.stringify({ userId }),
     });
   },
   async rejectLoanRequest(group, loanId, userId) {
     return apiFetch(`/groups/${group}/loans/${loanId}/reject`, {
-      method: "POST", body: JSON.stringify({ userId }),
+      method: "POST",
+      body: JSON.stringify({ userId }),
     });
   },
   async signSettingsChange(group, requestId, userId) {
     return apiFetch(`/groups/${group}/settings/changes/${requestId}/sign`, {
-      method: "POST", body: JSON.stringify({ userId }),
+      method: "POST",
+      body: JSON.stringify({ userId }),
     });
   },
   async rejectSettingsChange(group, requestId, userId) {
     return apiFetch(`/groups/${group}/settings/changes/${requestId}/reject`, {
-      method: "POST", body: JSON.stringify({ userId }),
+      method: "POST",
+      body: JSON.stringify({ userId }),
     });
   },
   async submitSettingsChange(group, field, proposedValue, userId) {
     return apiFetch(`/groups/${group}/settings/changes`, {
-      method: "POST", body: JSON.stringify({ field, proposedValue, userId }),
+      method: "POST",
+      body: JSON.stringify({ field, proposedValue, userId }),
     });
   },
   async updateNotifications(userId, enabled) {
-    return apiFetch("/users/notifications", { method: "POST", body: JSON.stringify({ userId, enabled }) });
+    return apiFetch("/users/notifications", {
+      method: "POST",
+      body: JSON.stringify({ userId, enabled }),
+    });
   },
   async leaveGroup(group, userId) {
     return apiFetch(`/groups/${group}/leave`, { method: "POST", body: JSON.stringify({ userId }) });
@@ -374,54 +402,62 @@ const groupActions: DataClient["actions"] = {
   },
   async initiateWithdrawal(group, memberId, requestingUserId, reasonCategory) {
     return apiFetch(`/groups/${group}/withdrawals`, {
-      method: "POST", body: JSON.stringify({ memberId, userId: requestingUserId, reasonCategory }),
+      method: "POST",
+      body: JSON.stringify({ memberId, userId: requestingUserId, reasonCategory }),
     });
   },
   async signMemberWithdrawal(group, requestId, userId) {
     return apiFetch(`/groups/${group}/withdrawals/${requestId}/sign`, {
-      method: "POST", body: JSON.stringify({ userId }),
+      method: "POST",
+      body: JSON.stringify({ userId }),
     });
   },
   async rejectMemberWithdrawal(group, requestId, userId) {
     return apiFetch(`/groups/${group}/withdrawals/${requestId}/reject`, {
-      method: "POST", body: JSON.stringify({ userId }),
+      method: "POST",
+      body: JSON.stringify({ userId }),
     });
   },
   async sendPhoneInvite(group, phone) {
     return apiFetch(`/groups/${group}/invite/phone`, {
-      method: "POST", body: JSON.stringify({ phone }),
+      method: "POST",
+      body: JSON.stringify({ phone }),
     });
   },
   async signJoinRequest(group, requestId, userId) {
     return apiFetch(`/groups/${group}/join-requests/${requestId}/sign`, {
-      method: "POST", body: JSON.stringify({ userId }),
+      method: "POST",
+      body: JSON.stringify({ userId }),
     });
   },
   async rejectJoinRequest(group, requestId, userId) {
     return apiFetch(`/groups/${group}/join-requests/${requestId}/reject`, {
-      method: "POST", body: JSON.stringify({ userId }),
+      method: "POST",
+      body: JSON.stringify({ userId }),
     });
   },
   async signDiscretionaryRequest(group, requestId, userId) {
     return apiFetch(`/groups/${group}/discretionary/${requestId}/sign`, {
-      method: "POST", body: JSON.stringify({ userId }),
+      method: "POST",
+      body: JSON.stringify({ userId }),
     });
   },
   async rejectDiscretionaryRequest(group, requestId, userId) {
     return apiFetch(`/groups/${group}/discretionary/${requestId}/reject`, {
-      method: "POST", body: JSON.stringify({ userId }),
+      method: "POST",
+      body: JSON.stringify({ userId }),
     });
   },
   async submitDiscretionaryRequest(group, userId, req) {
     return apiFetch(`/groups/${group}/discretionary`, {
-      method: "POST", body: JSON.stringify({ ...req, userId }),
+      method: "POST",
+      body: JSON.stringify({ ...req, userId }),
     });
   },
 };
 
 export const dataClient: DataClient = {
   auth,
-  custody,
   profile,
   lookup,
   payments,

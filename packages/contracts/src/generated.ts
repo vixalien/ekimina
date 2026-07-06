@@ -1,8 +1,10 @@
-import { getContract } from "viem";
 import type { Address, PublicClient, WalletClient } from "viem";
-import IkiminaAbi from "./abi/Ikimina.json" with { type: "json" };
-import FactoryAbi from "./abi/IkiminaFactory.json" with { type: "json" };
-import MockERC20Abi from "./abi/MockUSDm.json" with { type: "json" };
+
+import { getContract } from "viem";
+
+import IkiminaAbi from "./abi/Ikimina.js";
+import FactoryAbi from "./abi/IkiminaFactory.js";
+import MockERC20Abi from "./abi/MockUSDm.js";
 
 export const ikiminaABI = IkiminaAbi;
 export const factoryABI = FactoryAbi;
