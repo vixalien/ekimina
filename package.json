@@ -13,12 +13,17 @@
     "fmt:check": "oxfmt --check",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
-    "lint:github": "pnpm run lint --format=github"
+    "lint:github": "pnpm run lint --format=github",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "4.1.10",
     "lefthook": "^2.1.9",
     "oxfmt": "^0.57.0",
     "oxlint": "^1.72.0",
-    "oxlint-tsgolint": "^0.24.0"
+    "oxlint-tsgolint": "^0.24.0",
+    "vitest": "^4.1.10"
   }
 }
