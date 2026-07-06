@@ -203,4 +203,107 @@ contract IkiminaTest is Test {
 
         assertTrue(group.dissolved());
     }
+
+    function testContributeTwiceReverts() public {
+        vm.prank(member1);
+        group.join("ABCDE");
+
+        vm.startPrank(member1);
+        token.approve(address(group), CONTRIBUTION * 2);
+        group.contribute();
+        vm.expectRevert(bytes("paid"));
+        group.contribute();
+        vm.stopPrank();
+    }
+
+    function testNonMemberCannotContribute() public {
+        vm.prank(member2);
+        vm.expectRevert(bytes("not active"));
+        group.contribute();
+    }
+
+    function testTriggerPayoutBeforeCycleEndReverts() public {
+        vm.prank(member1);
+        group.join("ABCDE");
+
+        vm.expectRevert(bytes("too early"));
+        group.triggerPayout();
+    }
+
+    function testProposeLoanWhenDisabledReverts() public {
+        Ikimina.Config memory noLoanConfig = Ikimina.Config({
+            contributionAmount: CONTRIBUTION,
+            cycleLength: CYCLE_LENGTH,
+            payoutAmount: PAYOUT,
+            payoutPolicy: Ikimina.PayoutPolicy.Rotating,
+            penaltyRateBps: PENALTY_BPS,
+            approvalThresholdBps: THRESHOLD_BPS,
+            loansEnabled: false,
+            discretionaryEnabled: true,
+            allMembersCommittee: true
+        });
+
+        vm.prank(creator);
+        address g2 = factory.createGroup(noLoanConfig, inviteHash);
+        Ikimina group2 = Ikimina(g2);
+
+        vm.prank(member1);
+        group2.join("ABCDE");
+
+        vm.prank(member1);
+        vm.expectRevert(bytes("loans off"));
+        group2.proposeLoan(member1, 5 ether, 1000, 3);
+    }
+
+    function testCannotVoteTwiceOnProposal() public {
+        vm.prank(member1);
+        group.join("ABCDE");
+
+        vm.prank(member3);
+        group.join("ABCDE");
+
+        // 3 active members (creator + member1 + member3), threshold = ceil(3 * 5000 / 10000) = 2
+        vm.prank(member1);
+        uint256 pid = group.proposeLoan(member1, 5 ether, 1000, 3);
+
+        vm.prank(member1);
+        group.approveProposal(pid);
+
+        vm.prank(member1);
+        vm.expectRevert(bytes("voted"));
+        group.approveProposal(pid);
+    }
+
+    function testBonusMemberContributesAndCycleAdvances() public {
+        vm.prank(member1);
+        group.join("ABCDE");
+
+        vm.startPrank(creator);
+        token.approve(address(group), CONTRIBUTION);
+        group.contribute();
+        vm.stopPrank();
+
+        vm.startPrank(member1);
+        token.approve(address(group), CONTRIBUTION);
+        group.contribute();
+        vm.stopPrank();
+
+        vm.prank(member2);
+        group.join("ABCDE");
+
+        vm.startPrank(member2);
+        token.approve(address(group), CONTRIBUTION);
+        group.contribute();
+        vm.stopPrank();
+
+        assertEq(group.activeCount(), 3);
+        assertTrue(group.hasPaid(1, member2));
+
+        vm.warp(block.timestamp + CYCLE_LENGTH + 1);
+
+        vm.prank(creator);
+        group.triggerPayout();
+
+        assertEq(group.currentCycle(), 2);
+    }
 }
