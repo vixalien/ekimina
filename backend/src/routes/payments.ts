@@ -5,7 +5,7 @@ import type { Address, BaseUnit } from "@ekimina/types";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 
 import { errorResponses, paymentIntentSchema } from "../lib/schemas.js";
-import { paymentIntents } from "../lib/store.js";
+import { createPaymentIntent, getPaymentIntent, updatePaymentIntent } from "../lib/store.js";
 
 const createIntentRoute = createRoute({
   method: "post",
@@ -76,21 +76,21 @@ export default new OpenAPIHono()
       createdAt: new Date().toISOString(),
       resultingTxId: null,
     };
-    paymentIntents.set(id, intent);
-    return c.json(intent);
+    const created = await createPaymentIntent(intent);
+    return c.json(created as any);
   })
   .openapi(getIntentRoute, async (c) => {
     const { id } = c.req.valid("param");
-    const intent = paymentIntents.get(id);
+    const intent = await getPaymentIntent(id);
     // oxlint-disable-next-line typescript/no-explicit-any
     if (!intent) return c.json({ error: "not found" }, 404) as any;
     return c.json(intent);
   })
   .openapi(retryIntentRoute, async (c) => {
     const { id } = c.req.valid("param");
-    const intent = paymentIntents.get(id);
+    const intent = await getPaymentIntent(id);
     // oxlint-disable-next-line typescript/no-explicit-any
     if (!intent) return c.json({ error: "not found" }, 404) as any;
-    intent.status = "pending";
-    return c.json(intent);
+    const updated = await updatePaymentIntent(id, { status: "pending" });
+    return c.json(updated as any);
   });

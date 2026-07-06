@@ -83,10 +83,10 @@ const routes = app
   .route("/", authRoutes)
   .route("/", profileRoutes)
   .route("/", lookupRoutes)
+  .route("/", groupsRoutes)
   .route("/", indexerRoutes)
   .route("/", relayRoutes)
   .route("/ussd", ussdRoutes)
-  .route("/", groupsRoutes)
   .route("/", mutationsRoutes)
   .route("/", paymentsRoutes);
 

@@ -2,8 +2,6 @@ import crypto from "crypto";
 
 import type { Address, GroupSettingField } from "@ekimina/types";
 
-import type { PendingRequestState } from "../lib/store.js";
-
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 
 import * as contract from "../lib/contract-data.js";
@@ -15,12 +13,14 @@ import {
   thresholdResultSchema,
 } from "../lib/schemas.js";
 import {
-  pendingRequests,
-  settingsChanges,
-  discretionaryReviews,
-  joinRequestReviews,
-  withdrawalReviews,
-  loanReviews,
+  upsertSigningState,
+  getSettingsChange,
+  createSettingsChange,
+  upsertReview,
+  getReview,
+  createJoinRequest,
+  deleteJoinRequest,
+  getGroupMetaByInviteCode,
 } from "../lib/store.js";
 
 function nameEntry(key: string): { name: string; initials: string } {
@@ -575,11 +575,9 @@ export default new OpenAPIHono()
     if (!loan) return c.json({ error: "not found" }, 404) as any;
 
     const key = `loan:${id}`;
-    let state = loanReviews.get(key) ?? { signed: new Set<string>() };
-    state.signed.add(userId);
-    loanReviews.set(key, state);
+    const state = await upsertSigningState(key, userId);
 
-    return c.json({ success: true, thresholdMet: false });
+    return c.json({ success: true, thresholdMet: state.signedBy.length >= 2 });
   })
   .openapi(rejectLoanRoute, async (c) => {
     const { group, id } = c.req.valid("param");
@@ -617,24 +615,20 @@ export default new OpenAPIHono()
       currentUserSignedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
     };
-    settingsChanges.set(change.id, change);
+    await createSettingsChange(change);
     return c.json({ success: true });
   })
   .openapi(signSettingsRoute, async (c) => {
     const { id } = c.req.valid("param");
     const { userId } = c.req.valid("json");
-    const change = settingsChanges.get(id);
+    const change = await getSettingsChange(id);
     // oxlint-disable-next-line typescript/no-explicit-any
     if (!change) return c.json({ error: "not found" }, 404) as any;
 
     const key = `settings:${id}`;
-    let state: PendingRequestState = (pendingRequests.get(key) as
-      | PendingRequestState
-      | undefined) ?? { signed: new Set<string>() };
-    state.signed.add(userId);
-    pendingRequests.set(key, state);
+    const state = await upsertSigningState(key, userId);
 
-    const thresholdMet = state.signed.size >= 2;
+    const thresholdMet = state.signedBy.length >= 2;
     return c.json({ success: true, thresholdMet });
   })
   .openapi(rejectSettingsRoute, async (c) => {
@@ -642,7 +636,7 @@ export default new OpenAPIHono()
   })
   .openapi(getSettingsChangeRoute, async (c) => {
     const { id } = c.req.valid("param");
-    const change = settingsChanges.get(id);
+    const change = await getSettingsChange(id);
     // oxlint-disable-next-line typescript/no-explicit-any
     if (!change) return c.json({ error: "not found" }, 404) as any;
     return c.json(change);
@@ -677,26 +671,28 @@ export default new OpenAPIHono()
       currentUserAlreadySigned: true,
       currentUserSignedAt: new Date().toISOString(),
     };
-    discretionaryReviews.set(review.id, review);
+    await upsertReview({
+      id: review.id,
+      type: "discretionary",
+      groupId: group,
+      data: review,
+      createdAt: new Date().toISOString(),
+    });
     return c.json({ success: true });
   })
   .openapi(getDiscReviewRoute, async (c) => {
     const { id } = c.req.valid("param");
-    const review = discretionaryReviews.get(id);
+    const review = await getReview(id);
     // oxlint-disable-next-line typescript/no-explicit-any
     if (!review) return c.json({ error: "not found" }, 404) as any;
-    return c.json(review);
+    return c.json(review.data);
   })
   .openapi(signDiscRoute, async (c) => {
     const { id } = c.req.valid("param");
     const { userId } = c.req.valid("json");
     const key = `disc:${id}`;
-    let state: PendingRequestState = (pendingRequests.get(key) as
-      | PendingRequestState
-      | undefined) ?? { signed: new Set<string>() };
-    state.signed.add(userId);
-    pendingRequests.set(key, state);
-    return c.json({ success: true, thresholdMet: state.signed.size >= 2 });
+    const state = await upsertSigningState(key, userId);
+    return c.json({ success: true, thresholdMet: state.signedBy.length >= 2 });
   })
   .openapi(rejectDiscRoute, async (c) => {
     return c.json({ success: true });
@@ -722,26 +718,28 @@ export default new OpenAPIHono()
       signatures: [],
       currentUserAlreadySigned: false,
     };
-    withdrawalReviews.set(id, review);
+    await upsertReview({
+      id: review.id,
+      type: "withdrawal",
+      groupId: group,
+      data: review,
+      createdAt: new Date().toISOString(),
+    });
     return c.json({ success: true, requestId: id });
   })
   .openapi(getWithdrawalReviewRoute, async (c) => {
     const { id } = c.req.valid("param");
-    const review = withdrawalReviews.get(id);
+    const review = await getReview(id);
     // oxlint-disable-next-line typescript/no-explicit-any
     if (!review) return c.json({ error: "not found" }, 404) as any;
-    return c.json(review);
+    return c.json(review.data);
   })
   .openapi(signWithdrawalRoute, async (c) => {
     const { id } = c.req.valid("param");
     const { userId } = c.req.valid("json");
     const key = `withdrawal:${id}`;
-    let state: PendingRequestState = (pendingRequests.get(key) as
-      | PendingRequestState
-      | undefined) ?? { signed: new Set<string>() };
-    state.signed.add(userId);
-    pendingRequests.set(key, state);
-    return c.json({ success: true, thresholdMet: state.signed.size >= 2 });
+    const state = await upsertSigningState(key, userId);
+    return c.json({ success: true, thresholdMet: state.signedBy.length >= 2 });
   })
   .openapi(rejectWithdrawalRoute, async (c) => {
     return c.json({ success: true });
@@ -768,18 +766,18 @@ export default new OpenAPIHono()
       status: "pending" as const,
       requestedAt: new Date().toISOString(),
     };
-    pendingRequests.set(id, req);
+    await createJoinRequest(req);
     return c.json(req);
   })
   .openapi(cancelJoinRequestRoute, async (c) => {
     const { id } = c.req.valid("param");
-    pendingRequests.delete(id);
+    await deleteJoinRequest(id);
     return c.json({ success: true });
   })
   .openapi(getJoinReviewRoute, async (c) => {
     const { group, id } = c.req.valid("param");
-    const review = joinRequestReviews.get(id);
-    if (review) return c.json(review);
+    const review = await getReview(id);
+    if (review) return c.json(review.data);
     return c.json({
       id,
       groupId: group,
@@ -798,20 +796,15 @@ export default new OpenAPIHono()
     const { id } = c.req.valid("param");
     const { userId } = c.req.valid("json");
     const key = `join:${id}`;
-    let state: PendingRequestState = (pendingRequests.get(key) as
-      | PendingRequestState
-      | undefined) ?? { signed: new Set<string>() };
-    state.signed.add(userId);
-    pendingRequests.set(key, state);
-    return c.json({ success: true, thresholdMet: state.signed.size >= 2 });
+    const state = await upsertSigningState(key, userId);
+    return c.json({ success: true, thresholdMet: state.signedBy.length >= 2 });
   })
   .openapi(rejectJoinRoute, async (c) => {
     return c.json({ success: true });
   })
   .openapi(joinByCodeRoute, async (c) => {
     const { code } = c.req.valid("json");
-    const { groupMeta } = await import("../lib/store.js");
-    const meta = Array.from(groupMeta.values()).find((g) => g.inviteCode === code);
+    const meta = await getGroupMetaByInviteCode(code);
     // oxlint-disable-next-line typescript/no-explicit-any
     if (!meta) return c.json({ error: "not found" }, 404) as any;
     return c.json({ group: meta.address, success: true });

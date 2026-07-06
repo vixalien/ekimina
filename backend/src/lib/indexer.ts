@@ -4,7 +4,7 @@ import { getFactoryContract, getIkiminaContract } from "@ekimina/contracts";
 
 import { publicClient } from "./chain.js";
 import { GROUP_META } from "./deployed-state.js";
-import { groupMeta } from "./store.js";
+import { upsertGroupMeta } from "./store.js";
 
 const groupCache = new Map<Address, Group>();
 const cycleCache = new Map<Address, GroupCycle>();
@@ -82,12 +82,12 @@ export async function refreshGroup(address: Address) {
 
     const meta = GROUP_META[address.toLowerCase()];
     if (meta) {
-      groupMeta.set(address, {
+      await upsertGroupMeta({
         address,
         name: meta.name,
         inviteCode: meta.inviteCode,
-        createdAt: new Date(Number(cycleStart) * 1000).toISOString(),
         creator: address,
+        createdAt: new Date(Number(cycleStart) * 1000).toISOString(),
       });
     }
   } catch (e) {

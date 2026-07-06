@@ -1,8 +1,51 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { clearAll } from "../__tests__/mock-store.js";
+
+vi.mock("./db/queries.js", async () => {
+  const m = await import("../__tests__/mock-store.js");
+  return {
+    getUserByAddress: vi.fn(() => null),
+    getUserByPhone: vi.fn((phone: string) => {
+      for (const u of m.mockUsers.values()) {
+        if ((u as Record<string, unknown>).phone === phone) return u;
+      }
+      return null;
+    }),
+    createUser: vi.fn((user: Record<string, unknown>) => {
+      m.mockUsers.set(user.id as string, user);
+      m.mockUsersByAddress.set(user.address as string, user);
+      return user;
+    }),
+    getAllGroupMeta: vi.fn(() => []),
+    getGroupMetaByAddress: vi.fn(() => null),
+    getGroupMetaByInviteCode: vi.fn(() => null),
+    upsertGroupMeta: vi.fn((meta: Record<string, unknown>) => meta),
+    getPaymentIntent: vi.fn(() => null),
+    createPaymentIntent: vi.fn((i: Record<string, unknown>) => i),
+    updatePaymentIntent: vi.fn(() => null),
+    getSigningState: vi.fn(() => null),
+    upsertSigningState: vi.fn((id: string, userId: string) => ({
+      id,
+      signedBy: [userId],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    })),
+    deleteSigningState: vi.fn(),
+    createJoinRequest: vi.fn((r: Record<string, unknown>) => r),
+    deleteJoinRequest: vi.fn(),
+    getSettingsChange: vi.fn(() => null),
+    createSettingsChange: vi.fn((c: Record<string, unknown>) => c),
+    getReview: vi.fn(() => null),
+    upsertReview: vi.fn((r: Record<string, unknown>) => r),
+  };
+});
 
 import { sendOtp, verifyOtp } from "./auth.js";
 
 describe("sendOtp", () => {
+  beforeEach(() => clearAll());
+
   it("returns sent: true for any phone", async () => {
     const result = await sendOtp("0788123456");
     expect(result).toEqual({ sent: true });
@@ -14,6 +57,8 @@ describe("sendOtp", () => {
 });
 
 describe("verifyOtp", () => {
+  beforeEach(() => clearAll());
+
   it("returns auth result for correct mock OTP", async () => {
     await sendOtp("0788123456");
     const result = await verifyOtp("0788123456", "123456");

@@ -3,7 +3,7 @@ import type { Address } from "@ekimina/types";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 
 import { addressSchema, groupMetaSchema, lookupNamesResultSchema } from "../lib/schemas.js";
-import { usersByAddress, groupMeta } from "../lib/store.js";
+import { getUserByAddress, getGroupMetaByInviteCode } from "../lib/store.js";
 
 const resolveNamesRoute = createRoute({
   method: "post",
@@ -50,14 +50,14 @@ export default new OpenAPIHono()
     const { addresses } = c.req.valid("json");
     const result: Record<string, string | null> = {};
     for (const addr of addresses) {
-      const user = usersByAddress.get(addr as Address);
+      const user = await getUserByAddress(addr as Address);
       result[addr] = user?.name ?? addr.slice(0, 6);
     }
     return c.json(result);
   })
   .openapi(groupByInviteRoute, async (c) => {
     const { code } = c.req.valid("param");
-    const meta = Array.from(groupMeta.values()).find((g) => g.inviteCode === code);
+    const meta = await getGroupMetaByInviteCode(code);
     if (!meta) return c.json({ error: "not found" }, 404);
     return c.json(meta, 200);
   });

@@ -11,9 +11,8 @@ import {
   groupMetaSchema,
   groupConfigSchema,
   groupCycleSchema,
-  memberSchema,
 } from "../lib/schemas.js";
-import { groupMeta } from "../lib/store.js";
+import { getAllGroupMeta } from "../lib/store.js";
 
 const myGroupsRoute = createRoute({
   method: "get",
@@ -57,23 +56,9 @@ const getCycleRoute = createRoute({
   },
 });
 
-const getMembersRoute = createRoute({
-  method: "get",
-  path: "/groups/{group}/members",
-  tags: ["Indexer"],
-  request: { params: z.object({ group: addressSchema }) },
-  responses: {
-    200: {
-      content: { "application/json": { schema: z.array(memberSchema) } },
-      description: "Member list",
-    },
-    ...errorResponses,
-  },
-});
-
 export default new OpenAPIHono()
   .openapi(myGroupsRoute, async (c) => {
-    const metas = Array.from(groupMeta.values());
+    const metas = await getAllGroupMeta();
     return c.json(metas);
   })
   .openapi(getGroupRoute, async (c) => {
@@ -120,27 +105,4 @@ export default new OpenAPIHono()
       paidCount: 0,
       memberCount: 0,
     });
-  })
-  .openapi(getMembersRoute, async (c) => {
-    const { group } = c.req.valid("param");
-    const groupAddr = group as Address;
-    const contract = getIkiminaContract(groupAddr, { public: publicClient });
-    const members = await contract.read.memberList();
-
-    const result = [];
-    for (const addr of members) {
-      const active = await contract.read.isActive([addr]);
-      if (!active) continue;
-
-      const isCommittee = await contract.read.isCommittee([addr]);
-      const joined = await contract.read.joinedCycle([addr]);
-
-      result.push({
-        address: addr,
-        isCommitteeMember: isCommittee,
-        joinedCycle: Number(joined),
-        active: true,
-      });
-    }
-    return c.json(result);
   });

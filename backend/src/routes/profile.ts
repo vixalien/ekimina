@@ -3,7 +3,7 @@ import type { Address } from "@ekimina/types";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 
 import { addressSchema, userSchema } from "../lib/schemas.js";
-import { usersByAddress } from "../lib/store.js";
+import { getUserByAddress } from "../lib/store.js";
 
 const getUserRoute = createRoute({
   method: "get",
@@ -56,13 +56,12 @@ const updateMeRoute = createRoute({
 export default new OpenAPIHono()
   .openapi(getUserRoute, async (c) => {
     const { address } = c.req.valid("param");
-    const user = usersByAddress.get(address as Address);
+    const user = await getUserByAddress(address as Address);
     if (!user) return c.json({ error: "not found" }, 404);
     return c.json(user, 200);
   })
   .openapi(updateMeRoute, async (c) => {
     const userId = c.req.header("x-user-id");
     if (!userId) return c.json({ error: "unauthorized" }, 401);
-    // oxlint-disable-next-line typescript/no-explicit-any
     return c.json({ ok: true }) as any;
   });
