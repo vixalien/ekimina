@@ -135,7 +135,7 @@ export default function TransactionDetailScreen(): JSX.Element {
     if (!activeGroupId || !transactionId) return;
     dataClient.groups
       .getTransactionDetail(activeGroupId, transactionId)
-      .then((d: any) => {
+      .then((d: TransactionDetail) => {
         setDetail(d);
         setLoading(false);
         return;

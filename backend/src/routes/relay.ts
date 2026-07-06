@@ -30,6 +30,7 @@ relay.openapi(contributeRoute, async (c) => {
     public: publicClient,
     wallet: walletClient,
   });
+  // oxlint-disable-next-line typescript/no-explicit-any
   const hash = await (contract as any).write.contribute();
   const receipt = await publicClient.waitForTransactionReceipt({ hash });
   return c.json({ txId: receipt.transactionHash });
@@ -65,6 +66,7 @@ relay.openapi(joinRoute, async (c) => {
     public: publicClient,
     wallet: walletClient,
   });
+  // oxlint-disable-next-line typescript/no-explicit-any
   const hash = await (contract as any).write.join([code]);
   const receipt = await publicClient.waitForTransactionReceipt({ hash });
   return c.json({ txId: receipt.transactionHash });
@@ -92,6 +94,7 @@ relay.openapi(triggerPayoutRoute, async (c) => {
     public: publicClient,
     wallet: walletClient,
   });
+  // oxlint-disable-next-line typescript/no-explicit-any
   const hash = await (contract as any).write.triggerPayout();
   const receipt = await publicClient.waitForTransactionReceipt({ hash });
   return c.json({ txId: receipt.transactionHash });
@@ -129,6 +132,7 @@ relay.openapi(rotateRoute, async (c) => {
     public: publicClient,
     wallet: walletClient,
   });
+  // oxlint-disable-next-line typescript/no-explicit-any
   const hash = await (contract as any).write.setRotation([order]);
   const receipt = await publicClient.waitForTransactionReceipt({ hash });
   return c.json({ txId: receipt.transactionHash });
@@ -164,6 +168,7 @@ relay.openapi(repayLoanRoute, async (c) => {
     public: publicClient,
     wallet: walletClient,
   });
+  // oxlint-disable-next-line typescript/no-explicit-any
   const hash = await (contract as any).write.repayLoan([loanId]);
   const receipt = await publicClient.waitForTransactionReceipt({ hash });
   return c.json({ txId: receipt.transactionHash });
@@ -191,6 +196,7 @@ relay.openapi(shareOutRoute, async (c) => {
     public: publicClient,
     wallet: walletClient,
   });
+  // oxlint-disable-next-line typescript/no-explicit-any
   const hash = await (contract as any).write.shareOut();
   const receipt = await publicClient.waitForTransactionReceipt({ hash });
   return c.json({ txId: receipt.transactionHash });
@@ -222,6 +228,7 @@ relay.openapi(createProposalRoute, async (c) => {
     public: publicClient,
     wallet: walletClient,
   });
+  // oxlint-disable-next-line typescript/no-explicit-any
   const hash = await (contract as any).write.createProposal([draft]);
   const receipt = await publicClient.waitForTransactionReceipt({ hash });
   return c.json({ txId: receipt.transactionHash });
@@ -249,6 +256,7 @@ relay.openapi(approveProposalRoute, async (c) => {
     public: publicClient,
     wallet: walletClient,
   });
+  // oxlint-disable-next-line typescript/no-explicit-any
   const hash = await (contract as any).write.approveProposal([id]);
   const receipt = await publicClient.waitForTransactionReceipt({ hash });
   return c.json({ txId: receipt.transactionHash });
@@ -276,6 +284,7 @@ relay.openapi(rejectProposalRoute, async (c) => {
     public: publicClient,
     wallet: walletClient,
   });
+  // oxlint-disable-next-line typescript/no-explicit-any
   const hash = await (contract as any).write.rejectProposal([id]);
   const receipt = await publicClient.waitForTransactionReceipt({ hash });
   return c.json({ txId: receipt.transactionHash });

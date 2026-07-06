@@ -25,6 +25,7 @@ type SectionConfig = {
   title: string;
   keys: (keyof GroupSettings)[];
   Component: ComponentType<{
+    // oxlint-disable-next-line typescript/no-explicit-any
     value: any;
     onChange: (partial: Partial<GroupSettings>) => void;
   }>;

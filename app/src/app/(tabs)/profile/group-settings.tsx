@@ -124,8 +124,8 @@ export default function GroupSettingsScreen(): JSX.Element {
       .then(([s, detail, group]) => {
         startTransition(() => {
           setSettings(s);
-          setGroupName(group.name);
-          setGroupInitials(group.avatarInitials);
+          setGroupName(group.name as string);
+          setGroupInitials(group.avatarInitials as string);
           setGroupCreatedAt(
             new Date().toLocaleDateString("en-RW", {
               year: "numeric",

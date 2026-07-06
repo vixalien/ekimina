@@ -1,6 +1,6 @@
 import type { JSX } from "react";
 
-import type { GroupInviteData } from "@/api";
+import type { GroupInviteData, SentInvite } from "@/api";
 
 import { Ionicons } from "@expo/vector-icons";
 import { useStore } from "@nanostores/react";
@@ -169,7 +169,7 @@ export default function InviteScreen(): JSX.Element {
                   Sent invites
                 </AppText>
                 <ListGroup>
-                  {data.sentInvites.map((invite: any, index: number) => (
+                  {data.sentInvites.map((invite: SentInvite, index: number) => (
                     <View key={invite.phone}>
                       {index > 0 && <Separator className="mx-4" />}
                       <ListGroup.Item disabled>

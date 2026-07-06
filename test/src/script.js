@@ -27,9 +27,9 @@ export async function sendRequest() {
   });
   const data = await response.text();
 
-  if (response.headers.get("freeflow") == "FC") {
+  if (response.headers.get("freeflow") === "FC") {
     showDialog(false, data);
-  } else if (response.headers.get("freeflow") == "FB") {
+  } else if (response.headers.get("freeflow") === "FB") {
     showDialog(true, data);
   } else {
     showDialog(true, "Invalid response from server");

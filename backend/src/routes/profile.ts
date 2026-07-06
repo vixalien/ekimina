@@ -65,6 +65,7 @@ const updateMeRoute = createRoute({
 profile.openapi(updateMeRoute, async (c) => {
   const userId = c.req.header("x-user-id");
   if (!userId) return c.json({ error: "unauthorized" }, 401);
+  // oxlint-disable-next-line typescript/no-explicit-any
   return c.json({ ok: true }) as any;
 });
 

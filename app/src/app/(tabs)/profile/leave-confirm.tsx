@@ -41,7 +41,7 @@ export default function LeaveGroupConfirm(): JSX.Element {
     startTransition(() => setLoading(true));
     dataClient.groups
       .getLeaveGroupInfo(activeGroupId, auth.id)
-      .then((i: any) =>
+      .then((i: LeaveGroupInfo) =>
         startTransition(() => {
           setInfo(i);
           setLoading(false);
@@ -58,7 +58,10 @@ export default function LeaveGroupConfirm(): JSX.Element {
     );
   }
 
-  const hasLoan = info.outstandingLoanAmount != null && info.outstandingLoanAmount > 0;
+  const hasLoan =
+    info.outstandingLoanAmount !== null &&
+    info.outstandingLoanAmount !== undefined &&
+    info.outstandingLoanAmount > 0;
 
   return (
     <ScreenContainer>

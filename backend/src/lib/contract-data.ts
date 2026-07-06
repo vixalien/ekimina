@@ -1,4 +1,14 @@
-import type { Address } from "@ekimina/types";
+import type {
+  Address,
+  MemberStanding,
+  MemberListItem,
+  ContributionHistoryEntry,
+  CommitteeMember,
+  ReserveDataPoint,
+  SentInvite,
+  OutstandingLoan,
+  PublicGroup,
+} from "@ekimina/types";
 
 import { getIkiminaContract, getFactoryContract } from "@ekimina/contracts";
 
@@ -40,7 +50,7 @@ export async function getDashboard(groupAddr: Address) {
   const paid = await c.paidCount([curCycle]);
   const memberAddrs = await c.memberList();
   const activeMembers: Address[] = [];
-  const standings: any[] = [];
+  const standings: MemberStanding[] = [];
   for (const addr of memberAddrs) {
     if (!(await c.isActive([addr]))) continue;
     activeMembers.push(addr);
@@ -74,7 +84,7 @@ export async function getDashboard(groupAddr: Address) {
 
 export async function getMembers(groupAddr: Address, query?: string) {
   const c = r(groupAddr);
-  const result: any[] = [];
+  const result: MemberListItem[] = [];
   for (const addr of await c.memberList()) {
     if (!(await c.isActive([addr]))) continue;
     const n = nameOf(addr);
@@ -107,7 +117,7 @@ export async function getMemberDetail(groupAddr: Address, userId: string) {
   const n = nameOf(addr);
   const current = Number(await c.currentCycle());
   const joinedCycle = Number(joined);
-  const history: any[] = [];
+  const history: ContributionHistoryEntry[] = [];
   let onTime = 0;
   for (let cy = joinedCycle; cy <= current; cy++) {
     if (await c.hasPaid([BigInt(cy), addr])) {
@@ -132,7 +142,7 @@ export async function getMemberDetail(groupAddr: Address, userId: string) {
     onTimeContributions: onTime,
     totalContributions: history.length,
     activeLoanCount: 0,
-    penaltyCount: history.filter((h: any) => h.status === "missed").length,
+    penaltyCount: history.filter((h) => h.status === "missed").length,
     contributionHistory: history,
     loans: [],
     isCommitteeMember: isComm,
@@ -142,6 +152,7 @@ export async function getMemberDetail(groupAddr: Address, userId: string) {
 export async function getLoans(groupAddr: Address) {
   const c = r(groupAddr);
   const count = Number(await c.loanCount());
+  // oxlint-disable-next-line typescript/no-explicit-any
   const loans: any[] = [];
   for (let i = 1; i <= count; i++) loans.push(await c.getLoan([BigInt(i)]));
   return loans;
@@ -192,7 +203,7 @@ export async function getLoanReview(groupAddr: Address, loanId: string, _userId?
 
 export async function getCommittee(groupAddr: Address) {
   const c = r(groupAddr);
-  const result: any[] = [];
+  const result: CommitteeMember[] = [];
   for (const addr of await c.memberList()) {
     if ((await c.isActive([addr])) && (await c.isCommittee([addr]))) {
       const n = nameOf(addr);
@@ -248,9 +259,9 @@ export async function getSettings(groupAddr: Address) {
 export async function getReserveDetail(groupAddr: Address) {
   return {
     balance: toAmount(await r(groupAddr).reserve()),
-    history: [] as any[],
-    projection6: [] as any[],
-    projection12: [] as any[],
+    history: [] as ReserveDataPoint[],
+    projection6: [] as ReserveDataPoint[],
+    projection12: [] as ReserveDataPoint[],
     cycleSummary: { contributionsIn: 0, payoutOut: 0, penaltiesAbsorbed: 0, loanInterestIn: 0 },
     insight: "Enable an indexer for reserve history.",
   };
@@ -270,6 +281,7 @@ export async function getLeaveInfo(groupAddr: Address, userId: string) {
 export async function getProposals(groupAddr: Address) {
   const c = r(groupAddr);
   const count = Number(await c.proposalCount());
+  // oxlint-disable-next-line typescript/no-explicit-any
   const proposals: any[] = [];
   for (let i = 1; i <= count; i++) {
     try {
@@ -287,17 +299,22 @@ export async function getProposalDetail(groupAddr: Address, id: string) {
 
 export async function getPendingRequests(groupAddr: Address) {
   const proposals = await getProposals(groupAddr);
-  return proposals
-    .filter((p: any) => p[5] === BigInt(0))
-    .map((p: any) => ({
-      id: String(p[0]),
-      type: "loan_request" as const,
-      subject:
-        ["Loan", "Discretionary", "Settings", "MemberExit", "Dissolve"][Number(p[1])] ?? "Proposal",
-      signatureCount: Number(p[4]),
-      signatureThreshold: Number(p[5]) + Number(p[4]) + 1,
-      timestamp: new Date(Number(p[7]) * 1000).toISOString(),
-    }));
+  return (
+    proposals
+      // oxlint-disable-next-line typescript/no-explicit-any
+      .filter((p: any) => p[5] === BigInt(0))
+      // oxlint-disable-next-line typescript/no-explicit-any
+      .map((p: any) => ({
+        id: String(p[0]),
+        type: "loan_request" as const,
+        subject:
+          ["Loan", "Discretionary", "Settings", "MemberExit", "Dissolve"][Number(p[1])] ??
+          "Proposal",
+        signatureCount: Number(p[4]),
+        signatureThreshold: Number(p[5]) + Number(p[4]) + 1,
+        timestamp: new Date(Number(p[7]) * 1000).toISOString(),
+      }))
+  );
 }
 
 export function getInviteData(groupAddr: Address) {
@@ -306,7 +323,7 @@ export function getInviteData(groupAddr: Address) {
     ? {
         inviteCode: meta.inviteCode,
         shareLink: `https://e-kimina.app/join/${meta.inviteCode}`,
-        sentInvites: [] as any[],
+        sentInvites: [] as SentInvite[],
       }
     : { inviteCode: "", shareLink: "", sentInvites: [] };
 }
@@ -314,7 +331,7 @@ export function getInviteData(groupAddr: Address) {
 export async function getOutstandingLoans(groupAddr: Address) {
   const c = r(groupAddr);
   const count = Number(await c.loanCount());
-  const loans: any[] = [];
+  const loans: OutstandingLoan[] = [];
   for (let i = 1; i <= count; i++) {
     const loan = await c.getLoan([BigInt(i)]);
     if (!loan.borrower || loan.state !== 1) continue;
@@ -352,7 +369,12 @@ export async function getCycleState(groupAddr: Address) {
 
 export async function getMembersRaw(groupAddr: Address) {
   const c = r(groupAddr);
-  const result: any[] = [];
+  const result: {
+    address: Address;
+    isCommitteeMember: boolean;
+    joinedCycle: number;
+    active: boolean;
+  }[] = [];
   for (const addr of await c.memberList()) {
     const [active, isComm, joined] = await Promise.all([
       c.isActive([addr]),
@@ -405,7 +427,12 @@ export async function getPublicGroups() {
     if (!addr) return [];
     const factory = getFactoryContract(addr as Address, { public: publicClient });
     const length = await factory.read.allGroupsLength();
-    const groups: any[] = [];
+    const groups: (PublicGroup & {
+      isPublic: boolean;
+      contributionAmount: number;
+      cycleLength: number;
+      createdAt: string;
+    })[] = [];
     for (let i = 0; i < Number(length); i++) {
       const gAddr = await factory.read.allGroups([BigInt(i)]);
       const meta = GROUP_META[(gAddr as string).toLowerCase()];

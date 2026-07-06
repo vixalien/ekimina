@@ -1,4 +1,4 @@
-import type { DataClient, Address } from "@ekimina/types";
+import type { DataClient, Address, ReservePoint } from "@ekimina/types";
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL ?? "http://localhost:3000";
 
@@ -115,7 +115,7 @@ const groupReads: DataClient["groups"] = {
     return apiFetch(`/groups/${group}/loans/${id}`);
   },
   async getReserveHistory(group) {
-    const reserve = await apiFetch<any>(`/groups/${group}/reserve`);
+    const reserve = await apiFetch<{ history: ReservePoint[] }>(`/groups/${group}/reserve`);
     return reserve.history ?? [];
   },
   async getGroupDashboard(group) {

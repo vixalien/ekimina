@@ -70,6 +70,7 @@ const getIntentRoute = createRoute({
 payments.openapi(getIntentRoute, async (c) => {
   const { id } = c.req.valid("param");
   const intent = paymentIntents.get(id);
+  // oxlint-disable-next-line typescript/no-explicit-any
   if (!intent) return c.json({ error: "not found" }, 404) as any;
   return c.json(intent);
 });
@@ -91,6 +92,7 @@ const retryIntentRoute = createRoute({
 payments.openapi(retryIntentRoute, async (c) => {
   const { id } = c.req.valid("param");
   const intent = paymentIntents.get(id);
+  // oxlint-disable-next-line typescript/no-explicit-any
   if (!intent) return c.json({ error: "not found" }, 404) as any;
   intent.status = "pending";
   return c.json(intent);

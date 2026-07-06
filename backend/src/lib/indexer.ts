@@ -39,20 +39,28 @@ async function poll() {
 async function refreshGroup(address: Address) {
   try {
     const contract = getIkiminaContract(address, { public: publicClient });
-    const config: any = await contract.read.config();
+    const [
+      contributionAmount,
+      cycleLength,
+      payoutAmount,
+      payoutPolicy,
+      penaltyRateBps,
+      approvalThresholdBps,
+      loansEnabled,
+      discretionaryEnabled,
+      allMembersCommittee,
+    ] = await contract.read.config();
 
     groupCache.set(address, {
-      contributionAmount: config.contributionAmount.toString() as Group["contributionAmount"],
-      cycleLength: Number(config.cycleLength),
-      payoutAmount: config.payoutAmount.toString() as Group["payoutAmount"],
-      payoutPolicy: ["none", "rotating", "lump_sum_end"][
-        Number(config.payoutPolicy)
-      ] as Group["payoutPolicy"],
-      penaltyRateBps: Number(config.penaltyRateBps),
-      approvalThresholdBps: Number(config.approvalThresholdBps),
-      loansEnabled: config.loansEnabled,
-      discretionaryEnabled: config.discretionaryEnabled,
-      allMembersCommittee: config.allMembersCommittee,
+      contributionAmount: contributionAmount.toString() as Group["contributionAmount"],
+      cycleLength: Number(cycleLength),
+      payoutAmount: payoutAmount.toString() as Group["payoutAmount"],
+      payoutPolicy: ["none", "rotating", "lump_sum_end"][payoutPolicy] as Group["payoutPolicy"],
+      penaltyRateBps,
+      approvalThresholdBps,
+      loansEnabled,
+      discretionaryEnabled,
+      allMembersCommittee,
     });
 
     const currentCycle = await contract.read.currentCycle();

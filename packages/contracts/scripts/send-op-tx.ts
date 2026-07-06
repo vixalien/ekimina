@@ -1,9 +1,9 @@
 import { network } from "hardhat";
 
-// oxlint-disable-next-line typescript/no-explicit-any
 const { viem } = await (network.create({
   network: "hardhatOp",
   chainType: "op",
+  // oxlint-disable-next-line typescript/no-explicit-any
 }) as any);
 
 console.log("Sending transaction using the OP chain type");

@@ -1,6 +1,6 @@
 import type { JSX } from "react";
 
-import type { GroupDashboardData } from "@/api";
+import type { GroupDashboardData, GroupMeta, MemberStanding } from "@/api";
 
 import { Ionicons } from "@expo/vector-icons";
 import { useStore } from "@nanostores/react";
@@ -70,7 +70,7 @@ export default function HomeTab(): JSX.Element {
     }
   }, [openSwitcherFlag]);
 
-  function handleSelectGroup(membership: any) {
+  function handleSelectGroup(membership: GroupMeta) {
     switchGroup(membership.address);
     setIsSwitcherOpen(false);
   }
@@ -197,8 +197,8 @@ export default function HomeTab(): JSX.Element {
               </AppText>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <View className="flex-row items-center gap-2">
-                  {dashboard.members.slice(0, 15).map((m: any) => (
-                    <MemberAvatar key={m.id} initials={m.initials} status={m.status} />
+                  {dashboard.members.slice(0, 15).map((m: MemberStanding) => (
+                    <MemberAvatar key={m.userId} initials={m.initials} status={m.status} />
                   ))}
                   {dashboard.members.length > 15 && (
                     <View className="size-9 items-center justify-center">

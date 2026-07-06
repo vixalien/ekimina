@@ -27,6 +27,10 @@ import type {
   ReserveDetail,
   LeaveGroupInfo,
   DiscretionaryFundRequest,
+  PublicGroup,
+  DiscretionaryFundReview,
+  JoinRequestReview,
+  MemberWithdrawalReview,
 } from "./screen.js";
 
 export type Group = ChainGroup;
@@ -161,7 +165,7 @@ export interface GroupReads {
   getCommitteeMembers(group: Address): Promise<CommitteeMember[]>;
   getSettingsChangeReview(group: Address, requestId: string): Promise<SettingsChangeRequest>;
   getGroupInviteData(group: Address): Promise<GroupInviteData>;
-  getGroupDetails(group: string): Promise<any>;
+  getGroupDetails(group: string): Promise<Record<string, unknown>>;
   getReserveDetail(group: Address): Promise<ReserveDetail>;
   getLeaveGroupInfo(group: Address, userId: string): Promise<LeaveGroupInfo>;
   updateNotifications(userId: string, enabled: boolean): Promise<{ success: boolean }>;
@@ -207,20 +211,28 @@ export interface GroupReads {
   ): Promise<{ success: boolean }>;
   sendPhoneInvite(group: Address, phone: string): Promise<{ success: boolean }>;
   // Onboarding
-  createGroup(payload: any): Promise<any>;
-  joinByInviteCode(userId: string, code: string): Promise<any>;
+  createGroup(
+    payload: Record<string, unknown>,
+  ): Promise<{ group: { id: string; name: string }; inviteCode: string }>;
+  joinByInviteCode(
+    userId: string,
+    code: string,
+  ): Promise<{ id: string; groupName: string; requestedAt: string }>;
   cancelJoinRequest(requestId: string): Promise<{ success: boolean }>;
-  searchPublicGroups(query: string): Promise<any[]>;
-  requestToJoinGroup(groupId: string, userId: string): Promise<any>;
+  searchPublicGroups(query: string): Promise<PublicGroup[]>;
+  requestToJoinGroup(
+    groupId: string,
+    userId: string,
+  ): Promise<{ id: string; groupName: string; requestedAt: string }>;
   // Transactions
   retryTransaction(transactionId: string): Promise<{ success: boolean }>;
   // Discretionary
   submitDiscretionaryRequest(
     group: Address,
     userId: string,
-    req: any,
+    req: Record<string, unknown>,
   ): Promise<{ success: boolean }>;
-  getDiscretionaryReview(group: Address, requestId: string): Promise<any>;
+  getDiscretionaryReview(group: Address, requestId: string): Promise<DiscretionaryFundReview>;
   signDiscretionaryRequest(
     group: Address,
     requestId: string,
@@ -232,7 +244,7 @@ export interface GroupReads {
     userId: string,
   ): Promise<{ success: boolean }>;
   // Join requests
-  getJoinRequestReview(group: Address, requestId: string): Promise<any>;
+  getJoinRequestReview(group: Address, requestId: string): Promise<JoinRequestReview>;
   signJoinRequest(
     group: Address,
     requestId: string,
@@ -243,7 +255,7 @@ export interface GroupReads {
     requestId: string,
     userId: string,
   ): Promise<{ success: boolean }>;
-  getMemberWithdrawalReview(group: Address, requestId: string): Promise<any>;
+  getMemberWithdrawalReview(group: Address, requestId: string): Promise<MemberWithdrawalReview>;
 }
 
 export interface GroupActions {

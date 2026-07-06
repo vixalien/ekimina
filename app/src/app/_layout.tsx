@@ -1,4 +1,4 @@
-import "../global.css";
+import "@/global.css"; // oxlint-disable-line no-restricted-imports
 
 import type { JSX } from "react";
 

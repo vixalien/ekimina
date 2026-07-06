@@ -1,6 +1,6 @@
 import type { JSX } from "react";
 
-import type { GroupSettings, MemberListItem } from "@/api";
+import type { CommitteeMember, GroupSettings, MemberListItem } from "@/api";
 
 import { Ionicons } from "@expo/vector-icons";
 import { useStore } from "@nanostores/react";
@@ -86,7 +86,7 @@ export default function CommitteeScreen(): JSX.Element {
       .then(([members, committeeMembers, s, detail]) => {
         startTransition(() => {
           setAllMembers(members);
-          const ids = new Set<string>(committeeMembers.map((m: any) => m.id as string));
+          const ids = new Set<string>(committeeMembers.map((m: CommitteeMember) => m.userId));
           setCommitteeUserIds(ids);
           setOriginalCommittee(ids);
           setSettings(s);

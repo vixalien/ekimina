@@ -63,7 +63,7 @@ function buildRows(summary: ReserveCycleSummary, _currentCycle: number): Breakdo
     },
   ];
 
-  if (summary.loanDisbursed != null) {
+  if (summary.loanDisbursed !== null && summary.loanDisbursed !== undefined) {
     rows.push({
       label: "Loan disbursed",
       amount: summary.loanDisbursed,
@@ -72,7 +72,7 @@ function buildRows(summary: ReserveCycleSummary, _currentCycle: number): Breakdo
       prefix: "-",
     });
   }
-  if (summary.discretionaryDeposits != null) {
+  if (summary.discretionaryDeposits !== null && summary.discretionaryDeposits !== undefined) {
     rows.push({
       label: "Discretionary deposits",
       amount: summary.discretionaryDeposits,
@@ -81,7 +81,7 @@ function buildRows(summary: ReserveCycleSummary, _currentCycle: number): Breakdo
       prefix: "+",
     });
   }
-  if (summary.discretionaryWithdrawals != null) {
+  if (summary.discretionaryWithdrawals !== null && summary.discretionaryWithdrawals !== undefined) {
     rows.push({
       label: "Discretionary withdrawals",
       amount: summary.discretionaryWithdrawals,
@@ -114,7 +114,7 @@ export default function ReserveDetailScreen(): JSX.Element {
     startTransition(() => setLoading(true));
     dataClient.groups
       .getReserveDetail(activeGroupId)
-      .then((d: any) =>
+      .then((d: ReserveDetail) =>
         startTransition(() => {
           setData(d);
           setLoading(false);
@@ -172,8 +172,8 @@ export default function ReserveDetailScreen(): JSX.Element {
 
             {/* Chart */}
             <LineChart
-              history={data.history.map((d: any) => d.balance)}
-              projection={projection.map((d: any) => d.balance)}
+              history={data.history.map((d) => d.balance)}
+              projection={projection.map((d) => d.balance)}
             />
 
             {/* Breakdown */}

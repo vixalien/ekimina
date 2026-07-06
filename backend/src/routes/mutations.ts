@@ -1,6 +1,8 @@
 import crypto from "crypto";
 
-import type { Address } from "@ekimina/types";
+import type { Address, GroupSettingField } from "@ekimina/types";
+
+import type { PendingRequestState } from "../lib/store.js";
 
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 
@@ -58,6 +60,7 @@ mutations.openapi(signLoanRoute, async (c) => {
   const { group, id } = c.req.valid("param");
   const { userId } = c.req.valid("json");
   const loan = await contract.getLoanDetail(group as Address, id);
+  // oxlint-disable-next-line typescript/no-explicit-any
   if (!loan) return c.json({ error: "not found" }, 404) as any;
 
   const key = `loan:${id}`;
@@ -88,6 +91,7 @@ const rejectLoanRoute = createRoute({
 mutations.openapi(rejectLoanRoute, async (c) => {
   const { group, id } = c.req.valid("param");
   const loan = await contract.getLoanDetail(group as Address, id);
+  // oxlint-disable-next-line typescript/no-explicit-any
   if (!loan) return c.json({ error: "not found" }, 404) as any;
   return c.json({ success: true });
 });
@@ -124,7 +128,7 @@ mutations.openapi(submitSettingsRoute, async (c) => {
   const change = {
     id: crypto.randomUUID(),
     groupId: group,
-    field,
+    field: field as GroupSettingField,
     fieldLabel: field.replace(/_/g, " ").replace(/\b\w/g, (l: string) => l.toUpperCase()),
     currentValue: "",
     proposedValue,
@@ -171,10 +175,13 @@ mutations.openapi(signSettingsRoute, async (c) => {
   const { id } = c.req.valid("param");
   const { userId } = c.req.valid("json");
   const change = settingsChanges.get(id);
+  // oxlint-disable-next-line typescript/no-explicit-any
   if (!change) return c.json({ error: "not found" }, 404) as any;
 
   const key = `settings:${id}`;
-  let state = pendingRequests.get(key) ?? { signed: new Set<string>() };
+  let state: PendingRequestState = (pendingRequests.get(key) as
+    | PendingRequestState
+    | undefined) ?? { signed: new Set<string>() };
   state.signed.add(userId);
   pendingRequests.set(key, state);
 
@@ -217,6 +224,7 @@ const getSettingsChangeRoute = createRoute({
 mutations.openapi(getSettingsChangeRoute, async (c) => {
   const { id } = c.req.valid("param");
   const change = settingsChanges.get(id);
+  // oxlint-disable-next-line typescript/no-explicit-any
   if (!change) return c.json({ error: "not found" }, 404) as any;
   return c.json(change);
 });
@@ -291,6 +299,7 @@ const getDiscReviewRoute = createRoute({
 mutations.openapi(getDiscReviewRoute, async (c) => {
   const { id } = c.req.valid("param");
   const review = discretionaryReviews.get(id);
+  // oxlint-disable-next-line typescript/no-explicit-any
   if (!review) return c.json({ error: "not found" }, 404) as any;
   return c.json(review);
 });
@@ -316,7 +325,9 @@ mutations.openapi(signDiscRoute, async (c) => {
   const { id } = c.req.valid("param");
   const { userId } = c.req.valid("json");
   const key = `disc:${id}`;
-  let state = pendingRequests.get(key) ?? { signed: new Set<string>() };
+  let state: PendingRequestState = (pendingRequests.get(key) as
+    | PendingRequestState
+    | undefined) ?? { signed: new Set<string>() };
   state.signed.add(userId);
   pendingRequests.set(key, state);
   return c.json({ success: true, thresholdMet: state.signed.size >= 2 });
@@ -411,6 +422,7 @@ const getWithdrawalReviewRoute = createRoute({
 mutations.openapi(getWithdrawalReviewRoute, async (c) => {
   const { id } = c.req.valid("param");
   const review = withdrawalReviews.get(id);
+  // oxlint-disable-next-line typescript/no-explicit-any
   if (!review) return c.json({ error: "not found" }, 404) as any;
   return c.json(review);
 });
@@ -436,7 +448,9 @@ mutations.openapi(signWithdrawalRoute, async (c) => {
   const { id } = c.req.valid("param");
   const { userId } = c.req.valid("json");
   const key = `withdrawal:${id}`;
-  let state = pendingRequests.get(key) ?? { signed: new Set<string>() };
+  let state: PendingRequestState = (pendingRequests.get(key) as
+    | PendingRequestState
+    | undefined) ?? { signed: new Set<string>() };
   state.signed.add(userId);
   pendingRequests.set(key, state);
   return c.json({ success: true, thresholdMet: state.signed.size >= 2 });
@@ -655,7 +669,9 @@ mutations.openapi(signJoinRoute, async (c) => {
   const { id } = c.req.valid("param");
   const { userId } = c.req.valid("json");
   const key = `join:${id}`;
-  let state = pendingRequests.get(key) ?? { signed: new Set<string>() };
+  let state: PendingRequestState = (pendingRequests.get(key) as
+    | PendingRequestState
+    | undefined) ?? { signed: new Set<string>() };
   state.signed.add(userId);
   pendingRequests.set(key, state);
   return c.json({ success: true, thresholdMet: state.signed.size >= 2 });
@@ -704,7 +720,8 @@ const joinByCodeRoute = createRoute({
 mutations.openapi(joinByCodeRoute, async (c) => {
   const { code } = c.req.valid("json");
   const { groupMeta } = await import("../lib/store.js");
-  const meta = Array.from(groupMeta.values()).find((g: any) => g.inviteCode === code);
+  const meta = Array.from(groupMeta.values()).find((g) => g.inviteCode === code);
+  // oxlint-disable-next-line typescript/no-explicit-any
   if (!meta) return c.json({ error: "not found" }, 404) as any;
   return c.json({ group: meta.address, success: true });
 });

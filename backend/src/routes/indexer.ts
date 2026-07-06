@@ -57,6 +57,7 @@ indexer.openapi(getGroupRoute, async (c) => {
   if (cached) return c.json(cached);
 
   const contract = getIkiminaContract(groupAddr, { public: publicClient });
+  // oxlint-disable-next-line typescript/no-explicit-any
   const config = (await contract.read.config()) as any;
 
   return c.json({
@@ -72,6 +73,7 @@ indexer.openapi(getGroupRoute, async (c) => {
     loansEnabled: config.loansEnabled,
     discretionaryEnabled: config.discretionaryEnabled,
     allMembersCommittee: config.allMembersCommittee,
+    // oxlint-disable-next-line typescript/no-explicit-any
   } as any);
 });
 

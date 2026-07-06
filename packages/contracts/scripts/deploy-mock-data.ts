@@ -11,6 +11,7 @@ function toAmount(usdm: number): bigint {
 }
 
 async function main() {
+  // oxlint-disable-next-line typescript/no-explicit-any
   const client = await (hre.network.connect() as any);
   const wallets = await client.viem.getWalletClients();
   const publicClient = await client.viem.getPublicClient();
@@ -38,13 +39,16 @@ async function main() {
   }
   console.log("Minted USDm to 10 accounts");
 
+  // oxlint-disable-next-line typescript/no-explicit-any
   async function decodeGroupDeployed(receipt: any): Promise<Address> {
+    // oxlint-disable-next-line typescript/no-explicit-any
     const log = receipt.logs.find((l: any) => {
       try {
         const d = decodeEventLog({
           abi: factoryArtifact.abi,
           data: l.data,
           topics: l.topics,
+          // oxlint-disable-next-line typescript/no-explicit-any
         } as any);
         return d.eventName === "GroupDeployed";
       } catch {
@@ -55,8 +59,10 @@ async function main() {
       abi: factoryArtifact.abi,
       data: log!.data,
       topics: log!.topics,
-    } as any) as any;
-    return decoded.args.group as Address;
+      // oxlint-disable-next-line typescript/no-explicit-any
+    } as any);
+    // oxlint-disable-next-line typescript/no-explicit-any
+    return (decoded.args as any).group as Address;
   }
 
   const invite1 = "AB3K9F";
@@ -159,7 +165,9 @@ async function main() {
 
   // Advance group 1 through 6 more cycles
   for (let c = 2; c <= 7; c++) {
+    // oxlint-disable-next-line typescript/no-explicit-any
     await publicClient.request({ method: "evm_increaseTime", params: [2592000] } as any);
+    // oxlint-disable-next-line typescript/no-explicit-any
     await publicClient.request({ method: "evm_mine", params: [] } as any);
 
     await wallets[0].writeContract({
@@ -212,7 +220,9 @@ async function main() {
   console.log("Group 2: 6 members");
 
   for (let c = 2; c <= 3; c++) {
+    // oxlint-disable-next-line typescript/no-explicit-any
     await publicClient.request({ method: "evm_increaseTime", params: [1209600] } as any);
+    // oxlint-disable-next-line typescript/no-explicit-any
     await publicClient.request({ method: "evm_mine", params: [] } as any);
 
     await wallets[0].writeContract({

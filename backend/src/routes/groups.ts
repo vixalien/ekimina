@@ -21,6 +21,7 @@ const dashboardRoute = createRoute({
 groups.openapi(dashboardRoute, async (c) => {
   const { group } = c.req.valid("param");
   const data = await contract.getDashboard(group as Address);
+  // oxlint-disable-next-line typescript/no-explicit-any
   if (!data) return c.json({ error: "not found" }, 404) as any;
   return c.json(data);
 });
@@ -60,6 +61,7 @@ const memberDetailRoute = createRoute({
 groups.openapi(memberDetailRoute, async (c) => {
   const { group, userId } = c.req.valid("param");
   const data = await contract.getMemberDetail(group as Address, userId);
+  // oxlint-disable-next-line typescript/no-explicit-any
   if (!data) return c.json({ error: "not found" }, 404) as any;
   return c.json(data);
 });
@@ -157,6 +159,7 @@ const loanDetailRoute = createRoute({
 groups.openapi(loanDetailRoute, async (c) => {
   const { group, id } = c.req.valid("param");
   const data = await contract.getLoanDetail(group as Address, id);
+  // oxlint-disable-next-line typescript/no-explicit-any
   if (!data) return c.json({ error: "not found" }, 404) as any;
   return c.json(data);
 });
@@ -179,6 +182,7 @@ groups.openapi(loanReviewRoute, async (c) => {
   const { group, id } = c.req.valid("param");
   const { userId } = c.req.valid("query");
   const data = await contract.getLoanReview(group as Address, id, userId);
+  // oxlint-disable-next-line typescript/no-explicit-any
   if (!data) return c.json({ error: "not found" }, 404) as any;
   return c.json(data);
 });
@@ -213,6 +217,7 @@ const userProfileRoute = createRoute({
 groups.openapi(userProfileRoute, async (c) => {
   const { group, userId } = c.req.valid("param");
   const data = await contract.getUserProfile(group as Address, userId);
+  // oxlint-disable-next-line typescript/no-explicit-any
   if (!data) return c.json({ error: "not found" }, 404) as any;
   return c.json(data);
 });
@@ -318,6 +323,7 @@ const proposalDetailRoute = createRoute({
 groups.openapi(proposalDetailRoute, async (c) => {
   const { group, id } = c.req.valid("param");
   const data = await contract.getProposalDetail(group as Address, id);
+  // oxlint-disable-next-line typescript/no-explicit-any
   if (!data) return c.json({ error: "not found" }, 404) as any;
   return c.json(data);
 });

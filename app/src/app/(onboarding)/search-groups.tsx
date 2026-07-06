@@ -59,7 +59,7 @@ export default function SearchGroupsScreen(): JSX.Element {
     let cancelled = false;
     dataClient.groups
       .searchPublicGroups("")
-      .then((results: any) => {
+      .then((results: PublicGroup[]) => {
         if (!cancelled) {
           setGroups(results);
           setIsLoading(false);
