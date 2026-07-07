@@ -5,7 +5,7 @@ import type { Address, GroupSettingField } from "@ekimina/types";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 
 import * as contract from "../lib/contract-data.js";
-import { ACCOUNT_NAMES } from "../lib/deployed-state.js";
+import { nameOf } from "../lib/name-resolver.js";
 import {
   errorResponses,
   successOnlySchema,
@@ -24,13 +24,7 @@ import {
 } from "../lib/store.js";
 
 function nameEntry(key: string): { name: string; initials: string } {
-  const name = ACCOUNT_NAMES[key.toLowerCase()] ?? key.slice(0, 6);
-  const initials = name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? "")
-    .join("");
-  return { name, initials };
+  return nameOf(key);
 }
 
 const groupAndIdParams = z.object({ group: z.string(), id: z.string() });

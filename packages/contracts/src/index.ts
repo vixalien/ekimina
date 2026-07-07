@@ -4,4 +4,4 @@ export {
   mockERC20ABI,
   getIkiminaContract,
   getFactoryContract,
-} from "./generated.js";
+} from "./generated.ts";

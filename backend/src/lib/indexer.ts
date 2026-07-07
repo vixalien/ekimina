@@ -3,8 +3,7 @@ import type { ChainGroup as Group, GroupCycle, Address } from "@ekimina/types";
 import { getFactoryContract, getIkiminaContract } from "@ekimina/contracts";
 
 import { publicClient } from "./chain.js";
-import { GROUP_META } from "./deployed-state.js";
-import { upsertGroupMeta } from "./store.js";
+import { getGroupMetaByAddress, upsertGroupMeta } from "./store.js";
 
 const groupCache = new Map<Address, Group>();
 const cycleCache = new Map<Address, GroupCycle>();
@@ -14,6 +13,10 @@ let isPolling = false;
 
 export function setFactoryAddress(addr: Address) {
   factoryAddress = addr;
+}
+
+export function getFactoryAddress(): Address | null {
+  return factoryAddress;
 }
 
 export async function startIndexer() {
@@ -80,14 +83,14 @@ export async function refreshGroup(address: Address) {
       memberCount: Number(activeCount),
     });
 
-    const meta = GROUP_META[address.toLowerCase()];
-    if (meta) {
+    const existing = await getGroupMetaByAddress(address);
+    if (existing) {
       await upsertGroupMeta({
         address,
-        name: meta.name,
-        inviteCode: meta.inviteCode,
-        creator: address,
-        createdAt: new Date(Number(cycleStart) * 1000).toISOString(),
+        name: existing.name,
+        inviteCode: existing.inviteCode,
+        creator: existing.creator,
+        createdAt: existing.createdAt,
       });
     }
   } catch (e) {

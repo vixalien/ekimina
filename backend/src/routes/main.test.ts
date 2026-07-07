@@ -33,11 +33,6 @@ vi.mock("../lib/indexer.js", () => ({
   getCachedCycle: vi.fn().mockResolvedValue(null),
 }));
 
-vi.mock("../lib/deployed-state.js", () => ({
-  ACCOUNT_NAMES: {},
-  GROUP_META: {},
-}));
-
 import * as contracts from "@ekimina/contracts";
 
 import * as contract from "../lib/contract-data.js";

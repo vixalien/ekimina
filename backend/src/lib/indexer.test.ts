@@ -2,14 +2,14 @@ import type { Address } from "@ekimina/types";
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-vi.mock("../lib/db/queries.js", async () => {
+vi.mock("./db/queries.js", async () => {
   const m = await import("../__tests__/mock-store.js");
   return {
     getUserByAddress: vi.fn(() => null),
     getUserByPhone: vi.fn(() => null),
     createUser: vi.fn((u: Record<string, unknown>) => u),
     getAllGroupMeta: vi.fn(() => []),
-    getGroupMetaByAddress: vi.fn(() => null),
+    getGroupMetaByAddress: vi.fn((addr: string) => m.mockGroupMeta.get(addr) ?? null),
     getGroupMetaByInviteCode: vi.fn(() => null),
     upsertGroupMeta: vi.fn((meta: Record<string, unknown>) => {
       m.mockGroupMeta.set(meta.address as string, meta);
@@ -22,8 +22,8 @@ vi.mock("../lib/db/queries.js", async () => {
     upsertSigningState: vi.fn((id: string, userId: string) => ({
       id,
       signedBy: [userId],
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     })),
     deleteSigningState: vi.fn(),
     createJoinRequest: vi.fn((r: Record<string, unknown>) => r),
@@ -42,16 +42,6 @@ vi.mock("@ekimina/contracts", () => ({
 
 vi.mock("./chain.js", () => ({
   publicClient: {},
-}));
-
-vi.mock("./deployed-state.js", () => ({
-  ACCOUNT_NAMES: {},
-  GROUP_META: {
-    "0xabcdef1234567890abcdef1234567890abcdef12": {
-      name: "Test Group",
-      inviteCode: "TEST12",
-    },
-  },
 }));
 
 import * as contracts from "@ekimina/contracts";
@@ -76,7 +66,15 @@ const GROUP_ADDR = "0xabcdef1234567890abcdef1234567890abcdef12" as Address;
 describe("refreshGroup", () => {
   beforeEach(() => clearAll());
 
-  it("populates groupMeta from GROUP_META after refreshing group", async () => {
+  it("populates groupMeta from existing DB entry after refreshing group", async () => {
+    mockGroupMeta.set(GROUP_ADDR, {
+      address: GROUP_ADDR,
+      name: "Test Group",
+      inviteCode: "TEST12",
+      creator: GROUP_ADDR,
+      createdAt: new Date().toISOString(),
+    });
+
     MOCK_CONTRACT.read.config.mockResolvedValue([
       10000000000000000000n,
       2592000n,
@@ -100,8 +98,8 @@ describe("refreshGroup", () => {
     expect(mockGroupMeta.size).toBe(1);
     const meta = mockGroupMeta.get(GROUP_ADDR);
     expect(meta).toBeDefined();
-    expect(meta!.name).toBe("Test Group");
-    expect(meta!.inviteCode).toBe("TEST12");
-    expect(meta!.address).toBe(GROUP_ADDR);
+    expect((meta as Record<string, unknown>).name).toBe("Test Group");
+    expect((meta as Record<string, unknown>).inviteCode).toBe("TEST12");
+    expect((meta as Record<string, unknown>).address).toBe(GROUP_ADDR);
   });
 });

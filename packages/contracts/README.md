@@ -3,3 +3,5 @@
 Deployed Addresses
 
 IkiminaModule#Ikimina - 0xf19Ac821098228064d81fe3Bd09e30fa132Ea803
+EkiminaModule#MockUSDm - 0x38003Ae1C7417DD888b912EB92EE9A40A0eeb6BE
+EkiminaModule#IkiminaFactory - 0x8084AB70d5fcA720B5175245c66BA9cC6d7B74B1

@@ -1,11 +1,13 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
 export default buildModule("EkiminaModule", (m) => {
-  const mockUsdm = m.contract("MockUSDm", []);
+  const tokenAddress = m.getParameter("tokenAddress", "");
 
-  const factory = m.contract("IkiminaFactory", [mockUsdm], {
-    after: [mockUsdm],
+  const usdm = tokenAddress ? m.contractAt("MockUSDm", tokenAddress) : m.contract("MockUSDm", []);
+
+  const factory = m.contract("IkiminaFactory", [usdm], {
+    after: [usdm],
   });
 
-  return { mockUsdm, factory };
+  return { usdm, factory };
 });

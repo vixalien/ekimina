@@ -13,23 +13,12 @@ import type {
 import { getIkiminaContract, getFactoryContract } from "@ekimina/contracts";
 
 import { publicClient } from "./chain.js";
-import { ACCOUNT_NAMES, GROUP_META } from "./deployed-state.js";
+import { getFactoryAddress } from "./indexer.js";
+import { nameOf } from "./name-resolver.js";
+import { getGroupMetaByAddress } from "./store.js";
 
 function r(addr: Address) {
   return getIkiminaContract(addr, { public: publicClient }).read;
-}
-
-function initialsOf(name: string): string {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? "")
-    .join("");
-}
-
-function nameOf(addr: string): { name: string; initials: string } {
-  const name = ACCOUNT_NAMES[addr.toLowerCase()] ?? addr.slice(0, 6);
-  return { name, initials: initialsOf(name) };
 }
 
 function toAmount(v: bigint): number {
@@ -238,15 +227,15 @@ export async function getSettings(groupAddr: Address) {
     discretionaryEnabled,
     allMembersCommittee,
   ] = await r(groupAddr).config();
-  const meta = GROUP_META[groupAddr.toLowerCase()] ?? { name: "Group", inviteCode: "" };
+  const meta = await getGroupMetaByAddress(groupAddr);
   return {
-    name: meta.name,
+    name: meta?.name ?? "Group",
     isPublic: false,
     contributionAmount: toAmount(contribution),
     cycleLength: Number(cycleLength) / 86400,
     payoutAmount: toAmount(payout),
-    penaltyRate: Number(penaltyRateBps) / 100, // oxlint-disable-line typescript/no-unnecessary-type-conversion
-    approvalThreshold: Number(approvalThresholdBps) / 10000, // oxlint-disable-line typescript/no-unnecessary-type-conversion
+    penaltyRate: Number(penaltyRateBps) / 100,
+    approvalThreshold: Number(approvalThresholdBps) / 10000,
     allMembersAreCommittee: allMembersCommittee,
     committeeSize: 1,
     loansEnabled,
@@ -269,9 +258,9 @@ export async function getReserveDetail(groupAddr: Address) {
 
 export async function getLeaveInfo(groupAddr: Address, userId: string) {
   const active = await r(groupAddr).isActive([userId as Address]);
-  const meta = GROUP_META[groupAddr.toLowerCase()] ?? { name: "Group", inviteCode: "" };
+  const meta = await getGroupMetaByAddress(groupAddr);
   return {
-    groupName: meta.name,
+    groupName: meta?.name ?? "Group",
     isMidCycle: true,
     contributionStanding: active ? "active" : "inactive",
     outstandingLoanAmount: null,
@@ -317,11 +306,11 @@ export async function getPendingRequests(groupAddr: Address) {
   );
 }
 
-export function getInviteData(groupAddr: Address) {
-  const meta = GROUP_META[groupAddr.toLowerCase()];
+export async function getInviteData(groupAddr: Address) {
+  const meta = await getGroupMetaByAddress(groupAddr);
   return meta
     ? {
-        inviteCode: meta.inviteCode,
+        inviteCode: meta.inviteCode ?? "",
         shareLink: `https://e-kimina.app/join/${meta.inviteCode}`,
         sentInvites: [] as SentInvite[],
       }
@@ -408,9 +397,9 @@ export async function getGroupConfig(groupAddr: Address) {
     contributionAmount: contribution.toString(),
     cycleLength: Number(cycleLength),
     payoutAmount: payout.toString(),
-    payoutPolicy: ["none", "rotating", "lump_sum_end"][Number(payoutPolicy)] ?? "none", // oxlint-disable-line typescript/no-unnecessary-type-conversion
-    penaltyRateBps: Number(penaltyRateBps), // oxlint-disable-line typescript/no-unnecessary-type-conversion
-    approvalThresholdBps: Number(approvalThresholdBps), // oxlint-disable-line typescript/no-unnecessary-type-conversion
+    payoutPolicy: ["none", "rotating", "lump_sum_end"][Number(payoutPolicy)] ?? "none",
+    penaltyRateBps: Number(penaltyRateBps),
+    approvalThresholdBps: Number(approvalThresholdBps),
     loansEnabled,
     discretionaryEnabled,
     allMembersCommittee,
@@ -418,14 +407,10 @@ export async function getGroupConfig(groupAddr: Address) {
 }
 
 export async function getPublicGroups() {
-  const { readFileSync } = await import("fs");
-  const { join } = await import("path");
   try {
-    const addr = JSON.parse(
-      readFileSync(join(process.cwd(), "..", "local.json"), "utf-8"),
-    ).FACTORY_ADDRESS;
+    const addr = getFactoryAddress();
     if (!addr) return [];
-    const factory = getFactoryContract(addr as Address, { public: publicClient });
+    const factory = getFactoryContract(addr, { public: publicClient });
     const length = await factory.read.allGroupsLength();
     const groups: (PublicGroup & {
       isPublic: boolean;
@@ -435,13 +420,17 @@ export async function getPublicGroups() {
     })[] = [];
     for (let i = 0; i < Number(length); i++) {
       const gAddr = await factory.read.allGroups([BigInt(i)]);
-      const meta = GROUP_META[(gAddr as string).toLowerCase()];
+      const meta = await getGroupMetaByAddress(gAddr as Address);
       if (meta)
         groups.push({
           id: gAddr,
           name: meta.name,
           memberCount: 0,
-          avatarInitials: initialsOf(meta.name),
+          avatarInitials: meta.name
+            .split(/\s+/)
+            .slice(0, 2)
+            .map((w: string) => w[0]?.toUpperCase() ?? "")
+            .join(""),
           isPublic: true,
           contributionAmount: 0,
           cycleLength: 30,

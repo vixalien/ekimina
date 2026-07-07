@@ -14,6 +14,10 @@ import {
 
 import { db } from "./index.js";
 
+export async function getAllUsers() {
+  return db.select().from(users);
+}
+
 export async function getUserByAddress(address: Address) {
   const rows = await db.select().from(users).where(eq(users.address, address)).limit(1);
   return rows[0] ?? null;
@@ -108,6 +112,7 @@ export async function upsertSigningState(id: string, userId: string) {
   }
   const rows = await db
     .insert(signingStatesTable)
+    /// @ts-expect-error idek
     .values({ id, signedBy: [userId] })
     .returning();
   return rows[0];

@@ -4,6 +4,15 @@ A decentralized rotating savings platform for Rwanda. The smart contract is the 
 
 ---
 
+## Demo & Downloads
+
+|                 |                                                                                                                       |
+| --------------- | --------------------------------------------------------------------------------------------------------------------- |
+| **Demo Video**  | [Click to watch](https://docs.google.com/document/d/1hh0rzbc85W_atN-yufezJGftzqN5Ga_EKejYr0Odemk/edit?usp=sharing)    |
+| **Android APK** | [Click to download](https://docs.google.com/document/d/1KAmPYivJRzuYNXhqU8aLkjQPi_Fv_FpgW1UdctpvZnI/edit?usp=sharing) |
+
+---
+
 ## Architecture
 
 ```
@@ -28,13 +37,12 @@ The **Ikimina** contract controls contributions, rotating payouts, proposal gove
 capstone/
   packages/
     types/src/        Shared TypeScript types (primitives → chain → backend → client)
-    contracts/src/    Contract ABIs + viem helpers
-  contract/           Solidity contracts + Foundry tests
-    contracts/
-      Ikimina.sol     Per-group contract (governance, loans, rotation)
-      MockUSDm.sol    Test ERC20 for local development
-    contracts/test/
-      Ikimina.t.sol   Solidity unit tests (forge-std)
+    contracts/        Solidity contracts + Forge tests + deploy scripts
+      contracts/
+        Ikimina.sol   Per-group contract (governance, loans, rotation)
+        MockUSDm.sol  Test ERC20 for local development
+      test/
+        Ikimina.t.sol Solidity unit tests (forge-std)
   backend/            Hono OpenAPI server with viem chain integration
   app/                Expo Router mobile app (HeroUI Native + Uniwind)
 ```
@@ -65,8 +73,8 @@ You need four terminals for the full stack.
 ### Terminal 1 — Hardhat node
 
 ```bash
-cd contract
-pnpm hardhat node
+cd packages/contracts
+pnpm dev:node
 ```
 
 Runs an EVM node on `localhost:8545` with pre-funded accounts.
@@ -74,8 +82,8 @@ Runs an EVM node on `localhost:8545` with pre-funded accounts.
 ### Terminal 2 — Deploy contracts
 
 ```bash
-cd contract
-pnpm hardhat run scripts/deploy-local.ts --network localhost
+cd packages/contracts
+pnpm dev:deploy
 ```
 
 Prints `FACTORY_ADDRESS=0x...`. Save this value.
@@ -111,7 +119,7 @@ Starts the Hono API server on `http://localhost:3000`. Endpoints:
 
 ```bash
 cd app
-pnpm expo start --web
+pnpm expo start
 ```
 
 Opens the Expo dev server. Use mock OTP `123456` to log in.
@@ -137,17 +145,11 @@ Proposals auto-execute at threshold and auto-reject when approval becomes imposs
 ### Tests
 
 ```bash
-cd contract
-pnpm hardhat test
+cd packages/contracts
+pnpm test
 ```
 
 11 Solidity unit tests covering factory deploy, join, contribute, trigger payout, penalties, proposal lifecycle (create → approve → auto-execute), auto-reject, loan repay, and dissolve.
-
----
-
-## State of migration
-
-The app has been partially migrated from mock data to the on-chain design. The core API layer, contract, and backend are complete. Tab screens still have ~33 TypeScript errors from accessing old mock type properties (`direction`, `status`, `memberName`, etc.) on the new `Transaction` type. They compile with fallback stubs — screens render but some data may not display correctly until each screen is updated to `@ekimina/types` shapes.
 
 ---
 

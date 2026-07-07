@@ -1,31 +1,35 @@
-import { readFileSync } from "fs";
-import { join } from "path";
-import { fileURLToPath } from "url";
-
 import { groupMeta, users } from "./schema.js";
 
 import { db } from "./index.js";
 
-const __dirname = fileURLToPath(new URL(".", import.meta.url));
+const ACCOUNTS: Record<string, string> = {
+  "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266": "Jean Mugabo",
+  "0x70997970c51812dc3a010c7d01b50e0d17dc79c8": "Marie Uwimana",
+  "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc": "Patrick Kabera",
+  "0x90f79bf6eb2c4f870365e785982e1f101e93b906": "Diane Mukamana",
+  "0x15d34aaf54267db7d7c367839aaf71a00a2c6a65": "Eric Bakunda",
+  "0x9965507d1a55bcc2695c58ba16fb37d819b0a4dc": "Alice Niyonzima",
+  "0x976ea74026e726554db657fa54763abd0c3a0aa9": "Grace Niyonsaba",
+  "0x14dc79964da2c08b23698b3d3cc7ca32193d9955": "David Bizimana",
+  "0x23618e81e3f5cdf7f54c3d65f7fbc0abf5b21e8f": "Fiston Mugisha",
+  "0xa0ee7a142d267c1f36714e4a8f75612f20a79720": "Beatrice Zawadi",
+};
 
-interface DeployedState {
-  accounts: Record<string, string>;
-  groups: Record<string, { name: string; inviteCode: string }>;
-}
-
-let state: DeployedState = { accounts: {}, groups: {} };
-
-try {
-  const jsonPath = join(__dirname, "..", "deployed-state.json");
-  state = JSON.parse(readFileSync(jsonPath, "utf-8"));
-} catch {
-  console.warn("[seed] no deployed-state.json found, skipping seed data");
-}
+const GROUPS: Record<string, { name: string; inviteCode: string }> = {
+  "0xcafac3dd18ac6c6e92c921884f9e4176737c052c": {
+    name: "Umugongo W'Abaturage",
+    inviteCode: "AB3K9F",
+  },
+  "0x9f1ac54bef0dd2f6f3462ea0fa94fc62300d3a8e": {
+    name: "Abahuza Savings Circle",
+    inviteCode: "SAVE2025",
+  },
+};
 
 async function seed() {
   const now = new Date().toISOString();
 
-  for (const [address, name] of Object.entries(state.accounts)) {
+  for (const [address, name] of Object.entries(ACCOUNTS)) {
     await db
       .insert(users)
       .values({
@@ -40,7 +44,7 @@ async function seed() {
       .onConflictDoNothing({ target: users.address });
   }
 
-  for (const [address, meta] of Object.entries(state.groups)) {
+  for (const [address, meta] of Object.entries(GROUPS)) {
     await db
       .insert(groupMeta)
       .values({

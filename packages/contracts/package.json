@@ -13,7 +13,7 @@
     "hardhat": "hardhat",
     "compile": "hardhat compile && pnpm extract-abis",
     "extract-abis": "tsx scripts/extract-abis.ts",
-    "deploy": "hardhat ignition deploy ignition/modules/Ikimina.ts --network celoSepolia",
+    "deploy": "hardhat ignition deploy ignition/modules/Ikimina.ts --network celoSepolia --parameters ignition/parameters/celoSepolia.json",
     "read-state": "hardhat run scripts/read-state.ts --network celoSepolia",
     "dev:deploy": "hardhat run scripts/deploy-local.ts --network localhost",
     "dev:node": "hardhat node",
