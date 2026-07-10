@@ -80,7 +80,7 @@ This starts Anvil and deploys the IkiminaFactory. The backend reads the factory 
 ## API
 
 - OpenAPI spec: `http://localhost:3000/openapi.json`
-- Scalar UI: `http://localhost:3000/scalar`
+- Scalar UI: `http://localhost:3000/docs`
 
 ### Auth
 

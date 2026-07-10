@@ -87,7 +87,7 @@ Backend falls back to `local.json` for FACTORY_ADDRESS if env var is unset.
 ## API
 
 - Mock OTP: `123456`
-- Backend OpenAPI spec at `/openapi.json`, Scalar UI at `/scalar`
+- Backend OpenAPI spec at `/openapi.json`, Scalar UI at `/docs`
 - `EXPO_PUBLIC_BACKEND_URL` env var (defaults to `http://localhost:3000`)
 - `EXPO_PUBLIC_HARDHAT_RPC` env var (defaults to `http://localhost:8545`; works with anvil too)
 

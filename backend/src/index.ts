@@ -26,7 +26,7 @@ app.doc("/openapi.json", {
   servers: [{ url: "http://localhost:3000", description: "Development" }],
 });
 
-app.get("/scalar", (c) => {
+app.get("/docs", (c) => {
   return c.html(`<!doctype html>
 <html>
   <head>
@@ -57,6 +57,10 @@ app.get("/scalar", (c) => {
                 default: "3000",
               },
             },
+          },
+          {
+            url: "https://ekimina-production.up.railway.app",
+            description: "Production",
           },
           {
             url: "{customUrl}",
@@ -100,7 +104,7 @@ export type AppType = typeof routes;
 
 serve({ fetch: app.fetch, port: 3000 }, async () => {
   console.log("e-Kimina backend running on http://localhost:3000");
-  console.log("API Reference available at http://localhost:3000/scalar");
+  console.log("API Reference available at http://localhost:3000/docs");
 
   let FACTORY_ADDRESS: Address = process.env.FACTORY_ADDRESS as Address;
   if (FACTORY_ADDRESS) {
