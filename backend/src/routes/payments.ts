@@ -7,6 +7,8 @@ import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { errorResponses, paymentIntentSchema } from "../lib/schemas.js";
 import { createPaymentIntent, getPaymentIntent, updatePaymentIntent } from "../lib/store.js";
 
+type PaymentIntentResp = z.output<typeof paymentIntentSchema>;
+
 const createIntentRoute = createRoute({
   method: "post",
   path: "/payments/intents",
@@ -77,18 +79,18 @@ export default new OpenAPIHono()
       resultingTxId: null,
     };
     const created = await createPaymentIntent(intent);
-    return c.json(created);
+    return c.json(created as PaymentIntentResp);
   })
   .openapi(getIntentRoute, async (c) => {
     const { id } = c.req.valid("param");
     const intent = await getPaymentIntent(id);
-    if (!intent) return c.json({ error: "not found" }, 404);
-    return c.json(intent);
+    if (!intent) return c.json({ error: "not found" }, 404) as never;
+    return c.json(intent as PaymentIntentResp);
   })
   .openapi(retryIntentRoute, async (c) => {
     const { id } = c.req.valid("param");
     const intent = await getPaymentIntent(id);
-    if (!intent) return c.json({ error: "not found" }, 404);
+    if (!intent) return c.json({ error: "not found" }, 404) as never;
     const updated = await updatePaymentIntent(id, { status: "pending" });
-    return c.json(updated);
+    return c.json(updated as PaymentIntentResp);
   });

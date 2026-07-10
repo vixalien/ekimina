@@ -301,7 +301,7 @@ export default new OpenAPIHono()
   .openapi(dashboardRoute, async (c) => {
     const { group } = c.req.valid("param");
     const data = await contract.getDashboard(group as Address);
-    if (!data) return c.json({ error: "not found" }, 404);
+    if (!data) return c.json({ error: "not found" }, 404) as never;
     return c.json(data);
   })
   .openapi(membersRoute, async (c) => {
@@ -313,7 +313,7 @@ export default new OpenAPIHono()
   .openapi(memberDetailRoute, async (c) => {
     const { group, userId } = c.req.valid("param");
     const data = await contract.getMemberDetail(group as Address, userId);
-    if (!data) return c.json({ error: "not found" }, 404);
+    if (!data) return c.json({ error: "not found" }, 404) as never;
     return c.json(data);
   })
   .openapi(pendingRoute, async (c) => {
@@ -324,8 +324,8 @@ export default new OpenAPIHono()
   .openapi(transactionsRoute, async (c) => {
     return c.json([]);
   })
-  .openapi(transactionDetailRoute, async (_c) => {
-    return c.json({});
+  .openapi(transactionDetailRoute, async (c) => {
+    return c.json({} as never);
   })
   .openapi(loansRoute, async (c) => {
     const { group } = c.req.valid("param");
@@ -335,14 +335,14 @@ export default new OpenAPIHono()
   .openapi(loanDetailRoute, async (c) => {
     const { group, id } = c.req.valid("param");
     const data = await contract.getLoanDetail(group as Address, id);
-    if (!data) return c.json({ error: "not found" }, 404);
+    if (!data) return c.json({ error: "not found" }, 404) as never;
     return c.json(data);
   })
   .openapi(loanReviewRoute, async (c) => {
     const { group, id } = c.req.valid("param");
     const { userId } = c.req.valid("query");
     const data = await contract.getLoanReview(group as Address, id, userId);
-    if (!data) return c.json({ error: "not found" }, 404);
+    if (!data) return c.json({ error: "not found" }, 404) as never;
     return c.json(data);
   })
   .openapi(committeeRoute, async (c) => {
@@ -352,7 +352,7 @@ export default new OpenAPIHono()
   .openapi(userProfileRoute, async (c) => {
     const { group, userId } = c.req.valid("param");
     const data = await contract.getUserProfile(group as Address, userId);
-    if (!data) return c.json({ error: "not found" }, 404);
+    if (!data) return c.json({ error: "not found" }, 404) as never;
     return c.json(data);
   })
   .openapi(settingsRoute, async (c) => {
@@ -379,7 +379,7 @@ export default new OpenAPIHono()
   .openapi(proposalDetailRoute, async (c) => {
     const { group, id } = c.req.valid("param");
     const data = await contract.getProposalDetail(group as Address, id);
-    if (!data) return c.json({ error: "not found" }, 404);
+    if (!data) return c.json({ error: "not found" }, 404) as never;
     return c.json(data);
   })
   .openapi(publicGroupsRoute, async (c) => {

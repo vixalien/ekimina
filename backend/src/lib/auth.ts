@@ -39,6 +39,7 @@ export async function verifyOtp(phone: string, code: string): Promise<AuthResult
   return { status: "created", token, user: created };
 }
 
+// oxlint-disable-next-line consistent-return
 export const authMiddleware = createMiddleware(async (c: Context, next: Next) => {
   const authHeader = c.req.header("Authorization");
   if (!authHeader?.startsWith("Bearer ")) {
@@ -53,5 +54,4 @@ export const authMiddleware = createMiddleware(async (c: Context, next: Next) =>
   } catch {
     return c.json({ error: "unauthorized" }, 401);
   }
-  return c.json();
 });

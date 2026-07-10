@@ -59,14 +59,14 @@ export default new OpenAPIHono()
   .openapi(updateMeRoute, async (c) => {
     const authHeader = c.req.header("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      return c.json({ error: "unauthorized" }, 401);
+      return c.json({ error: "unauthorized" }, 401) as never;
     }
     let userId: string;
     try {
       const payload = await verify(authHeader.slice(7), JWT_SECRET, "HS256");
       userId = payload.sub as string;
     } catch {
-      return c.json({ error: "unauthorized" }, 401);
+      return c.json({ error: "unauthorized" }, 401) as never;
     }
     const { name } = c.req.valid("json");
     await updateUser(userId, { name: name ?? null });

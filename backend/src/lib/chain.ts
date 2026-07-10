@@ -1,10 +1,12 @@
+import type { Chain } from "viem";
+
 import { createPublicClient, createWalletClient, http, defineChain } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { foundry, celoSepolia } from "viem/chains";
 
-function resolveChain(chainId: number) {
+function resolveChain(chainId: number): Chain {
   if (chainId === 31337) {
-    return { ...foundry, id: 31337, name: "localhost" } as const;
+    return { ...foundry, id: 31337, name: "localhost" };
   }
   if (chainId === 11142220) return celoSepolia;
   return defineChain({
