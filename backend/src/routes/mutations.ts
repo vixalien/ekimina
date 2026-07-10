@@ -2,13 +2,11 @@ import crypto from "crypto";
 
 import type { Address, GroupSettingField } from "@ekimina/types";
 
-import { getFactoryContract, factoryABI } from "@ekimina/contracts";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { verify } from "hono/jwt";
-import { keccak256, parseEventLogs, toHex } from "viem";
 
-import { publicClient, walletClient } from "../lib/chain.js";
 import * as contract from "../lib/contract-data.js";
+import { deployGroup } from "../lib/create-group.js";
 import { getFactoryAddress } from "../lib/indexer.js";
 import { nameOf } from "../lib/name-resolver.js";
 import {
@@ -26,7 +24,6 @@ import {
   createJoinRequest,
   deleteJoinRequest,
   getGroupMetaByInviteCode,
-  upsertGroupMeta,
   JWT_SECRET,
 } from "../lib/store.js";
 
@@ -798,48 +795,10 @@ export default new OpenAPIHono()
     const factoryAddr = getFactoryAddress();
     if (!factoryAddr) return c.json({ error: "factory not available" }, 500) as never;
 
-    const factory = getFactoryContract(factoryAddr, {
-      public: publicClient,
-      wallet: walletClient,
-    });
-
     const inviteCode = generateInviteCode();
-    const inviteCodeHash = keccak256(toHex(inviteCode));
-
-    const config = [
-      10000000000000000000n,
-      2592000n,
-      50000000000000000000n,
-      1,
-      500,
-      6000,
-      true,
-      true,
-      false,
-    ];
 
     try {
-      // oxlint-disable-next-line typescript/no-explicit-any
-      const hash = await (factory as any).write.createGroup([config, inviteCodeHash]);
-      const receipt = await publicClient.waitForTransactionReceipt({ hash });
-
-      const logs = parseEventLogs({
-        abi: factoryABI,
-        logs: receipt.logs,
-        eventName: "GroupDeployed",
-      });
-      const groupAddr = logs[0]?.args.group as Address | undefined;
-      if (!groupAddr) return c.json({ error: "failed to get group address" }, 500) as never;
-
-      await upsertGroupMeta({
-        address: groupAddr,
-        name,
-        inviteCode,
-        // oxlint-disable-next-line typescript/no-explicit-any
-        creator: (walletClient as any).account.address as Address,
-        createdAt: new Date().toISOString(),
-      });
-
+      const groupAddr = await deployGroup({ factoryAddr, name, inviteCode });
       return c.json({ success: true, group: groupAddr });
     } catch (e) {
       console.error("[createGroup]", e);

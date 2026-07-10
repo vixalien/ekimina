@@ -22,7 +22,7 @@ const CHAIN_ID = Number(process.env.CHAIN_ID ?? "31337");
 const PRIVATE_KEY = (process.env.PRIVATE_KEY ??
   "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80") as `0x${string}`;
 
-const chain = resolveChain(CHAIN_ID);
+export const chain = resolveChain(CHAIN_ID);
 
 export const publicClient = createPublicClient({
   chain,
