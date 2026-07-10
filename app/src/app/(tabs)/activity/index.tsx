@@ -82,9 +82,6 @@ export default function ActivityTab(): JSX.Element {
                           case "settings_change":
                             nav.profile.toSettingsReview(req.id);
                             break;
-                          case "join_request":
-                            nav.activity.toJoinReview(req.id);
-                            break;
                           case "discretionary_fund":
                             nav.activity.toDiscretionaryReview(req.id);
                             break;

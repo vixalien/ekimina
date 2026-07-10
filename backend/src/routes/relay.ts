@@ -5,6 +5,45 @@ import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 
 import { walletClient, publicClient } from "../lib/chain.js";
 import { addressSchema, errorResponses } from "../lib/schemas.js";
+import { getGroupMetaByInviteCode, getGroupMetaByAddress } from "../lib/store.js";
+
+const joinByCodeRoute = createRoute({
+  method: "post",
+  path: "/relay/join",
+  tags: ["Relay"],
+  request: {
+    body: {
+      content: {
+        "application/json": { schema: z.object({ code: z.string() }) },
+      },
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": { schema: z.object({ txId: z.string(), group: addressSchema }) },
+      },
+      description: "Joined group by invite code",
+    },
+    ...errorResponses,
+  },
+});
+
+const joinByGroupRoute = createRoute({
+  method: "post",
+  path: "/relay/groups/{group}/join-by-id",
+  tags: ["Relay"],
+  request: { params: z.object({ group: addressSchema }) },
+  responses: {
+    200: {
+      content: {
+        "application/json": { schema: z.object({ txId: z.string() }) },
+      },
+      description: "Joined group by ID",
+    },
+    ...errorResponses,
+  },
+});
 
 const contributeRoute = createRoute({
   method: "post",
@@ -177,6 +216,32 @@ const rejectProposalRoute = createRoute({
 });
 
 export default new OpenAPIHono()
+  .openapi(joinByCodeRoute, async (c) => {
+    const { code } = c.req.valid("json");
+    const meta = await getGroupMetaByInviteCode(code);
+    if (!meta) return c.json({ error: "invite code not found" }, 404) as never;
+    const contract = getIkiminaContract(meta.address as Address, {
+      public: publicClient,
+      wallet: walletClient,
+    });
+    // oxlint-disable-next-line typescript/no-explicit-any
+    const hash = await (contract as any).write.join([code]);
+    const receipt = await publicClient.waitForTransactionReceipt({ hash });
+    return c.json({ txId: receipt.transactionHash, group: meta.address });
+  })
+  .openapi(joinByGroupRoute, async (c) => {
+    const { group } = c.req.valid("param");
+    const meta = await getGroupMetaByAddress(group as Address);
+    if (!meta?.inviteCode) return c.json({ error: "invite code not found" }, 404) as never;
+    const contract = getIkiminaContract(group as Address, {
+      public: publicClient,
+      wallet: walletClient,
+    });
+    // oxlint-disable-next-line typescript/no-explicit-any
+    const hash = await (contract as any).write.join([meta.inviteCode]);
+    const receipt = await publicClient.waitForTransactionReceipt({ hash });
+    return c.json({ txId: receipt.transactionHash });
+  })
   .openapi(contributeRoute, async (c) => {
     const { group } = c.req.valid("param");
     const contract = getIkiminaContract(group as Address, {

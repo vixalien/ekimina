@@ -1,12 +1,11 @@
-import type HonoJWT from "hono/jwt";
-
 import { Hono } from "hono";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { clearAll } from "../__tests__/mock-store.js";
 
 vi.mock("hono/jwt", async (importOriginal) => {
-  const actual = await importOriginal<HonoJWT>();
+  // oxlint-disable-next-line typescript/no-explicit-any
+  const actual = await importOriginal<any>();
   return {
     ...actual,
     verify: vi.fn(),
@@ -43,8 +42,6 @@ vi.mock("./db/queries.js", async () => {
       updatedAt: new Date(),
     })),
     deleteSigningState: vi.fn(),
-    createJoinRequest: vi.fn((r: Record<string, unknown>) => r),
-    deleteJoinRequest: vi.fn(),
     getSettingsChange: vi.fn(() => null),
     createSettingsChange: vi.fn((c: Record<string, unknown>) => c),
     getReview: vi.fn(() => null),
@@ -101,18 +98,18 @@ describe("verifyOtp", () => {
   });
 });
 
+function createTestApp() {
+  const app = new Hono();
+  app.use("/protected", authMiddleware);
+  app.get("/protected", (c) => c.json({ ok: true }));
+  return app;
+}
+
 describe("authMiddleware", () => {
   beforeEach(() => {
     clearAll();
     vi.clearAllMocks();
   });
-
-  function createTestApp() {
-    const app = new Hono();
-    app.use("/protected", authMiddleware);
-    app.get("/protected", (c) => c.json({ ok: true }));
-    return app;
-  }
 
   it("returns 401 without Authorization header", async () => {
     const app = createTestApp();

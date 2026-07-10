@@ -8,7 +8,6 @@ import { View } from "react-native";
 const REQUEST_TYPE_LABELS: Record<PendingRequestType, string> = {
   loan_request: "Loan request",
   discretionary_fund: "Discretionary fund",
-  join_request: "Join request",
   member_withdrawal: "Withdraw member",
   settings_change: "Settings change",
 };

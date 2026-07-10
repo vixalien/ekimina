@@ -37,7 +37,6 @@ export type {
   DiscretionaryDetail,
   TransactionDetail,
   DiscretionaryFundReview,
-  JoinRequestReview,
   MemberWithdrawalReview,
   SentInvite,
   GroupInviteData,

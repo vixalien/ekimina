@@ -27,7 +27,6 @@ import type {
   ReserveDetail,
   LeaveGroupInfo,
   DiscretionaryFundReview,
-  JoinRequestReview,
   MemberWithdrawalReview,
   PublicGroup,
   ProposalView,
@@ -151,6 +150,7 @@ const groupReads: DataClient["groups"] = {
   async getMembers(group) {
     const res = await client.groups[":group"].members.$get({
       param: { group },
+      query: {},
     });
     return handleRes<Member[]>(res);
   },
@@ -223,6 +223,7 @@ const groupReads: DataClient["groups"] = {
   async getGroupMembers(group) {
     const res = await client.groups[":group"].members.$get({
       param: { group },
+      query: {},
     });
     return handleRes<MemberListItem[]>(res);
   },
@@ -450,40 +451,11 @@ const groupReads: DataClient["groups"] = {
     }>(res);
   },
 
-  async joinByInviteCode(userId, code) {
-    const res = await client.groups["join-by-code"].$post({
-      json: { code, userId },
-    });
-    return handleRes<{
-      id: string;
-      groupName: string;
-      requestedAt: string;
-    }>(res);
-  },
-
-  async cancelJoinRequest(requestId) {
-    const res = await client.groups["join-requests"][":id"].$delete({
-      param: { id: requestId },
-    });
-    return handleRes<{ success: boolean }>(res);
-  },
-
   async searchPublicGroups(query) {
     const res = await client.groups.public.$get({
       query: { q: query ?? undefined },
     });
     return handleRes<PublicGroup[]>(res);
-  },
-
-  async requestToJoinGroup(groupId, userId) {
-    const res = await client.groups["join-requests"].$post({
-      json: { groupId, userId },
-    });
-    return handleRes<{
-      id: string;
-      groupName: string;
-      requestedAt: string;
-    }>(res);
   },
 
   async retryTransaction(_transactionId) {
@@ -521,29 +493,6 @@ const groupReads: DataClient["groups"] = {
     return handleRes<{ success: boolean }>(res);
   },
 
-  async getJoinRequestReview(group, requestId) {
-    const res = await client.groups[":group"]["join-requests"][":id"].$get({
-      param: { group, id: requestId },
-    });
-    return handleRes<JoinRequestReview>(res);
-  },
-
-  async signJoinRequest(group, requestId, userId) {
-    const res = await client.groups[":group"]["join-requests"][":id"].sign.$post({
-      param: { group, id: requestId },
-      json: { userId },
-    });
-    return handleRes<{ success: boolean; thresholdMet: boolean }>(res);
-  },
-
-  async rejectJoinRequest(group, requestId, userId) {
-    const res = await client.groups[":group"]["join-requests"][":id"].reject.$post({
-      param: { group, id: requestId },
-      json: { userId },
-    });
-    return handleRes<{ success: boolean }>(res);
-  },
-
   async getMemberWithdrawalReview(group, requestId) {
     const res = await client.groups[":group"].withdrawals[":id"].$get({
       param: { group, id: requestId },
@@ -561,13 +510,17 @@ const groupActions: DataClient["actions"] = {
   },
 
   async join(code) {
-    const meta = await lookup.groupByInviteCode(code);
-    if (!meta) throw new Error("invite code not found");
-    const res = await client.relay.groups[":group"].join.$post({
-      param: { group: meta.address },
+    const res = await client.relay.join.$post({
       json: { code },
     });
-    return handleRes<{ group: Address }>(res);
+    return handleRes<{ txId: string; group: Address }>(res);
+  },
+
+  async joinPublicGroup(group) {
+    const res = await client.relay.groups[":group"]["join-by-id"].$post({
+      param: { group },
+    });
+    return handleRes<{ txId: string }>(res);
   },
 
   async contribute(group) {
@@ -712,22 +665,6 @@ const groupActions: DataClient["actions"] = {
     const res = await client.groups[":group"].invite.phone.$post({
       param: { group },
       json: { phone },
-    });
-    return handleRes<{ success: boolean }>(res);
-  },
-
-  async signJoinRequest(group, requestId, userId) {
-    const res = await client.groups[":group"]["join-requests"][":id"].sign.$post({
-      param: { group, id: requestId },
-      json: { userId },
-    });
-    return handleRes<{ success: boolean; thresholdMet: boolean }>(res);
-  },
-
-  async rejectJoinRequest(group, requestId, userId) {
-    const res = await client.groups[":group"]["join-requests"][":id"].reject.$post({
-      param: { group, id: requestId },
-      json: { userId },
     });
     return handleRes<{ success: boolean }>(res);
   },

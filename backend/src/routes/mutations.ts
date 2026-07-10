@@ -21,9 +21,6 @@ import {
   createSettingsChange,
   upsertReview,
   getReview,
-  createJoinRequest,
-  deleteJoinRequest,
-  getGroupMetaByInviteCode,
   JWT_SECRET,
 } from "../lib/store.js";
 
@@ -395,122 +392,7 @@ const sendPhoneInviteRoute = createRoute({
 });
 
 // ── Join requests ───────────────────────────────────────────────────────
-
-const requestToJoinRoute = createRoute({
-  method: "post",
-  path: "/groups/join-requests",
-  tags: ["Mutations"],
-  request: {
-    body: {
-      content: {
-        "application/json": {
-          schema: z.object({ groupId: z.string(), userId: z.string() }),
-        },
-      },
-    },
-  },
-  responses: {
-    200: {
-      content: { "application/json": { schema: z.any() } },
-      description: "Request created",
-    },
-    ...errorResponses,
-  },
-});
-
-const cancelJoinRequestRoute = createRoute({
-  method: "delete",
-  path: "/groups/join-requests/{id}",
-  tags: ["Mutations"],
-  request: { params: z.object({ id: z.string() }) },
-  responses: {
-    200: {
-      content: { "application/json": { schema: successOnlySchema } },
-      description: "Cancelled",
-    },
-    ...errorResponses,
-  },
-});
-
-const getJoinReviewRoute = createRoute({
-  method: "get",
-  path: "/groups/{group}/join-requests/{id}",
-  tags: ["Mutations"],
-  request: { params: groupAndIdParams },
-  responses: {
-    200: {
-      content: { "application/json": { schema: z.any() } },
-      description: "Join request review",
-    },
-    ...errorResponses,
-  },
-});
-
-const signJoinRoute = createRoute({
-  method: "post",
-  path: "/groups/{group}/join-requests/{id}/sign",
-  tags: ["Mutations"],
-  request: {
-    params: groupAndIdParams,
-    body: {
-      content: {
-        "application/json": { schema: z.object({ userId: z.string() }) },
-      },
-    },
-  },
-  responses: {
-    200: {
-      content: { "application/json": { schema: thresholdResultSchema } },
-      description: "Signed",
-    },
-    ...errorResponses,
-  },
-});
-
-const rejectJoinRoute = createRoute({
-  method: "post",
-  path: "/groups/{group}/join-requests/{id}/reject",
-  tags: ["Mutations"],
-  request: {
-    params: groupAndIdParams,
-    body: {
-      content: {
-        "application/json": { schema: z.object({ userId: z.string() }) },
-      },
-    },
-  },
-  responses: {
-    200: {
-      content: { "application/json": { schema: successOnlySchema } },
-      description: "Rejected",
-    },
-    ...errorResponses,
-  },
-});
-
-// ── Join by invite code ─────────────────────────────────────────────────
-
-const joinByCodeRoute = createRoute({
-  method: "post",
-  path: "/groups/join-by-code",
-  tags: ["Mutations"],
-  request: {
-    body: {
-      content: {
-        "application/json": {
-          schema: z.object({ code: z.string(), userId: z.string() }),
-        },
-      },
-    },
-  },
-  responses: {
-    200: {
-      content: { "application/json": { schema: z.any() } },
-      description: "Joined",
-    },
-    ...errorResponses,
-  },
-});
+// (removed — joining is now instant via POST /relay/join)
 
 // ── Create group ────────────────────────────────────────────────────────
 
@@ -726,58 +608,6 @@ export default new OpenAPIHono()
   })
   .openapi(sendPhoneInviteRoute, async (c) => {
     return c.json({ error: "not implemented" }, 501) as never;
-  })
-  .openapi(requestToJoinRoute, async (c) => {
-    const { groupId, userId } = c.req.valid("json");
-    const id = crypto.randomUUID();
-    const req = {
-      id,
-      groupId,
-      userId,
-      status: "pending" as const,
-      requestedAt: new Date().toISOString(),
-    };
-    await createJoinRequest(req);
-    return c.json(req);
-  })
-  .openapi(cancelJoinRequestRoute, async (c) => {
-    const { id } = c.req.valid("param");
-    await deleteJoinRequest(id);
-    return c.json({ success: true });
-  })
-  .openapi(getJoinReviewRoute, async (c) => {
-    const { group, id } = c.req.valid("param");
-    const review = await getReview(id);
-    if (review) return c.json(review.data);
-    return c.json({
-      id,
-      groupId: group,
-      applicantName: "Applicant",
-      applicantInitials: "AP",
-      applicantPhone: "",
-      joinMethod: "invite_code" as const,
-      requestedAt: new Date().toISOString(),
-      signatureCount: 0,
-      signatureThreshold: 2,
-      signatures: [],
-      currentUserAlreadySigned: false,
-    });
-  })
-  .openapi(signJoinRoute, async (c) => {
-    const { id } = c.req.valid("param");
-    const { userId } = c.req.valid("json");
-    const key = `join:${id}`;
-    const state = await upsertSigningState(key, userId);
-    return c.json({ success: true, thresholdMet: state.signedBy.length >= 2 });
-  })
-  .openapi(rejectJoinRoute, async (c) => {
-    return c.json({ success: true });
-  })
-  .openapi(joinByCodeRoute, async (c) => {
-    const { code } = c.req.valid("json");
-    const meta = await getGroupMetaByInviteCode(code);
-    if (!meta) return c.json({ error: "not found" }, 404) as never;
-    return c.json({ group: meta.address, success: true });
   })
   .openapi(createGroupRoute, async (c) => {
     const authHeader = c.req.header("Authorization");

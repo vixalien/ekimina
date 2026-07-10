@@ -142,7 +142,6 @@ const memberDetailSchema = z.object({
 const pendingRequestTypeSchema = z.enum([
   "loan_request",
   "discretionary_fund",
-  "join_request",
   "member_withdrawal",
   "settings_change",
 ]);
@@ -372,22 +371,6 @@ const discretionaryReviewSchema = z.object({
   currentUserSignedAt: z.string().optional(),
 });
 
-const joinRequestReviewSchema = z.object({
-  id: z.string(),
-  groupId: z.string(),
-  applicantName: z.string(),
-  applicantInitials: z.string(),
-  applicantPhone: z.string(),
-  joinMethod: z.enum(["invite_code", "direct_invite"]),
-  inviteCode: z.string().optional(),
-  requestedAt: z.string(),
-  signatureCount: z.number(),
-  signatureThreshold: z.number(),
-  signatures: z.array(loanSignatureSchema),
-  currentUserAlreadySigned: z.boolean(),
-  currentUserSignedAt: z.string().optional(),
-});
-
 const memberWithdrawalReviewSchema = z.object({
   id: z.string(),
   groupId: z.string(),
@@ -474,7 +457,6 @@ export {
   leaveGroupInfoSchema,
   discretionaryFundRequestSchema,
   discretionaryReviewSchema,
-  joinRequestReviewSchema,
   memberWithdrawalReviewSchema,
   proposalViewSchema,
   paymentIntentSchema,

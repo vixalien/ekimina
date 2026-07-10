@@ -77,17 +77,13 @@ export default function SearchGroupsScreen(): JSX.Element {
     if (!selectedId || isJoining) return;
     setIsJoining(true);
     try {
-      const request = await api.groups.requestToJoinGroup("user-new", selectedId);
-      nav.onboarding.toPending({
-        requestId: request.id,
-        groupName: request.groupName,
-        requestedAt: request.requestedAt,
-      });
+      await api.actions.joinPublicGroup(selectedId as `0x${string}`);
+      nav.toTabs();
     } catch (error) {
       console.error(error);
       toast.show({
         variant: "danger",
-        label: "Could not send request",
+        label: "Could not join group",
         description: "Something went wrong. Please try again.",
       });
     } finally {
@@ -99,7 +95,7 @@ export default function SearchGroupsScreen(): JSX.Element {
     <OnboardingLayout
       title="Browse groups"
       description="Find an ikimina to join"
-      buttonLabel={isJoining ? "Sending request..." : "Request to join"}
+      buttonLabel={isJoining ? "Joining..." : "Join group"}
       isLoading={isJoining}
       isDisabled={!selectedId}
       onButtonPress={handleContinue}

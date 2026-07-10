@@ -46,14 +46,6 @@ export const signingStates = pgTable("signing_states", {
   updatedAt: text("updated_at").notNull(),
 });
 
-export const joinRequests = pgTable("join_requests", {
-  id: text("id").primaryKey(),
-  groupId: text("group_id").notNull(),
-  userId: text("user_id").notNull(),
-  status: text("status").notNull().default("pending"),
-  requestedAt: text("requested_at").notNull(),
-});
-
 export const settingsChanges = pgTable("settings_changes", {
   id: text("id").primaryKey(),
   groupId: text("group_id").notNull(),

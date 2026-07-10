@@ -23,12 +23,8 @@ export default function InviteCodeScreen(): JSX.Element {
     setIsLoading(true);
     setError(null);
     try {
-      const request = await api.groups.joinByInviteCode("user-new", code.trim());
-      nav.onboarding.toPending({
-        requestId: request.id,
-        groupName: request.groupName,
-        requestedAt: request.requestedAt,
-      });
+      await api.actions.join(code.trim());
+      nav.toTabs();
     } catch (e) {
       console.error(e);
       setError("Invalid invite code. Check with your group admin.");

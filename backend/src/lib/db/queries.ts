@@ -7,7 +7,6 @@ import {
   groupMeta as groupMetaTable,
   paymentIntents as paymentIntentsTable,
   signingStates as signingStatesTable,
-  joinRequests as joinRequestsTable,
   settingsChanges as settingsChangesTable,
   reviews as reviewsTable,
 } from "./schema.js";
@@ -125,15 +124,6 @@ export async function upsertSigningState(id: string, userId: string) {
 
 export async function deleteSigningState(id: string) {
   await db.delete(signingStatesTable).where(eq(signingStatesTable.id, id));
-}
-
-export async function createJoinRequest(req: typeof joinRequestsTable.$inferInsert) {
-  const rows = await db.insert(joinRequestsTable).values(req).returning();
-  return rows[0];
-}
-
-export async function deleteJoinRequest(id: string) {
-  await db.delete(joinRequestsTable).where(eq(joinRequestsTable.id, id));
 }
 
 export async function getSettingsChange(id: string) {

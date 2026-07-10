@@ -29,7 +29,6 @@ import type {
   DiscretionaryFundRequest,
   PublicGroup,
   DiscretionaryFundReview,
-  JoinRequestReview,
   MemberWithdrawalReview,
 } from "./screen.js";
 
@@ -213,16 +212,7 @@ export interface GroupReads {
   createGroup(
     payload: Record<string, unknown>,
   ): Promise<{ group: { id: string; name: string }; inviteCode: string }>;
-  joinByInviteCode(
-    userId: string,
-    code: string,
-  ): Promise<{ id: string; groupName: string; requestedAt: string }>;
-  cancelJoinRequest(requestId: string): Promise<{ success: boolean }>;
   searchPublicGroups(query: string): Promise<PublicGroup[]>;
-  requestToJoinGroup(
-    groupId: string,
-    userId: string,
-  ): Promise<{ id: string; groupName: string; requestedAt: string }>;
   // Transactions
   retryTransaction(transactionId: string): Promise<{ success: boolean }>;
   // Discretionary
@@ -242,24 +232,13 @@ export interface GroupReads {
     requestId: string,
     userId: string,
   ): Promise<{ success: boolean }>;
-  // Join requests
-  getJoinRequestReview(group: Address, requestId: string): Promise<JoinRequestReview>;
-  signJoinRequest(
-    group: Address,
-    requestId: string,
-    userId: string,
-  ): Promise<{ success: boolean; thresholdMet: boolean }>;
-  rejectJoinRequest(
-    group: Address,
-    requestId: string,
-    userId: string,
-  ): Promise<{ success: boolean }>;
   getMemberWithdrawalReview(group: Address, requestId: string): Promise<MemberWithdrawalReview>;
 }
 
 export interface GroupActions {
   createGroup(group: Group, name: string): Promise<{ group: Address; inviteCode: string }>;
-  join(code: string): Promise<{ group: Address }>;
+  join(code: string): Promise<{ txId: string; group: Address }>;
+  joinPublicGroup(groupId: Address): Promise<{ txId: string }>;
   contribute(group: Address): Promise<{ txId: string }>;
   triggerPayout(group: Address): Promise<{ txId: string }>;
   startRotation(group: Address, order: Address[]): Promise<{ txId: string }>;
@@ -309,16 +288,6 @@ export interface GroupActions {
     userId: string,
   ): Promise<{ success: boolean }>;
   sendPhoneInvite(group: Address, phone: string): Promise<{ success: boolean }>;
-  signJoinRequest(
-    group: Address,
-    requestId: string,
-    userId: string,
-  ): Promise<{ success: boolean; thresholdMet: boolean }>;
-  rejectJoinRequest(
-    group: Address,
-    requestId: string,
-    userId: string,
-  ): Promise<{ success: boolean }>;
   signDiscretionaryRequest(
     group: Address,
     requestId: string,

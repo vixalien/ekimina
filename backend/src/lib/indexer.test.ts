@@ -26,8 +26,6 @@ vi.mock("./db/queries.js", async () => {
       updatedAt: new Date().toISOString(),
     })),
     deleteSigningState: vi.fn(),
-    createJoinRequest: vi.fn((r: Record<string, unknown>) => r),
-    deleteJoinRequest: vi.fn(),
     getSettingsChange: vi.fn(() => null),
     createSettingsChange: vi.fn((c: Record<string, unknown>) => c),
     getReview: vi.fn(() => null),

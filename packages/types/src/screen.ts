@@ -249,7 +249,6 @@ export type TransactionStatus = "confirmed" | "pending" | "failed";
 export type PendingRequestType =
   | "loan_request"
   | "discretionary_fund"
-  | "join_request"
   | "member_withdrawal"
   | "settings_change";
 
@@ -365,22 +364,6 @@ export interface DiscretionaryFundRequest {
   category: string;
   paidTo: string;
   reason: string;
-}
-
-export interface JoinRequestReview {
-  id: string;
-  groupId: string;
-  applicantName: string;
-  applicantInitials: string;
-  applicantPhone: string;
-  joinMethod: "invite_code" | "direct_invite";
-  inviteCode?: string;
-  requestedAt: string;
-  signatureCount: number;
-  signatureThreshold: number;
-  signatures: LoanSignature[];
-  currentUserAlreadySigned: boolean;
-  currentUserSignedAt?: string;
 }
 
 export interface MemberWithdrawalReview {

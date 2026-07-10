@@ -14,7 +14,6 @@ export const Routes = {
     joinOrCreate: "/(onboarding)/join-or-create" as const,
     inviteCode: "/(onboarding)/invite-code" as const,
     searchGroups: "/(onboarding)/search-groups" as const,
-    pending: "/(onboarding)/pending" as const,
 
     signup: {
       name: "/(onboarding)/signup/name" as const,
@@ -32,7 +31,6 @@ export const Routes = {
     detail: "/(tabs)/activity/[transactionId]" as const,
     discretionaryRequest: "/(tabs)/activity/discretionary-request" as const,
     discretionaryReview: "/(tabs)/activity/discretionary-review/[requestId]" as const,
-    joinReview: "/(tabs)/activity/join-review/[requestId]" as const,
     withdrawalReview: "/(tabs)/activity/withdrawal-review/[requestId]" as const,
     loanDetail: "/(tabs)/activity/loan/[loanId]" as const,
     loanReview: "/(tabs)/activity/loan-review/[loanId]" as const,
@@ -66,9 +64,6 @@ export const nav = {
     toJoinOrCreate: () => router.replace(Routes.onboarding.joinOrCreate),
     toInviteCode: () => router.push(Routes.onboarding.inviteCode),
     toSearchGroups: () => router.push(Routes.onboarding.searchGroups),
-    toPending: (params?: { requestId?: string; groupName?: string; requestedAt?: string }) =>
-      router.replace({ pathname: Routes.onboarding.pending, params: params ?? {} }),
-
     signup: {
       toName: () => router.push(Routes.onboarding.signup.name),
       toWallet: () => router.push(Routes.onboarding.signup.wallet),
@@ -87,8 +82,6 @@ export const nav = {
     toDiscretionaryRequest: () => router.push(Routes.activity.discretionaryRequest),
     toDiscretionaryReview: (requestId: string) =>
       router.push({ pathname: Routes.activity.discretionaryReview, params: { requestId } }),
-    toJoinReview: (requestId: string) =>
-      router.push({ pathname: Routes.activity.joinReview, params: { requestId } }),
     toWithdrawalReview: (requestId: string) =>
       router.push({ pathname: Routes.activity.withdrawalReview, params: { requestId } }),
     toLoanDetail: (loanId: string) =>

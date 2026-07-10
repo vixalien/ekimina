@@ -1,6 +1,6 @@
 # e-Kimina
 
-A decentralized rotating savings platform for Rwanda. The smart contract is the source of truth for money and rules; a thin Hono backend handles auth, identity, and cached chain reads. The mobile app (Expo + HeroUI Native) lets members create groups, contribute, receive rotating payouts, request and repay loans, and govern through on-chain proposals.
+A decentralized rotating savings platform for Rwanda. The smart contract is the source of truth for money and rules; a thin Hono backend handles auth, identity, and cached chain reads. The mobile app (Expo + HeroUI Native) lets members create groups, join instantly via invite code or public discovery, contribute, receive rotating payouts, request and repay loans, and govern through on-chain proposals.
 
 ---
 
@@ -112,7 +112,8 @@ Starts the Hono API server on `http://localhost:3000`. Endpoints:
 | `GET`   | `/groups/{group}/cycle`                | Current cycle state            |
 | `GET`   | `/groups/{group}/members`              | Active member list             |
 | `POST`  | `/relay/groups/{group}/contribute`     | Contribute (custodial)         |
-| `POST`  | `/relay/groups/{group}/join`           | Join group (custodial)         |
+| `POST`  | `/relay/join`                          | Join by invite code (instant)  |
+| `POST`  | `/relay/groups/{group}/join-by-id`     | Join public group by ID        |
 | `POST`  | `/relay/groups/{group}/trigger-payout` | Advance payout (custodial)     |
 
 ### Terminal 4 — Mobile app

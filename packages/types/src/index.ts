@@ -91,7 +91,6 @@ export type {
   TransactionDetail,
   DiscretionaryFundReview,
   DiscretionaryFundRequest,
-  JoinRequestReview,
   MemberWithdrawalReview,
   SentInvite,
   GroupInviteData,

@@ -16,8 +16,6 @@ export {
   getSigningState,
   upsertSigningState,
   deleteSigningState,
-  createJoinRequest,
-  deleteJoinRequest,
   getSettingsChange,
   createSettingsChange,
   getReview,
