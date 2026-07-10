@@ -22,7 +22,7 @@ import { db } from "../index.js";
 // oxlint-disable-next-line no-restricted-imports
 import { users } from "../schema.js";
 
-import { ACCOUNTS, ACCOUNT_KEYS } from "./accounts.js";
+import { ACCOUNTS, addressKey } from "./accounts.js";
 import { GROUPS } from "./groups.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -48,7 +48,7 @@ const LOAN_AMOUNT = 20n * E18;
 const LOAN_INTEREST_BPS = 500;
 
 function makeWallet(addr: string) {
-  const pk = ACCOUNT_KEYS[addr.toLowerCase()];
+  const pk = addressKey(addr);
   if (!pk) throw new Error(`No private key for ${addr}`);
   return createWalletClient({
     account: privateKeyToAccount(pk),
@@ -59,21 +59,21 @@ function makeWallet(addr: string) {
 
 async function seedUsers() {
   const now = new Date().toISOString();
-  for (const [address, name] of Object.entries(ACCOUNTS)) {
+  for (const { name, phone, address } of ACCOUNTS) {
     await db
       .insert(users)
       .values({
         id: `seed-${address}`,
         address,
         name,
-        phone: null,
+        phone,
         custodial: false,
         notificationsEnabled: true,
         createdAt: now,
       })
       .onConflictDoNothing({ target: users.address });
   }
-  console.log(`  ${Object.keys(ACCOUNTS).length} users seeded`);
+  console.log(`  ${ACCOUNTS.length} users seeded`);
 }
 
 async function deployAllGroups(factoryAddr: Address): Promise<Address[]> {
@@ -94,7 +94,7 @@ async function populateGroup(
   const reader = getIkiminaContract(groupAddr, { public: publicClient });
 
   for (const addr of g.memberAddresses) {
-    const pk = ACCOUNT_KEYS[addr.toLowerCase()];
+    const pk = addressKey(addr);
     if (!pk) continue;
 
     const userWallet = makeWallet(addr);
