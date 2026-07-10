@@ -37,7 +37,7 @@ function sortMembers(members: MemberListItem[]): MemberListItem[] {
     no_status: 2,
     paid: 3,
   };
-  return [...members].toSorted((a, b) => (weight[a.status] ?? 9) - (weight[b.status] ?? 9));
+  return [...members].sort((a, b) => (weight[a.status] ?? 9) - (weight[b.status] ?? 9));
 }
 
 function handleMemberPress(userId: string) {
