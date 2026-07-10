@@ -94,8 +94,11 @@ export default new OpenAPIHono()
     if (cached) return c.json(cached);
 
     const contract = getIkiminaContract(groupAddr, { public: publicClient });
-    const currentCycle = await contract.read.currentCycle();
-    const cycleStart = await contract.read.cycleStart();
+    const [currentCycle, cycleStart, activeCount] = await Promise.all([
+      contract.read.currentCycle(),
+      contract.read.cycleStart(),
+      contract.read.activeCount(),
+    ]);
 
     return c.json({
       currentCycle: Number(currentCycle),
@@ -103,6 +106,6 @@ export default new OpenAPIHono()
       cycleStart: new Date(Number(cycleStart) * 1000).toISOString(),
       reserveBalance: "0",
       paidCount: 0,
-      memberCount: 0,
+      memberCount: Number(activeCount),
     });
   });

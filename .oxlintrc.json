@@ -42,7 +42,8 @@
     "typescript/no-unused-vars": "error",
     "typescript/no-non-null-assertion": "warn",
     "no-restricted-imports": ["error", { "patterns": [{ "group": ["../*"] }] }],
-    "eqeqeq": "error"
+    "eqeqeq": "error",
+    "unicorn/no-array-sort": "off"
   },
   "categories": {
     "suspicious": "error"

@@ -421,11 +421,13 @@ export async function getPublicGroups() {
     for (let i = 0; i < Number(length); i++) {
       const gAddr = await factory.read.allGroups([BigInt(i)]);
       const meta = await getGroupMetaByAddress(gAddr);
-      if (meta)
+      if (meta) {
+        const ikimina = getIkiminaContract(gAddr, { public: publicClient });
+        const count = await ikimina.read.activeCount();
         groups.push({
           id: gAddr,
           name: meta.name,
-          memberCount: 0,
+          memberCount: Number(count),
           avatarInitials: meta.name
             .split(/\s+/)
             .slice(0, 2)
@@ -436,6 +438,7 @@ export async function getPublicGroups() {
           cycleLength: 30,
           createdAt: new Date().toISOString(),
         });
+      }
     }
     return groups;
   } catch {
