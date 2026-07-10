@@ -3,7 +3,21 @@ import type { Address } from "@ekimina/types";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 
 import * as contract from "../lib/contract-data.js";
-import { errorResponses } from "../lib/schemas.js";
+import {
+  committeeMemberSchema,
+  dashboardSchema,
+  errorResponses,
+  groupSettingsSchema,
+  inviteDataSchema,
+  leaveGroupInfoSchema,
+  loanReviewSchema,
+  memberDetailSchema,
+  memberListItemSchema,
+  pendingRequestSchema,
+  reserveDetailSchema,
+  transactionSchema,
+  userProfileSchema,
+} from "../lib/schemas.js";
 
 const dashboardRoute = createRoute({
   method: "get",
@@ -12,7 +26,7 @@ const dashboardRoute = createRoute({
   request: { params: z.object({ group: z.string() }) },
   responses: {
     200: {
-      content: { "application/json": { schema: z.any() } },
+      content: { "application/json": { schema: dashboardSchema } },
       description: "Dashboard",
     },
     ...errorResponses,
@@ -29,7 +43,7 @@ const membersRoute = createRoute({
   },
   responses: {
     200: {
-      content: { "application/json": { schema: z.any() } },
+      content: { "application/json": { schema: z.array(memberListItemSchema) } },
       description: "Members",
     },
     ...errorResponses,
@@ -43,7 +57,7 @@ const memberDetailRoute = createRoute({
   request: { params: z.object({ group: z.string(), userId: z.string() }) },
   responses: {
     200: {
-      content: { "application/json": { schema: z.any() } },
+      content: { "application/json": { schema: memberDetailSchema } },
       description: "Member detail",
     },
     ...errorResponses,
@@ -57,7 +71,7 @@ const pendingRoute = createRoute({
   request: { params: z.object({ group: z.string() }) },
   responses: {
     200: {
-      content: { "application/json": { schema: z.any() } },
+      content: { "application/json": { schema: z.array(pendingRequestSchema) } },
       description: "Pending requests",
     },
     ...errorResponses,
@@ -80,7 +94,7 @@ const transactionsRoute = createRoute({
   },
   responses: {
     200: {
-      content: { "application/json": { schema: z.any() } },
+      content: { "application/json": { schema: z.array(transactionSchema) } },
       description: "Transactions",
     },
     ...errorResponses,
@@ -94,7 +108,7 @@ const transactionDetailRoute = createRoute({
   request: { params: z.object({ group: z.string(), id: z.string() }) },
   responses: {
     200: {
-      content: { "application/json": { schema: z.any() } },
+      content: { "application/json": { schema: transactionSchema } },
       description: "Transaction detail",
     },
     ...errorResponses,
@@ -145,7 +159,7 @@ const loanReviewRoute = createRoute({
   },
   responses: {
     200: {
-      content: { "application/json": { schema: z.any() } },
+      content: { "application/json": { schema: loanReviewSchema } },
       description: "Loan review",
     },
     ...errorResponses,
@@ -159,7 +173,7 @@ const committeeRoute = createRoute({
   request: { params: z.object({ group: z.string() }) },
   responses: {
     200: {
-      content: { "application/json": { schema: z.any() } },
+      content: { "application/json": { schema: z.array(committeeMemberSchema) } },
       description: "Committee",
     },
     ...errorResponses,
@@ -173,7 +187,7 @@ const userProfileRoute = createRoute({
   request: { params: z.object({ group: z.string(), userId: z.string() }) },
   responses: {
     200: {
-      content: { "application/json": { schema: z.any() } },
+      content: { "application/json": { schema: userProfileSchema } },
       description: "User profile",
     },
     ...errorResponses,
@@ -187,7 +201,7 @@ const settingsRoute = createRoute({
   request: { params: z.object({ group: z.string() }) },
   responses: {
     200: {
-      content: { "application/json": { schema: z.any() } },
+      content: { "application/json": { schema: groupSettingsSchema } },
       description: "Group settings",
     },
     ...errorResponses,
@@ -201,7 +215,7 @@ const inviteRoute = createRoute({
   request: { params: z.object({ group: z.string() }) },
   responses: {
     200: {
-      content: { "application/json": { schema: z.any() } },
+      content: { "application/json": { schema: inviteDataSchema } },
       description: "Invite data",
     },
     ...errorResponses,
@@ -215,7 +229,7 @@ const reserveRoute = createRoute({
   request: { params: z.object({ group: z.string() }) },
   responses: {
     200: {
-      content: { "application/json": { schema: z.any() } },
+      content: { "application/json": { schema: reserveDetailSchema } },
       description: "Reserve detail",
     },
     ...errorResponses,
@@ -232,7 +246,7 @@ const leaveInfoRoute = createRoute({
   },
   responses: {
     200: {
-      content: { "application/json": { schema: z.any() } },
+      content: { "application/json": { schema: leaveGroupInfoSchema } },
       description: "Leave info",
     },
     ...errorResponses,
@@ -287,8 +301,7 @@ export default new OpenAPIHono()
   .openapi(dashboardRoute, async (c) => {
     const { group } = c.req.valid("param");
     const data = await contract.getDashboard(group as Address);
-    // oxlint-disable-next-line typescript/no-explicit-any
-    if (!data) return c.json({ error: "not found" }, 404) as any;
+    if (!data) return c.json({ error: "not found" }, 404);
     return c.json(data);
   })
   .openapi(membersRoute, async (c) => {
@@ -300,8 +313,7 @@ export default new OpenAPIHono()
   .openapi(memberDetailRoute, async (c) => {
     const { group, userId } = c.req.valid("param");
     const data = await contract.getMemberDetail(group as Address, userId);
-    // oxlint-disable-next-line typescript/no-explicit-any
-    if (!data) return c.json({ error: "not found" }, 404) as any;
+    if (!data) return c.json({ error: "not found" }, 404);
     return c.json(data);
   })
   .openapi(pendingRoute, async (c) => {
@@ -312,7 +324,7 @@ export default new OpenAPIHono()
   .openapi(transactionsRoute, async (c) => {
     return c.json([]);
   })
-  .openapi(transactionDetailRoute, async (c) => {
+  .openapi(transactionDetailRoute, async (_c) => {
     return c.json({});
   })
   .openapi(loansRoute, async (c) => {
@@ -323,16 +335,14 @@ export default new OpenAPIHono()
   .openapi(loanDetailRoute, async (c) => {
     const { group, id } = c.req.valid("param");
     const data = await contract.getLoanDetail(group as Address, id);
-    // oxlint-disable-next-line typescript/no-explicit-any
-    if (!data) return c.json({ error: "not found" }, 404) as any;
+    if (!data) return c.json({ error: "not found" }, 404);
     return c.json(data);
   })
   .openapi(loanReviewRoute, async (c) => {
     const { group, id } = c.req.valid("param");
     const { userId } = c.req.valid("query");
     const data = await contract.getLoanReview(group as Address, id, userId);
-    // oxlint-disable-next-line typescript/no-explicit-any
-    if (!data) return c.json({ error: "not found" }, 404) as any;
+    if (!data) return c.json({ error: "not found" }, 404);
     return c.json(data);
   })
   .openapi(committeeRoute, async (c) => {
@@ -342,8 +352,7 @@ export default new OpenAPIHono()
   .openapi(userProfileRoute, async (c) => {
     const { group, userId } = c.req.valid("param");
     const data = await contract.getUserProfile(group as Address, userId);
-    // oxlint-disable-next-line typescript/no-explicit-any
-    if (!data) return c.json({ error: "not found" }, 404) as any;
+    if (!data) return c.json({ error: "not found" }, 404);
     return c.json(data);
   })
   .openapi(settingsRoute, async (c) => {
@@ -352,7 +361,7 @@ export default new OpenAPIHono()
   })
   .openapi(inviteRoute, async (c) => {
     const { group } = c.req.valid("param");
-    return c.json(contract.getInviteData(group as Address));
+    return c.json(await contract.getInviteData(group as Address));
   })
   .openapi(reserveRoute, async (c) => {
     const { group } = c.req.valid("param");
@@ -370,8 +379,7 @@ export default new OpenAPIHono()
   .openapi(proposalDetailRoute, async (c) => {
     const { group, id } = c.req.valid("param");
     const data = await contract.getProposalDetail(group as Address, id);
-    // oxlint-disable-next-line typescript/no-explicit-any
-    if (!data) return c.json({ error: "not found" }, 404) as any;
+    if (!data) return c.json({ error: "not found" }, 404);
     return c.json(data);
   })
   .openapi(publicGroupsRoute, async (c) => {

@@ -169,7 +169,6 @@ export interface GroupReads {
   getReserveDetail(group: Address): Promise<ReserveDetail>;
   getLeaveGroupInfo(group: Address, userId: string): Promise<LeaveGroupInfo>;
   updateNotifications(userId: string, enabled: boolean): Promise<{ success: boolean }>;
-  verifyPin(userId: string, pin: string): Promise<{ success: boolean }>;
   leaveGroup(group: Address, userId: string): Promise<{ success: boolean }>;
   submitSettingsChange(
     group: Address,
@@ -293,7 +292,6 @@ export interface GroupActions {
   ): Promise<{ success: boolean }>;
   updateNotifications(userId: string, enabled: boolean): Promise<{ success: boolean }>;
   leaveGroup(group: Address, userId: string): Promise<{ success: boolean }>;
-  verifyPin(userId: string, pin: string): Promise<{ success: boolean }>;
   initiateWithdrawal(
     group: Address,
     memberId: string,

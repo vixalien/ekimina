@@ -66,16 +66,6 @@ const auth: DataClient["auth"] = {
     const res = await client.auth.otp.verify.$post({ json: { phone, code } });
     return handleRes<AuthResult>(res);
   },
-
-  async setPin() {
-    const res = await client.auth.pin.$post();
-    return handleRes<{ ok: boolean }>(res);
-  },
-
-  async verifyPin() {
-    const res = await client.auth.pin.verify.$post();
-    return handleRes<{ ok: boolean }>(res);
-  },
 };
 
 // ── Profile ──────────────────────────────────────────────────────────────
@@ -368,13 +358,6 @@ const groupReads: DataClient["groups"] = {
   async updateNotifications(userId, enabled) {
     const res = await client.users.notifications.$post({
       json: { userId, enabled },
-    });
-    return handleRes<{ success: boolean }>(res);
-  },
-
-  async verifyPin(userId, pin) {
-    const res = await client.users["verify-pin"].$post({
-      json: { userId, pin },
     });
     return handleRes<{ success: boolean }>(res);
   },
@@ -697,13 +680,6 @@ const groupActions: DataClient["actions"] = {
     const res = await client.groups[":group"].leave.$post({
       param: { group },
       json: { userId },
-    });
-    return handleRes<{ success: boolean }>(res);
-  },
-
-  async verifyPin(userId, pin) {
-    const res = await client.users["verify-pin"].$post({
-      json: { userId, pin },
     });
     return handleRes<{ success: boolean }>(res);
   },

@@ -5,6 +5,7 @@ export {
   getUserByAddress,
   getUserByPhone,
   createUser,
+  updateUser,
   getAllGroupMeta,
   getGroupMetaByAddress,
   getGroupMetaByInviteCode,

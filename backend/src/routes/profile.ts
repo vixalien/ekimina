@@ -1,9 +1,10 @@
 import type { Address } from "@ekimina/types";
 
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
+import { verify } from "hono/jwt";
 
-import { addressSchema, userSchema } from "../lib/schemas.js";
-import { getUserByAddress } from "../lib/store.js";
+import { addressSchema, errorResponses, userSchema } from "../lib/schemas.js";
+import { JWT_SECRET, getUserByAddress, updateUser } from "../lib/store.js";
 
 const getUserRoute = createRoute({
   method: "get",
@@ -44,12 +45,7 @@ const updateMeRoute = createRoute({
       },
       description: "Updated",
     },
-    401: {
-      content: {
-        "application/json": { schema: z.object({ error: z.string() }) },
-      },
-      description: "Unauthorized",
-    },
+    ...errorResponses,
   },
 });
 
@@ -61,7 +57,18 @@ export default new OpenAPIHono()
     return c.json(user, 200);
   })
   .openapi(updateMeRoute, async (c) => {
-    const userId = c.req.header("x-user-id");
-    if (!userId) return c.json({ error: "unauthorized" }, 401);
-    return c.json({ ok: true }) as any;
+    const authHeader = c.req.header("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return c.json({ error: "unauthorized" }, 401);
+    }
+    let userId: string;
+    try {
+      const payload = await verify(authHeader.slice(7), JWT_SECRET, "HS256");
+      userId = payload.sub as string;
+    } catch {
+      return c.json({ error: "unauthorized" }, 401);
+    }
+    const { name } = c.req.valid("json");
+    await updateUser(userId, { name: name ?? null });
+    return c.json({ ok: true });
   });

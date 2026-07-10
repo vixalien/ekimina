@@ -11,6 +11,7 @@ import {
   Separator,
   Surface,
 } from "heroui-native";
+import { useCallback, useState } from "react";
 import { ScrollView, View } from "react-native";
 import useSWR from "swr";
 import { withUniwind } from "uniwind";
@@ -35,6 +36,21 @@ export default function LeaveGroupConfirm(): JSX.Element {
     activeGroupId && auth?.id ? `leave-info:${activeGroupId}:${auth.id}` : null,
     () => api.groups.getLeaveGroupInfo(activeGroupId!, auth!.id),
   );
+
+  const [leaving, setLeaving] = useState(false);
+
+  const handleLeave = useCallback(async () => {
+    if (!activeGroupId || !auth?.id || leaving) return;
+    setLeaving(true);
+    try {
+      await api.groups.leaveGroup(activeGroupId, auth.id);
+      nav.profile.toLeaveGroupSent();
+    } catch {
+      // error handled silently
+    } finally {
+      setLeaving(false);
+    }
+  }, [activeGroupId, auth?.id, leaving]);
 
   if (isLoading || !info) {
     return (
@@ -106,7 +122,7 @@ export default function LeaveGroupConfirm(): JSX.Element {
             </Button>
           </View>
           <View className="flex-1">
-            <Button variant="danger-soft" onPress={nav.profile.toLeaveGroupPin}>
+            <Button variant="danger-soft" onPress={handleLeave} isDisabled={leaving}>
               <Button.Label>Continue</Button.Label>
             </Button>
           </View>

@@ -1,6 +1,17 @@
+import type HonoJWT from "hono/jwt";
+
+import { Hono } from "hono";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { clearAll } from "../__tests__/mock-store.js";
+
+vi.mock("hono/jwt", async (importOriginal) => {
+  const actual = await importOriginal<HonoJWT>();
+  return {
+    ...actual,
+    verify: vi.fn(),
+  };
+});
 
 vi.mock("./db/queries.js", async () => {
   const m = await import("../__tests__/mock-store.js");
@@ -8,7 +19,7 @@ vi.mock("./db/queries.js", async () => {
     getUserByAddress: vi.fn(() => null),
     getUserByPhone: vi.fn((phone: string) => {
       for (const u of m.mockUsers.values()) {
-        if ((u as Record<string, unknown>).phone === phone) return u;
+        if (u.phone === phone) return u;
       }
       return null;
     }),
@@ -41,7 +52,9 @@ vi.mock("./db/queries.js", async () => {
   };
 });
 
-import { sendOtp, verifyOtp } from "./auth.js";
+import { verify } from "hono/jwt";
+
+import { sendOtp, verifyOtp, authMiddleware } from "./auth.js";
 
 describe("sendOtp", () => {
   beforeEach(() => clearAll());
@@ -85,5 +98,48 @@ describe("verifyOtp", () => {
     const result = await verifyOtp("0788123456", "123456"); // second, existing
     expect(result).not.toBeNull();
     expect(result!.status).toBe("existing");
+  });
+});
+
+describe("authMiddleware", () => {
+  beforeEach(() => {
+    clearAll();
+    vi.clearAllMocks();
+  });
+
+  function createTestApp() {
+    const app = new Hono();
+    app.use("/protected", authMiddleware);
+    app.get("/protected", (c) => c.json({ ok: true }));
+    return app;
+  }
+
+  it("returns 401 without Authorization header", async () => {
+    const app = createTestApp();
+    const res = await app.request("/protected");
+    expect(res.status).toBe(401);
+    expect(await res.json()).toEqual({ error: "unauthorized" });
+  });
+
+  it("returns 401 with invalid token", async () => {
+    vi.mocked(verify).mockRejectedValue(new Error("bad token"));
+
+    const app = createTestApp();
+    const res = await app.request("/protected", {
+      headers: { Authorization: "Bearer bad-token" },
+    });
+    expect(res.status).toBe(401);
+    expect(await res.json()).toEqual({ error: "unauthorized" });
+  });
+
+  it("passes through with valid token and sets userId", async () => {
+    vi.mocked(verify).mockResolvedValue({ sub: "user-1", phone: "0788123456" });
+
+    const app = createTestApp();
+    const res = await app.request("/protected", {
+      headers: { Authorization: "Bearer good-token" },
+    });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ok: true });
   });
 });

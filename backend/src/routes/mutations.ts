@@ -2,9 +2,14 @@ import crypto from "crypto";
 
 import type { Address, GroupSettingField } from "@ekimina/types";
 
+import { getFactoryContract, factoryABI } from "@ekimina/contracts";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
+import { verify } from "hono/jwt";
+import { keccak256, parseEventLogs, toHex } from "viem";
 
+import { publicClient, walletClient } from "../lib/chain.js";
 import * as contract from "../lib/contract-data.js";
+import { getFactoryAddress } from "../lib/indexer.js";
 import { nameOf } from "../lib/name-resolver.js";
 import {
   errorResponses,
@@ -21,10 +26,16 @@ import {
   createJoinRequest,
   deleteJoinRequest,
   getGroupMetaByInviteCode,
+  upsertGroupMeta,
+  JWT_SECRET,
 } from "../lib/store.js";
 
 function nameEntry(key: string): { name: string; initials: string } {
   return nameOf(key);
+}
+
+function generateInviteCode(): string {
+  return crypto.randomBytes(4).toString("hex").toUpperCase().slice(0, 6);
 }
 
 const groupAndIdParams = z.object({ group: z.string(), id: z.string() });
@@ -363,28 +374,6 @@ const updateNotificationsRoute = createRoute({
   },
 });
 
-const verifyPinRoute = createRoute({
-  method: "post",
-  path: "/users/verify-pin",
-  tags: ["Mutations"],
-  request: {
-    body: {
-      content: {
-        "application/json": {
-          schema: z.object({ userId: z.string(), pin: z.string() }),
-        },
-      },
-    },
-  },
-  responses: {
-    200: {
-      content: { "application/json": { schema: successOnlySchema } },
-      description: "Verified",
-    },
-    ...errorResponses,
-  },
-});
-
 // ── Invite phone ────────────────────────────────────────────────────────
 
 const sendPhoneInviteRoute = createRoute({
@@ -566,7 +555,7 @@ export default new OpenAPIHono()
     const { userId } = c.req.valid("json");
     const loan = await contract.getLoanDetail(group as Address, id);
     // oxlint-disable-next-line typescript/no-explicit-any
-    if (!loan) return c.json({ error: "not found" }, 404) as any;
+    if (!loan) return c.json({ error: "not found" }, 404);
 
     const key = `loan:${id}`;
     const state = await upsertSigningState(key, userId);
@@ -577,7 +566,7 @@ export default new OpenAPIHono()
     const { group, id } = c.req.valid("param");
     const loan = await contract.getLoanDetail(group as Address, id);
     // oxlint-disable-next-line typescript/no-explicit-any
-    if (!loan) return c.json({ error: "not found" }, 404) as any;
+    if (!loan) return c.json({ error: "not found" }, 404);
     return c.json({ success: true });
   })
   .openapi(submitSettingsRoute, async (c) => {
@@ -617,7 +606,7 @@ export default new OpenAPIHono()
     const { userId } = c.req.valid("json");
     const change = await getSettingsChange(id);
     // oxlint-disable-next-line typescript/no-explicit-any
-    if (!change) return c.json({ error: "not found" }, 404) as any;
+    if (!change) return c.json({ error: "not found" }, 404);
 
     const key = `settings:${id}`;
     const state = await upsertSigningState(key, userId);
@@ -632,7 +621,7 @@ export default new OpenAPIHono()
     const { id } = c.req.valid("param");
     const change = await getSettingsChange(id);
     // oxlint-disable-next-line typescript/no-explicit-any
-    if (!change) return c.json({ error: "not found" }, 404) as any;
+    if (!change) return c.json({ error: "not found" }, 404);
     return c.json(change);
   })
   .openapi(submitDiscRoute, async (c) => {
@@ -678,7 +667,7 @@ export default new OpenAPIHono()
     const { id } = c.req.valid("param");
     const review = await getReview(id);
     // oxlint-disable-next-line typescript/no-explicit-any
-    if (!review) return c.json({ error: "not found" }, 404) as any;
+    if (!review) return c.json({ error: "not found" }, 404);
     return c.json(review.data);
   })
   .openapi(signDiscRoute, async (c) => {
@@ -725,7 +714,7 @@ export default new OpenAPIHono()
     const { id } = c.req.valid("param");
     const review = await getReview(id);
     // oxlint-disable-next-line typescript/no-explicit-any
-    if (!review) return c.json({ error: "not found" }, 404) as any;
+    if (!review) return c.json({ error: "not found" }, 404);
     return c.json(review.data);
   })
   .openapi(signWithdrawalRoute, async (c) => {
@@ -738,17 +727,16 @@ export default new OpenAPIHono()
   .openapi(rejectWithdrawalRoute, async (c) => {
     return c.json({ success: true });
   })
-  .openapi(leaveGroupRoute, async (c) => {
-    return c.json({ success: true });
+  .openapi(leaveGroupRoute, async (_c) => {
+    // oxlint-disable-next-line typescript/no-explicit-any
+    return c.json({ error: "not implemented" }, 501);
   })
   .openapi(updateNotificationsRoute, async (c) => {
     return c.json({ success: true });
   })
-  .openapi(verifyPinRoute, async (c) => {
-    return c.json({ success: true });
-  })
-  .openapi(sendPhoneInviteRoute, async (c) => {
-    return c.json({ success: true });
+  .openapi(sendPhoneInviteRoute, async (_c) => {
+    // oxlint-disable-next-line typescript/no-explicit-any
+    return c.json({ error: "not implemented" }, 501);
   })
   .openapi(requestToJoinRoute, async (c) => {
     const { groupId, userId } = c.req.valid("json");
@@ -800,11 +788,72 @@ export default new OpenAPIHono()
     const { code } = c.req.valid("json");
     const meta = await getGroupMetaByInviteCode(code);
     // oxlint-disable-next-line typescript/no-explicit-any
-    if (!meta) return c.json({ error: "not found" }, 404) as any;
+    if (!meta) return c.json({ error: "not found" }, 404);
     return c.json({ group: meta.address, success: true });
   })
   .openapi(createGroupRoute, async (c) => {
-    return c.json({ success: true });
+    const authHeader = c.req.header("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return c.json({ error: "unauthorized" }, 401);
+    }
+    try {
+      await verify(authHeader.slice(7), JWT_SECRET, "HS256");
+    } catch {
+      return c.json({ error: "unauthorized" }, 401);
+    }
+
+    const body = c.req.valid("json") as { name?: string };
+    const name = body?.name ?? "My Group";
+    const factoryAddr = getFactoryAddress();
+    if (!factoryAddr) return c.json({ error: "factory not available" }, 500);
+
+    const factory = getFactoryContract(factoryAddr, {
+      public: publicClient,
+      wallet: walletClient,
+    });
+
+    const inviteCode = generateInviteCode();
+    const inviteCodeHash = keccak256(toHex(inviteCode));
+
+    const config = [
+      10000000000000000000n,
+      2592000n,
+      50000000000000000000n,
+      1,
+      500,
+      6000,
+      true,
+      true,
+      false,
+    ];
+
+    try {
+      // oxlint-disable-next-line typescript/no-explicit-any
+      const hash = await (factory as any).write.createGroup([config, inviteCodeHash]);
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+
+      const logs = parseEventLogs({
+        abi: factoryABI,
+        logs: receipt.logs,
+        eventName: "GroupDeployed",
+      });
+      const groupAddr = logs[0]?.args.group as Address | undefined;
+      if (!groupAddr) return c.json({ error: "failed to get group address" }, 500);
+
+      await upsertGroupMeta({
+        address: groupAddr,
+        name,
+        inviteCode,
+        // oxlint-disable-next-line typescript/no-explicit-any
+        creator: (walletClient as any).account.address as Address,
+        createdAt: new Date().toISOString(),
+      });
+
+      return c.json({ success: true, group: groupAddr });
+    } catch (e) {
+      console.error("[createGroup]", e);
+      return c.json({ error: "failed to create group" }, 500);
+    }
   })
   .openapi(retryTxRoute, async (c) => {
     return c.json({ success: true });

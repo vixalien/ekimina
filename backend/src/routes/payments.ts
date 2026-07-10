@@ -77,20 +77,18 @@ export default new OpenAPIHono()
       resultingTxId: null,
     };
     const created = await createPaymentIntent(intent);
-    return c.json(created as any);
+    return c.json(created);
   })
   .openapi(getIntentRoute, async (c) => {
     const { id } = c.req.valid("param");
     const intent = await getPaymentIntent(id);
-    // oxlint-disable-next-line typescript/no-explicit-any
-    if (!intent) return c.json({ error: "not found" }, 404) as any;
+    if (!intent) return c.json({ error: "not found" }, 404);
     return c.json(intent);
   })
   .openapi(retryIntentRoute, async (c) => {
     const { id } = c.req.valid("param");
     const intent = await getPaymentIntent(id);
-    // oxlint-disable-next-line typescript/no-explicit-any
-    if (!intent) return c.json({ error: "not found" }, 404) as any;
+    if (!intent) return c.json({ error: "not found" }, 404);
     const updated = await updatePaymentIntent(id, { status: "pending" });
-    return c.json(updated as any);
+    return c.json(updated);
   });

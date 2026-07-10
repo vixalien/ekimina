@@ -5,6 +5,7 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 import { logger } from "hono/logger";
 
 import { setFactoryAddress, startIndexer } from "./lib/indexer.js";
+import { loadNames, startNameRefresh } from "./lib/name-resolver.js";
 import authRoutes from "./routes/auth.js";
 import groupsRoutes from "./routes/groups.js";
 import indexerRoutes from "./routes/indexer.js";
@@ -90,6 +91,11 @@ const routes = app
   .route("/", mutationsRoutes)
   .route("/", paymentsRoutes);
 
+if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET) {
+  console.error("FATAL: JWT_SECRET must be set in production");
+  process.exit(1);
+}
+
 export type AppType = typeof routes;
 
 serve({ fetch: app.fetch, port: 3000 }, async () => {
@@ -100,16 +106,20 @@ serve({ fetch: app.fetch, port: 3000 }, async () => {
   if (FACTORY_ADDRESS) {
     setFactoryAddress(FACTORY_ADDRESS);
     startIndexer().catch(console.error);
+    await loadNames();
+    startNameRefresh();
   } else {
     console.log("[bootstrap] No FACTORY_ADDRESS env var. Using local.json.");
 
     const mod = await import("../../local.json");
     FACTORY_ADDRESS = mod.default.FACTORY_ADDRESS as Address;
 
-    const tryRead = () => {
+    const tryRead = async () => {
       try {
         setFactoryAddress(FACTORY_ADDRESS);
         startIndexer().catch(console.error);
+        await loadNames();
+        startNameRefresh();
         console.log(`[bootstrap] Indexer started with factory: ${FACTORY_ADDRESS}`);
         return true;
       } catch (error) {
@@ -118,9 +128,9 @@ serve({ fetch: app.fetch, port: 3000 }, async () => {
       }
     };
 
-    if (!tryRead()) {
-      const interval = setInterval(() => {
-        if (tryRead()) clearInterval(interval);
+    if (!(await tryRead())) {
+      const interval = setInterval(async () => {
+        if (await tryRead()) clearInterval(interval);
       }, 2000);
     }
   }

@@ -4,6 +4,10 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import { mockUsers, mockUsersByAddress, clearAll } from "../__tests__/mock-store.js";
 
+vi.mock("hono/jwt", () => ({
+  verify: vi.fn(),
+}));
+
 vi.mock("../lib/db/queries.js", async () => {
   const m = await import("../__tests__/mock-store.js");
   return {
@@ -13,6 +17,14 @@ vi.mock("../lib/db/queries.js", async () => {
       m.mockUsers.set(user.id as string, user);
       m.mockUsersByAddress.set(user.address as string, user);
       return user;
+    }),
+    updateUser: vi.fn((id: string, data: Record<string, unknown>) => {
+      const existing = m.mockUsers.get(id);
+      if (!existing) return null;
+      const updated = { ...existing, ...data };
+      m.mockUsers.set(id, updated);
+      if (updated.address) m.mockUsersByAddress.set(updated.address as string, updated);
+      return updated;
     }),
     getAllGroupMeta: vi.fn(() => []),
     getGroupMetaByAddress: vi.fn(() => null),
@@ -37,6 +49,8 @@ vi.mock("../lib/db/queries.js", async () => {
     upsertReview: vi.fn((r: Record<string, unknown>) => r),
   };
 });
+
+import { verify } from "hono/jwt";
 
 const ADDRESS = "0x1234567890123456789012345678901234567890" as Address;
 
@@ -84,5 +98,79 @@ describe("GET /users/{address}", () => {
     const { default: profile } = await import("./profile.js");
     const res = await profile.request("/users/not-an-address");
     expect(res.status).toBe(400);
+  });
+});
+
+describe("PATCH /users/me", () => {
+  beforeEach(() => {
+    clearAll();
+    vi.clearAllMocks();
+  });
+
+  it("returns 401 without authorization header", async () => {
+    const { default: profile } = await import("./profile.js");
+    const res = await profile.request("/users/me", {
+      method: "PATCH",
+      body: JSON.stringify({ name: "Alice" }),
+      headers: { "Content-Type": "application/json" },
+    });
+    expect(res.status).toBe(401);
+    expect(await res.json()).toEqual({ error: "unauthorized" });
+  });
+
+  it("returns 401 with invalid token", async () => {
+    vi.mocked(verify).mockRejectedValue(new Error("invalid token"));
+
+    const { default: profile } = await import("./profile.js");
+    const res = await profile.request("/users/me", {
+      method: "PATCH",
+      body: JSON.stringify({ name: "Alice" }),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer invalid-token",
+      },
+    });
+    expect(res.status).toBe(401);
+    expect(await res.json()).toEqual({ error: "unauthorized" });
+  });
+
+  it("updates name with valid token", async () => {
+    const user = addUser({ name: null });
+    vi.mocked(verify).mockResolvedValue({ sub: user.id, phone: user.phone });
+
+    const { default: profile } = await import("./profile.js");
+    const res = await profile.request("/users/me", {
+      method: "PATCH",
+      body: JSON.stringify({ name: "Alice Updated" }),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer valid-token",
+      },
+    });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ok: true });
+
+    const updated = mockUsers.get(user.id) as Record<string, unknown>;
+    expect(updated.name).toBe("Alice Updated");
+  });
+
+  it("updates name to null when not provided", async () => {
+    const user = addUser({ name: "Alice" });
+    vi.mocked(verify).mockResolvedValue({ sub: user.id, phone: user.phone });
+
+    const { default: profile } = await import("./profile.js");
+    const res = await profile.request("/users/me", {
+      method: "PATCH",
+      body: JSON.stringify({}),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer valid-token",
+      },
+    });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ok: true });
+
+    const updated = mockUsers.get(user.id) as Record<string, unknown>;
+    expect(updated.name).toBeNull();
   });
 });

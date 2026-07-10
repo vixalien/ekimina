@@ -33,6 +33,11 @@ export async function createUser(user: typeof users.$inferInsert) {
   return rows[0];
 }
 
+export async function updateUser(id: string, data: Partial<typeof users.$inferInsert>) {
+  const rows = await db.update(users).set(data).where(eq(users.id, id)).returning();
+  return rows[0] ?? null;
+}
+
 export async function getAllGroupMeta() {
   return db.select().from(groupMetaTable);
 }

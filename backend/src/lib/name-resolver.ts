@@ -23,3 +23,9 @@ export function nameOf(addr: string): NameEntry {
   const name = cache?.[addr.toLowerCase()] ?? addr.slice(0, 6);
   return { name, initials: initialsOf(name) };
 }
+
+export function startNameRefresh(intervalMs = 300000) {
+  setInterval(() => {
+    loadNames().catch(console.error);
+  }, intervalMs);
+}

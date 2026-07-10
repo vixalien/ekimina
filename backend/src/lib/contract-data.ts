@@ -234,8 +234,8 @@ export async function getSettings(groupAddr: Address) {
     contributionAmount: toAmount(contribution),
     cycleLength: Number(cycleLength) / 86400,
     payoutAmount: toAmount(payout),
-    penaltyRate: Number(penaltyRateBps) / 100,
-    approvalThreshold: Number(approvalThresholdBps) / 10000,
+    penaltyRate: penaltyRateBps / 100,
+    approvalThreshold: approvalThresholdBps / 10000,
     allMembersAreCommittee: allMembersCommittee,
     committeeSize: 1,
     loansEnabled,
@@ -397,9 +397,9 @@ export async function getGroupConfig(groupAddr: Address) {
     contributionAmount: contribution.toString(),
     cycleLength: Number(cycleLength),
     payoutAmount: payout.toString(),
-    payoutPolicy: ["none", "rotating", "lump_sum_end"][Number(payoutPolicy)] ?? "none",
-    penaltyRateBps: Number(penaltyRateBps),
-    approvalThresholdBps: Number(approvalThresholdBps),
+    payoutPolicy: ["none", "rotating", "lump_sum_end"][payoutPolicy] ?? "none",
+    penaltyRateBps: penaltyRateBps,
+    approvalThresholdBps: approvalThresholdBps,
     loansEnabled,
     discretionaryEnabled,
     allMembersCommittee,
@@ -420,7 +420,7 @@ export async function getPublicGroups() {
     })[] = [];
     for (let i = 0; i < Number(length); i++) {
       const gAddr = await factory.read.allGroups([BigInt(i)]);
-      const meta = await getGroupMetaByAddress(gAddr as Address);
+      const meta = await getGroupMetaByAddress(gAddr);
       if (meta)
         groups.push({
           id: gAddr,

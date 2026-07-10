@@ -86,8 +86,6 @@ export type AuthResult =
 export interface AuthApi {
   sendOtp(phone: string): Promise<{ sent: boolean }>;
   verifyOtp(phone: string, code: string): Promise<AuthResult>;
-  setPin(userId: string, pin: string): Promise<{ ok: boolean }>;
-  verifyPin(userId: string, pin: string): Promise<{ ok: boolean }>;
 }
 
 export interface ProfileApi {

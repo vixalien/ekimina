@@ -1,5 +1,7 @@
 import type { User, AuthResult } from "@ekimina/types";
+import type { Context, Next } from "hono";
 
+import { createMiddleware } from "hono/factory";
 import { sign, verify } from "hono/jwt";
 
 import { JWT_SECRET, getUserByPhone, createUser } from "./store.js";
@@ -26,7 +28,7 @@ export async function verifyOtp(phone: string, code: string): Promise<AuthResult
   const address = `0x${crypto.randomUUID().replace(/-/g, "").slice(0, 40)}` as const;
   const user: User = {
     id,
-    address: address,
+    address,
     name: null,
     phone,
     custodial: true,
@@ -37,11 +39,19 @@ export async function verifyOtp(phone: string, code: string): Promise<AuthResult
   return { status: "created", token, user: created };
 }
 
-export async function verifyJwt(token: string): Promise<{ sub: string; phone: string } | null> {
+export const authMiddleware = createMiddleware(async (c: Context, next: Next) => {
+  const authHeader = c.req.header("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return c.json({ error: "unauthorized" }, 401);
+  }
+  const token = authHeader.slice(7);
   try {
     const payload = await verify(token, JWT_SECRET, "HS256");
-    return { sub: payload.sub as string, phone: payload.phone as string };
+    c.set("userId", payload.sub);
+    c.set("phone", payload.phone);
+    await next();
   } catch {
-    return null;
+    return c.json({ error: "unauthorized" }, 401);
   }
-}
+  return c.json();
+});

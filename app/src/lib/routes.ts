@@ -43,7 +43,6 @@ export const Routes = {
     committee: "/(tabs)/profile/committee" as const,
     settingsReview: "/(tabs)/profile/settings-review" as const,
     leaveGroupConfirm: "/(tabs)/profile/leave-confirm" as const,
-    leaveGroupPin: "/(tabs)/profile/leave-pin" as const,
     leaveGroupSent: "/(tabs)/profile/leave-sent" as const,
   },
 
@@ -109,7 +108,6 @@ export const nav = {
     toSettingsReview: (requestId: string) =>
       router.push({ pathname: Routes.profile.settingsReview, params: { requestId } }),
     toLeaveGroupConfirm: () => router.push(Routes.profile.leaveGroupConfirm),
-    toLeaveGroupPin: () => router.push(Routes.profile.leaveGroupPin),
     toLeaveGroupSent: () => router.replace(Routes.profile.leaveGroupSent),
   },
 

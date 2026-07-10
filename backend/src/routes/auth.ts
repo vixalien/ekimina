@@ -1,7 +1,7 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 
 import { sendOtp, verifyOtp } from "../lib/auth.js";
-import { authResultSchema, errorResponses, phoneSchema, otpCodeSchema } from "../lib/schemas.js";
+import { authResultSchema, phoneSchema, otpCodeSchema } from "../lib/schemas.js";
 
 const sendOtpRoute = createRoute({
   method: "post",
@@ -51,36 +51,6 @@ const verifyOtpRoute = createRoute({
   },
 });
 
-const setPinRoute = createRoute({
-  method: "post",
-  path: "/auth/pin",
-  tags: ["Auth"],
-  responses: {
-    200: {
-      content: {
-        "application/json": { schema: z.object({ ok: z.boolean() }) },
-      },
-      description: "PIN set",
-    },
-    ...errorResponses,
-  },
-});
-
-const verifyPinRoute = createRoute({
-  method: "post",
-  path: "/auth/pin/verify",
-  tags: ["Auth"],
-  responses: {
-    200: {
-      content: {
-        "application/json": { schema: z.object({ ok: z.boolean() }) },
-      },
-      description: "PIN verified",
-    },
-    ...errorResponses,
-  },
-});
-
 export default new OpenAPIHono()
   .openapi(sendOtpRoute, async (c) => {
     const { phone } = c.req.valid("json");
@@ -92,10 +62,4 @@ export default new OpenAPIHono()
     const result = await verifyOtp(phone, code);
     if (!result) return c.json({ error: "invalid code" }, 401);
     return c.json(result, 200);
-  })
-  .openapi(setPinRoute, async (c) => {
-    return c.json({ ok: true });
-  })
-  .openapi(verifyPinRoute, async (c) => {
-    return c.json({ ok: true });
   });
