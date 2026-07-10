@@ -5,13 +5,13 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, "..");
 
-const artifactsDir = resolve(root, "artifacts");
+const artifactsDir = resolve(root, "out");
 const outDir = resolve(root, "src/abi");
 
 const contractArtifacts = [
-  "contracts/Ikimina.sol/Ikimina.json",
-  "contracts/Ikimina.sol/IkiminaFactory.json",
-  "contracts/MockUSDm.sol/MockUSDm.json",
+  "Ikimina.sol/Ikimina.json",
+  "Ikimina.sol/IkiminaFactory.json",
+  "MockUSDm.sol/MockUSDm.json",
 ];
 
 mkdirSync(outDir, { recursive: true });

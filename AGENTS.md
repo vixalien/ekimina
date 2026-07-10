@@ -14,11 +14,11 @@ app/                  Expo Router app (HeroUI Native + Uniwind)
     stores/           Nanostores (auth, active-group, group, create-group)
 packages/
   types/src/          @ekimina/types — shared TS types (primitives -> chain -> backend -> screen -> client)
-  contracts/          @ekimina/contracts — Hardhat 3 + viem (Solidity + ABIs + deploy)
-    contracts/        Ikimina.sol, MockUSDm.sol, forge-std tests
+  contracts/          @ekimina/contracts — Foundry + viem (Solidity + ABIs + deploy)
+    contracts/        Ikimina.sol, MockUSDm.sol
+    contracts/test/   Solidity unit tests (*.t.sol)
+    script/           Forge deployment scripts
     scripts/          Deploy / read-state / extract-abis
-    ignition/         Hardhat Ignition modules
-    test/             Solidity unit tests (*.t.sol) + TS integration tests
 backend/              Hono + @hono/zod-openapi + viem API server
 test/                 Static HTML test page (live-server)
 ```
@@ -48,14 +48,24 @@ cd app && pnpm expo start             # Dev server
 cd backend && pnpm dev                 # tsx watch src/index.ts (needs FACTORY_ADDRESS)
 
 # Contracts
-cd packages/contracts && pnpm compile  # Hardhat compile + extract ABIs
-cd packages/contracts && pnpm test     # Hardhat test
-cd packages/contracts && pnpm dev      # Hardhat node + deploy (concurrent)
+cd packages/contracts && pnpm compile  # Forge build + extract ABIs
+cd packages/contracts && pnpm test     # Forge test
+cd packages/contracts && pnpm dev      # Anvil + deploy (concurrent, state persists)
 ```
 
-## Full stack dev (4 terminals)
+## Full stack dev
 
-1. `cd packages/contracts && pnpm dev:node` — Hardhat node on `:8545`
+You can use the `dev` command which runs compile + anvil + deploy in one shot:
+
+```bash
+cd packages/contracts && pnpm dev
+```
+
+This runs `forge build`, starts `anvil` (with `--state .anvil-state` for persistence), waits for the RPC, then deploys and writes `FACTORY_ADDRESS` to `local.json`. Restart anvil later and state persists — no need to redeploy unless you delete `.anvil-state`.
+
+For per-terminal control:
+
+1. `cd packages/contracts && pnpm dev:node` — Anvil on `:8545` (state persists in `.anvil-state`)
 2. `cd packages/contracts && pnpm dev:deploy` — deploy to localhost, prints `FACTORY_ADDRESS`
 3. `FACTORY_ADDRESS=0x... cd backend && pnpm dev` — Hono API on `:3000`
 4. `cd app && pnpm expo start` — Expo dev server
@@ -79,7 +89,7 @@ Backend falls back to `local.json` for FACTORY_ADDRESS if env var is unset.
 - Mock OTP: `123456`
 - Backend OpenAPI spec at `/openapi.json`, Scalar UI at `/scalar`
 - `EXPO_PUBLIC_BACKEND_URL` env var (defaults to `http://localhost:3000`)
-- `EXPO_PUBLIC_HARDHAT_RPC` env var (defaults to `http://localhost:8545`)
+- `EXPO_PUBLIC_HARDHAT_RPC` env var (defaults to `http://localhost:8545`; works with anvil too)
 
 ## Shared types
 
@@ -98,8 +108,7 @@ Everything lives in `@ekimina/types` (re-exported from `src/api/screen-types.ts`
 - **Colocate tests** alongside source: `{source}.test.ts` next to `{source}.ts`. Only exception is setup utilities (`__tests__/setup.ts`).
 - **Backend:** Use Hono's `app.request()` for in-process route tests (no supertest, no HTTP server). Mock blockchain layer (`contract-data.ts`) via `vi.mock()` to avoid hardhat dependency. For `null` return values, cast mock via `(mock as unknown as Mock).mockResolvedValue(null)`.
 - **App stores:** Pure nanostores — test with `environment: "node"`, no React runtime needed. Reset store state in `beforeEach`.
-- **Contracts (Solidity):** Forge tests in `contracts/test/*.t.sol`, run with `hardhat test`.
-- **Contracts (TS):** Integration tests use a `globalSetup` that starts a hardhat node on port `18545`, deploys contracts, then runs viem-based tests.
+- **Contracts (Solidity):** Forge tests in `contracts/test/*.t.sol`, run with `forge test` in `packages/contracts`.
 - **Clean stores between tests:** `backend/src/__tests__/setup.ts` clears all in-memory Maps in `beforeEach`.
 - **Use `body` type annotation:** `const body = (await res.json()) as ExpectedType` when the response body shape is known.
 - **No `as any` in tests (lint error).** Prefer `as unknown as ExpectedType` or `as ExpectedType` casts instead.

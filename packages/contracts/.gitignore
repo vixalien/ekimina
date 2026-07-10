@@ -1,17 +1,23 @@
 # Node modules
 /node_modules
 
-# Compilation output
+# Foundry compilation output
+/out
+
+# Foundry broadcast logs
+/broadcast
+
+# Foundry cache
+/cache
+
+# Anvil persistent state
+/.anvil-state
+
+# TypeScript compilation
 /dist
 
 # pnpm deploy output
 /bundle
-
-# Hardhat Build Artifacts
-/artifacts
-
-# Hardhat compilation (v2) support directory
-/cache
 
 # Typechain output
 /types
@@ -21,7 +27,7 @@
 .env.*
 !.env.example
 
-# Hardhat coverage reports
+# Coverage reports
 /coverage
 
 # Gas snapshot files
@@ -33,4 +39,5 @@
 # Auto-generated ABI files (produced by scripts/extract-abis.ts)
 /src/abi
 
+# Hardhat Ignition deployments (removed but keeping for users migrating)
 /ignition/deployments/**/build-info

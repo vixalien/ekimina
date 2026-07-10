@@ -9,23 +9,21 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "test": "hardhat test",
-    "hardhat": "hardhat",
-    "compile": "hardhat compile && pnpm extract-abis",
+    "test": "forge test",
+    "compile": "forge build && pnpm extract-abis",
     "extract-abis": "tsx scripts/extract-abis.ts",
-    "deploy": "hardhat ignition deploy ignition/modules/Ikimina.ts --network celoSepolia --parameters ignition/parameters/celoSepolia.json",
-    "read-state": "hardhat run scripts/read-state.ts --network celoSepolia",
-    "dev:deploy": "hardhat run scripts/deploy-local.ts --network localhost",
-    "dev:node": "hardhat node",
+    "deploy": "forge script script/DeployCelo.s.sol --broadcast --rpc-url celoSepolia",
+    "deploy:sepolia": "forge script script/DeployCelo.s.sol --broadcast --rpc-url sepolia",
+    "read-state": "tsx scripts/read-state.ts",
+    "check-wallet": "tsx scripts/check-wallet.ts",
+    "dev:deploy": "tsx scripts/deploy-local.ts",
+    "dev:node": "anvil --state .anvil-state --port 8545 --disable-code-size-limit",
     "predev": "pnpm compile",
     "dev": "concurrently \"pnpm dev:node\" \"wait-on tcp:8545 && pnpm dev:deploy\""
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-ignition": "^3.1.6",
-    "@nomicfoundation/hardhat-toolbox-viem": "^5.0.6",
     "dotenv": "^17.4.2",
     "forge-std": "github:foundry-rs/forge-std#v1.9.4",
-    "hardhat": "^3.7.0",
     "typescript": "~6.0.3",
     "viem": "^2.52.0"
   },

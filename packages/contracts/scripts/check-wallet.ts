@@ -1,14 +1,18 @@
-import hre from "hardhat";
-import { formatEther } from "viem";
+import { createPublicClient, http, formatEther } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
 
-// oxlint-disable-next-line typescript/no-explicit-any
-const { viem } = await (hre.network.create("celoSepolia") as any);
-const [wallet] = await viem.getWalletClients();
-const publicClient = await viem.getPublicClient();
+const celoSepolia = {
+  id: 11142220,
+  name: "Celo Sepolia",
+  nativeCurrency: { name: "CELO", symbol: "CELO", decimals: 18 },
+  rpcUrls: { default: { http: ["https://forno.celo-sepolia.celo-testnet.org/"] } },
+} as const;
 
-const balance = await publicClient.getBalance({
-  address: wallet.account.address,
-});
+const deployer = privateKeyToAccount(process.env.CELO_SEPOLIA_PRIVATE_KEY! as `0x${string}`);
 
-console.log("Address:", wallet.account.address);
+const publicClient = createPublicClient({ chain: celoSepolia, transport: http() });
+
+const balance = await publicClient.getBalance({ address: deployer.address });
+
+console.log("Address:", deployer.address);
 console.log("Balance:", formatEther(balance), "CELO");
