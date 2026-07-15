@@ -71,21 +71,24 @@ export default function CommitteeScreen(): JSX.Element {
   const [originalCommittee, setOriginalCommittee] = useState<Set<string>>(new Set());
   const [submitting, setSubmitting] = useState(false);
 
-  const { data: committeeData, isLoading } = useSWR(
-    activeGroupId && auth?.id ? `committee:${activeGroupId}` : null,
-    () =>
-      Promise.all([
-        api.groups.getGroupMembers(activeGroupId!),
-        api.groups.getCommitteeMembers(activeGroupId!),
-        api.groups.getGroupSettings(activeGroupId!),
-        api.groups.getMemberDetail(activeGroupId!, auth!.id, auth!.id),
-      ]),
+  const { data: allMembers = [] } = useSWR(
+    activeGroupId ? `committee-members:${activeGroupId}` : null,
+    () => api.groups.getGroupMembers(activeGroupId!),
+  );
+  const { data: committeeMembers = [] } = useSWR(
+    activeGroupId ? `committee-committee:${activeGroupId}` : null,
+    () => api.groups.getCommitteeMembers(activeGroupId!),
+  );
+  const { data: settings } = useSWR(
+    activeGroupId ? `committee-settings:${activeGroupId}` : null,
+    () => api.groups.getGroupSettings(activeGroupId!),
+  );
+  const { data: memberDetail } = useSWR(
+    activeGroupId && auth?.id ? `committee-member-detail:${activeGroupId}:${auth.id}` : null,
+    () => api.groups.getMemberDetail(activeGroupId!, auth!.id, auth!.id),
   );
 
-  const allMembers = committeeData?.[0] ?? [];
-  const committeeMembers = committeeData?.[1] ?? [];
-  const settings = committeeData?.[2] ?? null;
-  const memberDetail = committeeData?.[3] ?? null;
+  const isLoading = !allMembers.length && !settings;
 
   const isCommittee = memberDetail?.isCommitteeMember ?? false;
 
@@ -158,7 +161,7 @@ export default function CommitteeScreen(): JSX.Element {
           <View className="px-4 pt-4 gap-6">
             {/* All members committee notice */}
             {settings.allMembersAreCommittee && (
-              <Surface variant="secondary" className="p-4">
+              <Surface className="p-4">
                 <View className="flex-row items-center gap-3">
                   <StyledIonicons name="people" size={20} className="text-accent" />
                   <View className="flex-1">

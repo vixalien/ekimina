@@ -68,24 +68,32 @@ export default new OpenAPIHono()
     if (cached) return c.json(cached);
 
     const contract = getIkiminaContract(groupAddr, { public: publicClient });
-    // oxlint-disable-next-line typescript/no-explicit-any
-    const config = (await contract.read.config()) as any;
+    const [
+      contributionAmount,
+      cycleLength,
+      payoutAmount,
+      payoutPolicy,
+      penaltyRateBps,
+      approvalThresholdBps,
+      loansEnabled,
+      discretionaryEnabled,
+      allMembersCommittee,
+    ] = await contract.read.config();
 
     return c.json({
-      contributionAmount: config.contributionAmount.toString(),
-      cycleLength: Number(config.cycleLength),
-      payoutAmount: config.payoutAmount.toString(),
-      payoutPolicy: ["none", "rotating", "lump_sum_end"][Number(config.payoutPolicy)] as
+      contributionAmount: contributionAmount.toString(),
+      cycleLength: Number(cycleLength),
+      payoutAmount: payoutAmount.toString(),
+      payoutPolicy: ["none", "rotating", "lump_sum_end"][payoutPolicy] as
         | "none"
         | "rotating"
         | "lump_sum_end",
-      penaltyRateBps: Number(config.penaltyRateBps),
-      approvalThresholdBps: Number(config.approvalThresholdBps),
-      loansEnabled: config.loansEnabled,
-      discretionaryEnabled: config.discretionaryEnabled,
-      allMembersCommittee: config.allMembersCommittee,
-      // oxlint-disable-next-line typescript/no-explicit-any
-    } as any);
+      penaltyRateBps,
+      approvalThresholdBps,
+      loansEnabled,
+      discretionaryEnabled,
+      allMembersCommittee,
+    });
   })
   .openapi(getCycleRoute, async (c) => {
     const { group } = c.req.valid("param");

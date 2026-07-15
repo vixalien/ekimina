@@ -31,17 +31,20 @@ function SectionLabel({ label, showBadge }: { label: string; showBadge?: boolean
 
 export default function ActivityTab(): JSX.Element {
   const { activeGroupId } = useStore($activeGroup);
-  const { data, isLoading } = useSWR(activeGroupId ? `activity:${activeGroupId}` : null, () =>
-    Promise.all([
-      api.groups.getPendingRequests(activeGroupId!),
-      api.groups.getOutstandingLoans(activeGroupId!),
-      api.groups.getRecentTransactions(activeGroupId!, 5),
-    ]),
+  const { data: pendingRequests = [] } = useSWR(
+    activeGroupId ? `activity-pending:${activeGroupId}` : null,
+    () => api.groups.getPendingRequests(activeGroupId!),
+  );
+  const { data: loans = [] } = useSWR(
+    activeGroupId ? `activity-loans:${activeGroupId}` : null,
+    () => api.groups.getOutstandingLoans(activeGroupId!),
+  );
+  const { data: transactions = [] } = useSWR(
+    activeGroupId ? `activity-txns:${activeGroupId}` : null,
+    () => api.groups.getRecentTransactions(activeGroupId!, 5),
   );
 
-  const pendingRequests = data?.[0] ?? [];
-  const loans = data?.[1] ?? [];
-  const transactions = data?.[2] ?? [];
+  const isLoading = !pendingRequests && !loans && !transactions;
 
   return (
     <ScreenContainer>

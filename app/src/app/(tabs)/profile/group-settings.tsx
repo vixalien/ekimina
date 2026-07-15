@@ -23,6 +23,7 @@ import { SettingsModal } from "@/components/settings/settings-modal";
 import { AppText } from "@/components/ui/app-text";
 import { Header } from "@/components/ui/header";
 import { ScreenContainer } from "@/components/ui/screen-container";
+import { formatRWF, initialsOf } from "@/lib/strings";
 import { $activeGroup } from "@/stores/active-group";
 import { $auth } from "@/stores/auth";
 
@@ -40,13 +41,13 @@ function buildRows(s: GroupSettings): SettingsRow[] {
     {
       field: "contribution_amount",
       label: "Contribution amount",
-      value: `${s.contributionAmount.toLocaleString()} RWF / cycle`,
+      value: `${formatRWF(s.contributionAmount)} / cycle`,
       rawValue: s.contributionAmount,
     },
     {
       field: "cycle_length",
       label: "Cycle length",
-      value: `${s.cycleLength} days`,
+      value: formatCycleLength(s.cycleLength * 60 * 24 * 30),
       rawValue: s.cycleLength,
     },
     {
@@ -58,7 +59,7 @@ function buildRows(s: GroupSettings): SettingsRow[] {
     {
       field: "payout_amount",
       label: "Payout amount",
-      value: `${s.payoutAmount.toLocaleString()} RWF / cycle`,
+      value: `${formatRWF(s.payoutAmount)} / cycle`,
       rawValue: s.payoutAmount,
     },
     {
@@ -94,6 +95,13 @@ function buildRows(s: GroupSettings): SettingsRow[] {
   ];
 }
 
+function formatCycleLength(days: number): string {
+  if (days < 1 / 1440) return `${Math.round(days * 86400)}s`;
+  if (days < 1 / 24) return `${Math.round(days * 1440)}min`;
+  if (days < 1) return `${(days * 24).toFixed(1)}h`;
+  return `${days}d`;
+}
+
 function formatThreshold(v: number): string {
   if (v === 0.5) return "1 of 2";
   if (v >= 1) return "All";
@@ -108,22 +116,18 @@ export default function GroupSettingsScreen(): JSX.Element {
   const [modalOpen, setModalOpen] = useState(false);
   const [activeField, setActiveField] = useState<SettingsRow | null>(null);
 
-  const { data: settingsData, isLoading } = useSWR(
-    activeGroupId && auth?.id ? `group-settings:${activeGroupId}` : null,
-    () =>
-      Promise.all([
-        api.groups.getGroupSettings(activeGroupId!),
-        api.groups.getMemberDetail(activeGroupId!, auth!.id, auth!.id),
-        api.groups.getGroupDetails(activeGroupId!),
-      ]),
+  const { data: settings } = useSWR(activeGroupId ? `group-settings:${activeGroupId}` : null, () =>
+    api.groups.getGroupSettings(activeGroupId!),
+  );
+  const { data: memberDetail } = useSWR(
+    activeGroupId && auth?.id ? `group-member-detail:${activeGroupId}:${auth.id}` : null,
+    () => api.groups.getMemberDetail(activeGroupId!, auth!.id, auth!.id),
   );
 
-  const settings = settingsData?.[0] ?? null;
-  const memberDetail = settingsData?.[1] ?? null;
-  const group = settingsData?.[2] ?? null;
+  const isLoading = !settings;
 
-  const groupName = (group?.name as string) ?? "";
-  const groupInitials = (group?.avatarInitials as string) ?? "";
+  const groupName = settings?.name ?? "";
+  const groupInitials = initialsOf(groupName);
   const groupCreatedAt = new Date().toLocaleDateString("en-RW", {
     year: "numeric",
     month: "long",

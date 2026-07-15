@@ -11,6 +11,8 @@ export default defineConfig({
         "app/src/stores/**",
         "app/src/lib/**",
       ],
+      exclude: ["**/*.sql"],
+      reporter: ["text-summary"],
     },
   },
 });
