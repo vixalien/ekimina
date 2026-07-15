@@ -172,6 +172,20 @@ export default function ProfileTab(): JSX.Element {
                 <PressableFeedback.Ripple />
               </PressableFeedback>
             </ListGroup>
+
+            <ListGroup>
+              <PressableFeedback animation={false} onPress={handleLogout}>
+                <PressableFeedback.Scale>
+                  <ListGroup.Item>
+                    <ListGroup.ItemContent>
+                      <ListGroup.ItemTitle className="text-danger">Log out</ListGroup.ItemTitle>
+                    </ListGroup.ItemContent>
+                    <StyledIonicons name="log-out-outline" size={16} className="text-danger" />
+                  </ListGroup.Item>
+                </PressableFeedback.Scale>
+                <PressableFeedback.Ripple />
+              </PressableFeedback>
+            </ListGroup>
           </View>
         </ScrollView>
       </ScrollShadow>
