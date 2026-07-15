@@ -1,3 +1,7 @@
+import { readFileSync } from "node:fs";
+import { resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import type { Address } from "@ekimina/types";
 
 import { serve } from "@hono/node-server";
@@ -115,11 +119,11 @@ serve({ fetch: app.fetch, port: 3000 }, async () => {
   } else {
     console.log("[bootstrap] No FACTORY_ADDRESS env var. Using local.json.");
 
-    const mod = await import("../../local.json");
-    FACTORY_ADDRESS = mod.default.FACTORY_ADDRESS as Address;
-
     const tryRead = async () => {
       try {
+        const __dirname = dirname(fileURLToPath(import.meta.url));
+        const raw = readFileSync(resolve(__dirname, "../../local.json"), "utf-8");
+        FACTORY_ADDRESS = JSON.parse(raw).FACTORY_ADDRESS as Address;
         setFactoryAddress(FACTORY_ADDRESS);
         startIndexer().catch(console.error);
         await loadNames();
