@@ -26,12 +26,12 @@ async function navigateAfterAuth(result: { status: string; user: { address: stri
   const address = result.user.address as Address;
   const memberships = await api.groups.myGroups(address);
 
+  console.log("got result", result, memberships);
+
   if (memberships.length === 0) {
     nav.onboarding.toJoinOrCreate();
-  } else if (memberships.length === 1) {
+  } else if (memberships.length >= 1) {
     nav.toTabs();
-  } else {
-    nav.onboarding.toJoinOrCreate();
   }
 }
 
