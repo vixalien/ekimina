@@ -75,6 +75,10 @@ async function populateDemoData() {
   await advanceCycle(g0Addr);
   console.log("    Advanced to cycle 4");
 
+  // Cycle 4: 3 contribute (Diane + Eric still pending)
+  await seedCycle(g0, g0Addr, adminToken, 4, { skipMemberIndices: [3, 4] });
+  console.log("    Cycle 4: 3/5 paid");
+
   // Discretionary proposal (10 USDm to Marie) — approve & execute
   const discId = await createDiscretionaryProposal(g0, g0Addr, 0, 1, 10n * E18);
   if (discId) {
@@ -175,6 +179,10 @@ async function populateDemoData() {
 
   // Advance to cycle 4
   await advanceCycle(g1Addr);
+
+  // Cycle 4: 4 contribute (Grace + Beatrice still pending)
+  await seedCycle(g1, g1Addr, adminToken, 4, { skipMemberIndices: [2, 5] });
+  console.log("    Cycle 4: 4/6 paid");
 
   // Loan #1 (Alice borrows 15 USDm) — approved & disbursed
   const gl1Id = await createLoanProposal(g1, g1Addr, 0, 1, 15n * E18, LOAN_INTEREST_BPS, 2);
