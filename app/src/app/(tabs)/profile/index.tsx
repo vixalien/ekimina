@@ -5,6 +5,7 @@ import { useStore } from "@nanostores/react";
 import { LinearGradient } from "expo-linear-gradient";
 import {
   BottomSheet,
+  Button,
   ControlField,
   Description,
   Label,
@@ -48,6 +49,11 @@ export default function ProfileTab(): JSX.Element {
     if (profile) setNotificationsEnabled(profile.notificationsEnabled);
   }, [profile]);
 
+  const handleLogout = useCallback(() => {
+    // clearAuth();
+    nav.toWelcome();
+  }, []);
+
   const handleNotificationsToggle = useCallback(
     (value: boolean) => {
       setNotificationsEnabled(value);
@@ -73,8 +79,13 @@ export default function ProfileTab(): JSX.Element {
     return (
       <ScreenContainer>
         <Header title="Profile" canGoBack={false} />
-        <View className="flex-1 items-center justify-center">
-          <AppText className="text-muted text-base">Failed to load profile: {error}</AppText>
+        <View className="flex-1 items-center justify-center px-6 gap-6">
+          <AppText className="text-muted text-base text-center">
+            Failed to load profile{error ? `: ${error}` : ""}
+          </AppText>
+          <Button variant="danger" onPress={handleLogout}>
+            <Button.Label>Log out</Button.Label>
+          </Button>
         </View>
       </ScreenContainer>
     );
