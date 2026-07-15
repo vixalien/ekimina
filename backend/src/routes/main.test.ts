@@ -33,6 +33,11 @@ vi.mock("../lib/indexer.js", () => ({
   getCachedCycle: vi.fn().mockResolvedValue(null),
 }));
 
+vi.mock("../lib/event-indexer.js", () => ({
+  getTransactions: vi.fn().mockResolvedValue([]),
+  getTransactionDetail: vi.fn().mockResolvedValue(null),
+}));
+
 import * as contracts from "@ekimina/contracts";
 
 import * as contract from "../lib/contract-data.js";

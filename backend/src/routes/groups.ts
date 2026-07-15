@@ -3,6 +3,7 @@ import type { Address } from "@ekimina/types";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 
 import * as contract from "../lib/contract-data.js";
+import * as eventIndexer from "../lib/event-indexer.js";
 import {
   committeeMemberSchema,
   dashboardSchema,
@@ -322,10 +323,15 @@ export default new OpenAPIHono()
     return c.json(data);
   })
   .openapi(transactionsRoute, async (c) => {
-    return c.json([]);
+    const { group } = c.req.valid("param");
+    const data = await eventIndexer.getTransactions(group as Address);
+    return c.json(data);
   })
   .openapi(transactionDetailRoute, async (c) => {
-    return c.json({} as never);
+    const { group, id } = c.req.valid("param");
+    const data = await eventIndexer.getTransactionDetail(group as Address, id);
+    if (!data) return c.json({ error: "not found" }, 404) as never;
+    return c.json(data);
   })
   .openapi(loansRoute, async (c) => {
     const { group } = c.req.valid("param");
