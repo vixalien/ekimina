@@ -35,7 +35,7 @@ async function populateDemoData() {
   console.log("Deploying groups...");
   const created = await deployAllGroups(factoryAddr);
 
-  // ---------- Group 0: Umugongo W'Abaturage ----------
+  // ---------- Group 0: Abishyizehamwe ----------
   const g0 = GROUPS[0];
   const g0Addr = created[0];
   const g0Members = g0.memberAddresses;

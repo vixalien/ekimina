@@ -11,6 +11,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
+    "db:reset": "tsx src/lib/db/reset.ts",
     "db:seed": "tsx src/lib/db/seed/index.ts"
   },
   "dependencies": {
@@ -28,6 +29,7 @@
   "devDependencies": {
     "@types/node": "^22.19.19",
     "drizzle-kit": "^0.31.10",
+    "drizzle-seed": "^0.3.1",
     "tsdown": "^0.22.3",
     "tsx": "^4.22.4",
     "typescript": "~6.0.3"

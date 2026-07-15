@@ -57,7 +57,7 @@ describe("GET /users/{address}/groups", () => {
     const creator = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266" as const;
     const meta: GroupMeta = {
       address: addr,
-      name: "Umugongo W'Abaturage",
+      name: "Abishyizehamwe",
       inviteCode: "AB3K9F",
       createdAt: "2026-01-15T00:00:00.000Z",
       creator,
@@ -69,7 +69,7 @@ describe("GET /users/{address}/groups", () => {
     expect(res.status).toBe(200);
     const body = (await res.json()) as GroupMeta[];
     expect(body).toHaveLength(1);
-    expect(body[0]?.name).toBe("Umugongo W'Abaturage");
+    expect(body[0]?.name).toBe("Abishyizehamwe");
     expect(body[0]?.address).toBe(addr);
   });
 

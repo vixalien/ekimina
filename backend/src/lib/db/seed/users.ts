@@ -11,7 +11,7 @@ export async function seedUsers() {
     await db
       .insert(users)
       .values({
-        id: `seed-${address}`,
+        id: address,
         address,
         name,
         phone,
