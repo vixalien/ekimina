@@ -8,6 +8,7 @@ import type {
   SentInvite,
   OutstandingLoan,
   PublicGroup,
+  PendingRequestType,
 } from "@ekimina/types";
 
 import { getIkiminaContract, getFactoryContract } from "@ekimina/contracts";
@@ -73,11 +74,16 @@ export async function getDashboard(groupAddr: Address) {
 
 export async function getMembers(groupAddr: Address, query?: string) {
   const c = r(groupAddr);
+  const allLoans = await getLoans(groupAddr);
   const result: MemberListItem[] = [];
   for (const addr of await c.memberList()) {
     if (!(await c.isActive([addr]))) continue;
     const n = nameOf(addr);
     if (query && !n.name.toLowerCase().includes(query.toLowerCase())) continue;
+    const memberLoans = allLoans.filter(
+      (l: any) => l.borrower === addr && (l.state === 0n || l.state === 1n),
+    );
+    const totalActive = memberLoans.reduce((s: bigint, l: any) => s + l.totalOwed, 0n);
     result.push({
       userId: addr,
       name: n.name,
@@ -85,7 +91,7 @@ export async function getMembers(groupAddr: Address, query?: string) {
       address: addr,
       status: "no_status" as const,
       reputation: 75,
-      activeLoanAmount: null,
+      activeLoanAmount: memberLoans.length > 0 ? toAmount(totalActive) : null,
       penaltyCount: 0,
     });
   }
@@ -121,6 +127,9 @@ export async function getMemberDetail(groupAddr: Address, userId: string) {
     }
   }
 
+  const rawLoans = await getLoans(groupAddr, addr);
+  const activeStates = [0, 1];
+
   return {
     userId: addr,
     name: n.name,
@@ -130,25 +139,91 @@ export async function getMemberDetail(groupAddr: Address, userId: string) {
     reputation: 75,
     onTimeContributions: onTime,
     totalContributions: history.length,
-    activeLoanCount: 0,
+    activeLoanCount: rawLoans.filter((l: any) => activeStates.includes(Number(l.state))).length,
     penaltyCount: history.filter((h) => h.status === "missed").length,
     contributionHistory: history,
-    loans: [],
+    loans: rawLoans.map((l: any) => ({
+      id: String(l.id),
+      amount: toAmount(l.totalOwed),
+      state: ["disbursed", "repaying", "repaid", "defaulted"][Number(l.state)] ?? "unknown",
+    })),
     isCommitteeMember: isComm,
   };
 }
 
-export async function getLoans(groupAddr: Address) {
+export async function getLoans(groupAddr: Address, borrower?: Address) {
   const c = r(groupAddr);
   const count = Number(await c.loanCount());
   // oxlint-disable-next-line typescript/no-explicit-any
   const loans: any[] = [];
-  for (let i = 1; i <= count; i++) loans.push(await c.getLoan([BigInt(i)]));
+  for (let i = 1; i <= count; i++) {
+    const loan = await c.getLoan([BigInt(i)]);
+    if (borrower && loan.borrower !== borrower) continue;
+    loans.push(loan);
+  }
   return loans;
 }
 
 export async function getLoanDetail(groupAddr: Address, loanId: string) {
-  return r(groupAddr).getLoan([BigInt(loanId)]);
+  const c = r(groupAddr);
+  const loan = await c.getLoan([BigInt(loanId)]);
+  if (!loan || !loan.borrower) return null;
+
+  const n = nameOf(loan.borrower);
+  let borrowerJoinedCycle = 1;
+  try {
+    borrowerJoinedCycle = Number(await c.joinedCycle([loan.borrower]));
+  } catch {
+    /* ok */
+  }
+
+  const base = {
+    loanId,
+    borrowerName: n.name,
+    borrowerInitials: n.initials,
+    borrowerUserId: loan.borrower,
+    borrowerRole: "member" as const,
+    borrowerJoinedCycle,
+    amount: toAmount(loan.principal),
+    interestRate: Number(loan.interestBps) / 100,
+    purpose: "",
+    deadline: new Date(Number(loan.dueCycle) * 2592000 * 1000).toISOString(),
+  };
+
+  const state = Number(loan.state);
+  if (state === 0) {
+    return {
+      ...base,
+      currentState: "disbursed" as const,
+      totalOwed: toAmount(loan.totalOwed),
+      amountPaid: toAmount(loan.amountPaid),
+      disbursedAt: new Date().toISOString(),
+      disbursementTransactionId: "",
+    };
+  }
+  if (state === 1) {
+    return {
+      ...base,
+      currentState: "repaying" as const,
+      totalOwed: toAmount(loan.totalOwed),
+      amountPaid: toAmount(loan.amountPaid),
+    };
+  }
+  if (state === 2) {
+    return {
+      ...base,
+      currentState: "repaid" as const,
+      totalOwed: toAmount(loan.totalOwed),
+      completedAt: new Date().toISOString(),
+    };
+  }
+  return {
+    ...base,
+    currentState: "defaulted" as const,
+    amountPaidBeforeDefault: toAmount(loan.amountPaid),
+    remainingBalance: toAmount(loan.totalOwed - loan.amountPaid),
+    reputationImpact: 15,
+  };
 }
 
 export async function getLoanReview(groupAddr: Address, loanId: string, _userId?: string) {
@@ -288,19 +363,28 @@ export async function getProposalDetail(groupAddr: Address, id: string) {
 
 export async function getPendingRequests(groupAddr: Address) {
   const proposals = await getProposals(groupAddr);
+  const sigThreshold = Number(await r(groupAddr).neededApprovals());
+  // oxlint-disable-next-line typescript/no-explicit-any
+  const kindToType: string[] = [
+    "loan_request",
+    "discretionary_fund",
+    "settings_change",
+    "member_withdrawal",
+    "loan_request",
+  ];
   return (
     proposals
       // oxlint-disable-next-line typescript/no-explicit-any
-      .filter((p: any) => p[5] === BigInt(0))
+      .filter((p: any) => Number(p[6]) === 0)
       // oxlint-disable-next-line typescript/no-explicit-any
       .map((p: any) => ({
         id: String(p[0]),
-        type: "loan_request" as const,
+        type: (kindToType[Number(p[1])] ?? "loan_request") as PendingRequestType,
         subject:
           ["Loan", "Discretionary", "Settings", "MemberExit", "Dissolve"][Number(p[1])] ??
           "Proposal",
         signatureCount: Number(p[4]),
-        signatureThreshold: Number(p[5]) + Number(p[4]) + 1,
+        signatureThreshold: sigThreshold,
         timestamp: new Date(Number(p[7]) * 1000).toISOString(),
       }))
   );
@@ -323,7 +407,7 @@ export async function getOutstandingLoans(groupAddr: Address) {
   const loans: OutstandingLoan[] = [];
   for (let i = 1; i <= count; i++) {
     const loan = await c.getLoan([BigInt(i)]);
-    if (!loan.borrower || loan.state !== 1) continue;
+    if (!loan.borrower || (Number(loan.state) !== 0 && Number(loan.state) !== 1)) continue;
     const n = nameOf(loan.borrower);
     loans.push({
       loanId: String(i),

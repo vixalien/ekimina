@@ -14,6 +14,7 @@ import {
   loanReviewSchema,
   memberDetailSchema,
   memberListItemSchema,
+  outstandingLoanSchema,
   pendingRequestSchema,
   reserveDetailSchema,
   transactionSchema,
@@ -131,6 +132,20 @@ const loansRoute = createRoute({
     200: {
       content: { "application/json": { schema: z.any() } },
       description: "Loans",
+    },
+    ...errorResponses,
+  },
+});
+
+const outstandingLoansRoute = createRoute({
+  method: "get",
+  path: "/groups/{group}/loans/outstanding",
+  tags: ["Groups"],
+  request: { params: z.object({ group: z.string() }) },
+  responses: {
+    200: {
+      content: { "application/json": { schema: z.array(outstandingLoanSchema) } },
+      description: "Outstanding loans",
     },
     ...errorResponses,
   },
@@ -335,8 +350,13 @@ export default new OpenAPIHono()
   })
   .openapi(loansRoute, async (c) => {
     const { group } = c.req.valid("param");
-    const data = await contract.getLoans(group as Address);
+    const { borrower } = c.req.valid("query");
+    const data = await contract.getLoans(group as Address, borrower as Address | undefined);
     return c.json(data);
+  })
+  .openapi(outstandingLoansRoute, async (c) => {
+    const { group } = c.req.valid("param");
+    return c.json(await contract.getOutstandingLoans(group as Address));
   })
   .openapi(loanDetailRoute, async (c) => {
     const { group, id } = c.req.valid("param");

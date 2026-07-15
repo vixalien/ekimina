@@ -2,6 +2,10 @@ import { readFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
+(BigInt.prototype as unknown as Record<string, unknown>).toJSON = function () {
+  return this.toString();
+};
+
 import type { Address } from "@ekimina/types";
 
 import { serve } from "@hono/node-server";

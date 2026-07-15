@@ -251,9 +251,8 @@ const groupReads: DataClient["groups"] = {
   },
 
   async getOutstandingLoans(group) {
-    const res = await client.groups[":group"].loans.$get({
+    const res = await client.groups[":group"].loans.outstanding.$get({
       param: { group },
-      query: {},
     });
     return handleRes<OutstandingLoan[]>(res);
   },

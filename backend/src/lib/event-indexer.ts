@@ -167,14 +167,64 @@ export async function getTransactions(groupAddr: Address): Promise<Transaction[]
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 }
 
-export async function getTransactionDetail(
-  groupAddr: Address,
-  id: string,
-): Promise<Transaction | null> {
+function buildDetail(e: RawEvent) {
+  const base = buildTx(e);
+  const memberId = getMemberId(e.eventName, e.args);
+  const n = nameOf(memberId);
+
+  switch (e.eventName) {
+    case "ContributionMade":
+      return {
+        ...base,
+        fromName: n.name,
+        method: "Mobile Money",
+        referenceId: `MM${base.cycle}.${String(e.blockNumber).slice(-4)}`,
+      };
+    case "PayoutReleased":
+      return {
+        ...base,
+        toName: n.name,
+        source: "Group reserve",
+        method: "Mobile Money",
+      };
+    case "PenaltyApplied":
+      return {
+        ...base,
+        reason: "Missed contribution",
+        appliedBy: "System (automatic)",
+      };
+    case "LoanDisbursed":
+      return {
+        ...base,
+        toName: n.name,
+        method: "Mobile Money",
+      };
+    case "LoanRepaid":
+      return {
+        ...base,
+        installmentNumber: 1,
+        totalInstallments: 1,
+        method: "Mobile Money",
+        linkedLoanId: String(e.args.loanId ?? ""),
+      };
+    case "DiscretionaryDisbursed":
+      return {
+        ...base,
+        category: "operations",
+        counterparty: n.name,
+        reason: "Group expense",
+        approvedBy: "Committee",
+      };
+    default:
+      return base;
+  }
+}
+
+export async function getTransactionDetail(groupAddr: Address, id: string) {
   const [txHash, logIdxStr] = id.split(":");
   const logIdx = Number(logIdxStr);
 
   const events = await fetchEvents(groupAddr);
   const match = events.find((e) => e.transactionHash === txHash && e.logIndex === logIdx);
-  return match ? buildTx(match) : null;
+  return match ? buildDetail(match) : null;
 }
