@@ -7,5 +7,5 @@ export function initialsOf(name: string): string {
 }
 
 export function formatRWF(amount: number): string {
-  return `${amount.toLocaleString()} RWF`;
+  return `${(amount * 1000).toLocaleString()} RWF`;
 }
