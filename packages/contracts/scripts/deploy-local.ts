@@ -6,7 +6,7 @@ import { createPublicClient, createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const localJSON = resolve(__dirname, "..", "..", "local.json");
+const localJSON = resolve(__dirname, "..", "..", "..", "local.json");
 
 const HARDHAT_CHAIN_ID = 31337;
 const anvil = {

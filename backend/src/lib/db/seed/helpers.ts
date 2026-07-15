@@ -53,14 +53,14 @@ export const DEV_CONFIG: [
 
 export function resolveFactoryAddress(): Address {
   if (process.env.FACTORY_ADDRESS) return process.env.FACTORY_ADDRESS as Address;
-  const root = resolve(__dirname, "../../../../..");
-  const candidates = [resolve(root, "local.json"), resolve(root, "packages/contracts/local.json")];
-  for (const p of candidates) {
-    try {
-      return JSON.parse(readFileSync(p, "utf-8")).FACTORY_ADDRESS;
-    } catch {}
+  const p = resolve(__dirname, "../../../../..", "local.json");
+  try {
+    return JSON.parse(readFileSync(p, "utf-8")).FACTORY_ADDRESS;
+  } catch {
+    throw new Error(
+      "FACTORY_ADDRESS not set and local.json not found. Run `pnpm dev:deploy` first.",
+    );
   }
-  throw new Error("FACTORY_ADDRESS not set and local.json not found. Run `pnpm dev:deploy` first.");
 }
 
 export function makeWallet(addr: string) {
